@@ -20,6 +20,9 @@
 
 ‼️‼️YouTrack работает только с включенным VPN (например: Яндекс браузер + включенное расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno))
 
+### Презентация проекта
+- [Презентация ТЗ]()
+
 ### Дизайн
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
 - [UI-kit](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=254-73&p=f&t=XRd87ECZqD4rgfUQ-0)
