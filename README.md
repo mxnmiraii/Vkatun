@@ -23,3 +23,12 @@
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
 - [UI-kit](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=254-73&p=f&t=XRd87ECZqD4rgfUQ-0)
 - [Брендбук](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=333-447&p=f&t=wHDNTzDABKBTHcAA-0)
+
+### Диаграммы
+- [Диаграммы приложения](https://miro.com/app/board/uXjVIZbfiP8=/)
+
+### Документация
+- [Схема API]()
+
+### Дополительная документация
+- [Правила ведения и отслеживания задач в проекте в YouTrack](https://codenest.youtrack.cloud/articles/VN-A-4/Pravila-vedeniya-i-otslezhivaniya-zadach-v-proekte)
