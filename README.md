@@ -22,6 +22,8 @@
 
 ‼️‼️YouTrack работает только с включенным VPN (например: Яндекс браузер + включенное расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno))
 
+### Контроль качества
+
 ### Презентация проекта
 - [Презентация ТЗ]()
 
