@@ -32,7 +32,7 @@
 - [Диаграммы приложения](https://miro.com/app/board/uXjVIZbfiP8=/)
 
 ### Документация
-- [Схема API]()
+- [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/2a2d079f3c8b6a31c9ab8a21cb4f0154/raw/a262090b82d02699cd9801e36867a1b5982bbbe8/swagger.yaml)
 
 ### Дополительная документация
 
