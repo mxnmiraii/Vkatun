@@ -48,9 +48,9 @@
 
 
 ### Документация
+- Техническое задание [(DOCX)](Документация/tz.docx) [(PDF)](Документация/tz.pdf)
 - [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/2a2d079f3c8b6a31c9ab8a21cb4f0154/raw/ce795c8814f8c2e2de2ad939d3f3e73d6b95064d/swagger.yaml)
 
 ### Дополительная документация
-
 - [Git Flow](https://codenest.youtrack.cloud/articles/VN-A-20/Git-Flow)
 - [Правила ведения и отслеживания задач в проекте в YouTrack](https://codenest.youtrack.cloud/articles/VN-A-4/Pravila-vedeniya-i-otslezhivaniya-zadach-v-proekte)
