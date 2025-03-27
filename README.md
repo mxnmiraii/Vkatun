@@ -15,6 +15,13 @@
 
 Наименование приложения - «Vkatun».
 
+### Технологический стек
+![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
+![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
+
 ### Сервисы командной разработки
   - [Miro](https://miro.com/app/board/uXjVIZbfiP8=/?share_link_id=647696783087)
   - [Figma](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Untitled?node-id=1-4237&t=wZMH8RiMSeA4Ttob-0)
