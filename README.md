@@ -27,12 +27,12 @@
   - [Figma](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Untitled?node-id=1-4237&t=wZMH8RiMSeA4Ttob-0)
   - [YouTrack](https://codenest.youtrack.cloud/projects/0-1)
 
-‼️‼️YouTrack работает только с включенным VPN (например: Яндекс браузер + включенное расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno))
+‼️‼️YouTrack работает только с включенным VPN (например: Яндекс Браузер + включенное расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno))
 
 ### Контроль качества
 
 ### Презентация проекта
-- [Презентация ТЗ]()
+- Презентация ТЗ [(PPTX)](Презентация/presentation.pptx) [(PDF)](Презентация/presentation.pdf)
 
 ### Дизайн
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
