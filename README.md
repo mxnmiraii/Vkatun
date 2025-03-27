@@ -33,7 +33,12 @@
 - [Брендбук](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=333-447&p=f&t=wHDNTzDABKBTHcAA-0)
 
 ### Диаграммы
-- [Диаграммы приложения](https://miro.com/app/board/uXjVIZbfiP8=/)
+- [Физическая модель базы данных](Диаграммы/физическая-модель-базы-данных.jpg)
+- [Диаграмма состояний](Диаграммы/диаграмма-состояний.jpg)
+- [Диаграмма развертывания](Диаграммы/диаграмма-развертывания.jpg)
+- [Диаграмма прецедентов](Диаграммы/диаграмма-прецедентов.jpg)
+- [Диаграмма активности (загрузка резюме в приложение)](Диаграммы/диаграмма-активности.jpg)
+
 
 ### Документация
 - [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/2a2d079f3c8b6a31c9ab8a21cb4f0154/raw/ce795c8814f8c2e2de2ad939d3f3e73d6b95064d/swagger.yaml)
