@@ -55,3 +55,4 @@
 ### Дополительная документация
 - [Git Flow](https://codenest.youtrack.cloud/articles/VN-A-20/Git-Flow)
 - [Правила ведения и отслеживания задач в проекте в YouTrack](https://codenest.youtrack.cloud/articles/VN-A-4/Pravila-vedeniya-i-otslezhivaniya-zadach-v-proekte)
+#### Еженедельные отчеты
