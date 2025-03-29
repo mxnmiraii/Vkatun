@@ -33,7 +33,7 @@
 
 ### Презентация проекта
 - Презентация ТЗ [(PPTX)](Презентация/Prezentatsia_TZ.pptx) [(PDF)](Презентация/Prezentatsia_TZ.pdf)
-- Видеопрезентация ТЗ [(RUTUBE)](https://rutube.ru/video/private/3c0e9de7d92ac7ebda9804550b364ebd/?p=hv3IekukB4aPObXwoDHPuw)
+- Видеопрезентация ТЗ [(RUTUBE)](https://rutube.ru/video/private/3c0e9de7d92ac7ebda9804550b364ebd/?p=hv3IekukB4aPObXwoDHPuw) [(Yandex Disk)](https://disk.yandex.ru/d/E_T4DeLgdld4Gg)
 
 ### Дизайн
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
