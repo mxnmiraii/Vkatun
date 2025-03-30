@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="Vkatun banner" />
+</p>
+
 # <img src="assets/logo.png" alt="Vkatun Logo" width="32" style="vertical-align:middle;"/> Vkatun
 
 ## 👨‍💻 ТП-8-1
