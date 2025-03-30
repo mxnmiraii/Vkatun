@@ -29,8 +29,6 @@
 
 ‼️‼️YouTrack работает только с включенным VPN (например: Яндекс Браузер + включенное расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno))
 
-### Контроль качества
-
 ### Презентация проекта
 - Презентация ТЗ [(PPTX)](Презентация/Prezentatsia_TZ.pptx) [(PDF)](Презентация/Prezentatsia_TZ.pdf)
 - Видеопрезентация ТЗ [(RUTUBE)](https://rutube.ru/video/private/3c0e9de7d92ac7ebda9804550b364ebd/?p=hv3IekukB4aPObXwoDHPuw) [(Yandex Disk)](https://disk.yandex.ru/d/E_T4DeLgdld4Gg)
@@ -41,13 +39,20 @@
 - [Брендбук](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=333-447&p=f&t=wHDNTzDABKBTHcAA-0)
 
 ### Диаграммы
-- [Диаграмма базы данных](Диаграммы/физическая-модель-базы-данных.jpg)
+- [Диаграмма сущностей](Диаграммы/физическая-модель-базы-данных.jpg)
 - [Диаграмма состояний](Диаграммы/диаграмма-состояний.jpg)
 - [Диаграмма компонентов и их взаимодействие](Диаграммы/диаграмма-компонентов-и-их-взаимодействие.jpg)
 - [Диаграмма прецедентов](Диаграммы/диаграмма-прецедентов.jpg)
 - [Диаграмма активности (загрузка резюме в приложение)](Диаграммы/диаграмма-активности-загрузка-резюме-в-приложение.jpg)
 - [Диаграмма активности (просмотр и внедрение рекомендаций ИИ)](Диаграммы/диаграмма-активности-просмотр-и-внедрение-рекомендаций-ии.jpg)
 
+### Контроль качества
+- [Чек-лист проверки команд]()
+#### Кто нас оценивал?
+- [1 группа 4 команда](https://github.com/Dodger0072/Programming-technologies-project/tree/main)
+- [8 группа 2 команда](https://github.com/Lime228/TPProject/tree/main)
+- [8 группа 3 команда](https://gitlab.com/rlwd/main)
+- [9 группа 3 команда](https://github.com/slash0t/travel-planner)
 
 ### Документация
 - Техническое задание [(DOCX)](Документация/Tekhnicheskoe_zadanie.docx) [(PDF)](Документация/Tekhnicheskoe_zadanie.pdf)
