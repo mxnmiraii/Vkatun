@@ -1,15 +1,27 @@
 package server
 
-import "vkatun/pkg/api"
+import (
+	"vkatun/config"
+	"vkatun/pkg/api"
+	"vkatun/pkg/db"
+	"vkatun/pkg/db/pgsql"
+)
 
 type Server struct {
 	api *api.API
+	db  db.DB
 }
 
 func New() (*Server, error) {
 	srv := new(Server)
 
-	srv.api = api.New()
+	database, err := pgsql.New(config.Postgres)
+	if err != nil {
+		return nil, err
+	}
+
+	srv.db = database
+	srv.api = api.New(srv.db)
 
 	return srv, nil
 }

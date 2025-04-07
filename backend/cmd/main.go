@@ -1,10 +1,15 @@
 package main
 
-import "vkatun/pkg/server"
+import (
+	"vkatun/config"
+	"vkatun/pkg/server"
+)
 
-const addr = ":3002"
+const addr = ":8080"
 
 func main() {
+	config.InitConfig()
+
 	s, _ := server.New()
 	s.Run(addr)
 }
