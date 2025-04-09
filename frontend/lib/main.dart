@@ -15,7 +15,8 @@ class MyApp extends StatelessWidget {
         body: Center(
           child: Text('Help', style: TextStyle(
             fontFamily: 'Playfair',
-            fontSize: 28,
+            fontWeight: FontWeight.w300,
+            fontSize: 24,
             color: Colors.deepPurple,
           ),),
         ),
