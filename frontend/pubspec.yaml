@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_svg: ^2.0.17
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -56,18 +57,21 @@ flutter:
   fonts:
     - family: Playfair
       fonts:
-        - asset: fonts/playfair-display-regular.ttf
+        - asset: assets/fonts/playfair-display-regular.ttf
           weight: 400
-        - asset: fonts/playfair-display-medium.ttf
+        - asset: assets/fonts/playfair-display-medium.ttf
           weight: 500
-        - asset: fonts/Playfair-display-semiBold.ttf
+        - asset: assets/fonts/Playfair-display-semiBold.ttf
           weight: 600
-        - asset: fonts/Playfair-display-bold.ttf
+        - asset: assets/fonts/Playfair-display-bold.ttf
           weight: 700
-        - asset: fonts/Playfair-display-extraBold.ttf
+        - asset: assets/fonts/Playfair-display-extraBold.ttf
           weight: 800
 
     - family: NotoSans
       fonts:
-        - asset: fonts/NotoSansBengali-Light.ttf
+        - asset: assets/fonts/NotoSansBengali-Light.ttf
           weight: 300
+
+  assets:
+    - assets/images/
