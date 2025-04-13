@@ -26,3 +26,7 @@ const Color indigoBlack = Color(0xFF220C63);
 const Color deepIndigo = Color(0xFF160261);
 const Color cosmicBlue = Color(0xFF130058);
 
+// Дополнительные цвета, которые не указаны в UI kit, но используются в проекте
+// 1. Белый со степень прозрачности 75%
+const Color white75 = Color(0xBFFFFFFF);
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'resumes_page.dart';
+import 'package:vkatun/pages/start_page.dart';
+import 'pages/resumes_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const ResumesPage(),
+      home: const StartPage(),
     );
   }
 

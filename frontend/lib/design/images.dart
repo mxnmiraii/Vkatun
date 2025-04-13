@@ -1,7 +1,7 @@
 import 'package:flutter_svg/flutter_svg.dart';
 
 final SvgPicture accountIcon = SvgPicture.asset(
-    'assets/images/account_icon.svg'
+    'assets/images/account_icon.svg', width: 48.0, height: 48.0,
 );
 
 final SvgPicture addIcon = SvgPicture.asset(
@@ -53,4 +53,12 @@ final SvgPicture penIcon = SvgPicture.asset(
 
 final SvgPicture textAIcon = SvgPicture.asset(
     'assets/images/text_a_icon.svg'
+);
+
+final SvgPicture startSignUpImage = SvgPicture.asset(
+  'assets/images/sign_up.svg',
+);
+
+final SvgPicture arrowBackIcon = SvgPicture.asset(
+  'assets/images/arrow_back_icon.svg',
 );
