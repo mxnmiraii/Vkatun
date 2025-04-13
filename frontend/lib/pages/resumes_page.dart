@@ -43,7 +43,7 @@ class ResumesPage extends StatelessWidget {
       barrierDismissible: true,
       barrierColor: white75,
       barrierLabel: 'Close',
-      transitionDuration: const Duration(milliseconds: 500),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
       transitionBuilder: (ctx, anim1, anim2, child) {
         return SlideTransition(
           position: Tween(begin: const Offset(0, -1), end: const Offset(0, 0)).animate(anim1),
