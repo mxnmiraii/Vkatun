@@ -72,6 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         toolbarHeight: appBarHeight,
         title: Stack(
           alignment: Alignment.center,
@@ -81,7 +82,7 @@ class _RegisterPageState extends State<RegisterPage> {
               child: IconButton(
                 icon: arrowBackIcon,
                 onPressed: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => EntryPage()),
                   );

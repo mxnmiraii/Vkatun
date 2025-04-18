@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 const double bottom50 = 50;
+const double bottom35 = 35;
 const double buttonPaddingVertical = 17;
 const double buttonPaddingHorizontal = 24;
 const buttonPadding = EdgeInsets.symmetric(vertical: buttonPaddingVertical, horizontal: buttonPaddingHorizontal);

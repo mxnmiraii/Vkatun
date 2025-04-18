@@ -66,6 +66,7 @@ class _EntryPageState extends State<EntryPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         toolbarHeight: appBarHeight,
         title: Stack(
           alignment: Alignment.center,

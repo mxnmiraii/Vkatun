@@ -52,7 +52,7 @@ final SvgPicture penIcon = SvgPicture.asset(
 );
 
 final SvgPicture textAIcon = SvgPicture.asset(
-    'assets/images/text_a_icon.svg'
+    'assets/images/text_a_icon.svg',
 );
 
 final SvgPicture startSignUpImage = SvgPicture.asset(
@@ -61,4 +61,8 @@ final SvgPicture startSignUpImage = SvgPicture.asset(
 
 final SvgPicture arrowBackIcon = SvgPicture.asset(
   'assets/images/arrow_back_icon.svg',
+);
+
+final SvgPicture backIconWBg = SvgPicture.asset(
+  'assets/images/back_icon_without_bg.svg',
 );

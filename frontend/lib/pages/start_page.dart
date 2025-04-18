@@ -54,7 +54,7 @@ class StartPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: buttonPaddingHorizontal),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => EntryPage()),
                   );
