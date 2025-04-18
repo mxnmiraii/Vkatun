@@ -9,4 +9,4 @@ const borderRadius= 17.0;
 const buttonMargin = EdgeInsets.only(bottom: bottom50);
 const widthBorderRadius = 1.0;
 
-const timeShowAnimation = 500;
+const timeShowAnimation = 300;

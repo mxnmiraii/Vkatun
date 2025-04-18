@@ -26,7 +26,7 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
     super.initState();
     _rotationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: timeShowAnimation),
       upperBound: 0.125, // 45 градусов (0.125 * 2 * pi)
     );
   }
@@ -81,7 +81,7 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
       barrierDismissible: true,
       barrierColor: white75,
       barrierLabel: 'Close',
-      transitionDuration: const Duration(milliseconds: 300),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
       transitionBuilder: (ctx, anim1, anim2, child) {
         return SlideTransition(
           position: Tween(begin: const Offset(0, -1), end: const Offset(0, 0)).animate(anim1),

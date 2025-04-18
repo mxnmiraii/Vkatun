@@ -90,7 +90,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                               });
                             },
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: timeShowAnimation),
                               margin: const EdgeInsets.symmetric(horizontal: 8),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
