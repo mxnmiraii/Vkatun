@@ -17,7 +17,8 @@ class ResumeViewPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ResumeViewPageState();
 }
 
-class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProviderStateMixin {
+class _ResumeViewPageState extends State<ResumeViewPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _rotationController;
   bool _isDialogOpen = false;
 
@@ -46,32 +47,33 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
     late OverlayEntry buttonOverlayEntry;
 
     buttonOverlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        bottom: bottom35,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: Material(
-            color: Colors.transparent,
-            child: AnimatedBuilder(
-              animation: _rotationController,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: _rotationController.value * 2 * math.pi,
-                  child: IconButton(
-                    icon: addIcon,
-                    onPressed: () {
-                      buttonOverlayEntry.remove();
-                      _closeDialog();
-                    },
-                    iconSize: 36,
-                  ),
-                );
-              },
+      builder:
+          (context) => Positioned(
+            bottom: bottom35,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: AnimatedBuilder(
+                  animation: _rotationController,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: _rotationController.value * 2 * math.pi,
+                      child: IconButton(
+                        icon: addIcon,
+                        onPressed: () {
+                          buttonOverlayEntry.remove();
+                          _closeDialog();
+                        },
+                        iconSize: 36,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
     );
 
     Overlay.of(context).insert(buttonOverlayEntry);
@@ -84,7 +86,10 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
       transitionDuration: const Duration(milliseconds: timeShowAnimation),
       transitionBuilder: (ctx, anim1, anim2, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, -1), end: const Offset(0, 0)).animate(anim1),
+          position: Tween(
+            begin: const Offset(0, -1),
+            end: const Offset(0, 0),
+          ).animate(anim1),
           child: child,
         );
       },
@@ -160,10 +165,7 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
               textAlign: TextAlign.center,
             ),
 
-            Opacity(
-              opacity: 0,
-              child: backIconWBg,
-            ),
+            Opacity(opacity: 0, child: backIconWBg),
           ],
         ),
       ),
@@ -201,7 +203,8 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
             ),
 
             // Кнопка добавления опыта
-            if (widget.resume['experience'] == null || widget.resume['experience'].isEmpty)
+            if (widget.resume['experience'] == null ||
+                widget.resume['experience'].isEmpty)
               TextButton(
                 onPressed: () {
                   // Добавление опыта работы
@@ -258,39 +261,60 @@ class _ResumeViewPageState extends State<ResumeViewPage> with SingleTickerProvid
     required String title,
     required String content,
     required bool hasCheck,
+    // сюда добавляешь еще одну переменную, которая отвечает за то на какое окно будет переходить
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         Row(
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                fontFamily: 'Playfair',
-                color: Colors.black,
-                height: 1.0,
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'PlayFair',
+                      color: Colors.black,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    content,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'PlayFair',
+                      color: Colors.black,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 13),
+                ],
               ),
             ),
-            // if (hasCheck) const Icon(Icons.check, color: Colors.green),
+
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                onPressed: () {
+                  // Navigator.push...
+                },
+                icon: forwardIconWBg,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 15),
-        Text(content, style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w300,
-          fontFamily: 'NotoSans',
-          color: Colors.black,
-          height: 1.0,
-        )),
-        const SizedBox(height: 13),
-        const Divider(
-          color: lightGray,
-        ),
+
+        const Divider(color: lightGray),
       ],
     );
   }
 }
+
+// IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),

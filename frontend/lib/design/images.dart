@@ -66,3 +66,7 @@ final SvgPicture arrowBackIcon = SvgPicture.asset(
 final SvgPicture backIconWBg = SvgPicture.asset(
   'assets/images/back_icon_without_bg.svg',
 );
+
+final SvgPicture forwardIconWBg = SvgPicture.asset(
+  'assets/images/forward_icon_wbg.svg',
+);
