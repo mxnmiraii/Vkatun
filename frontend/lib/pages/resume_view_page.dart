@@ -8,6 +8,16 @@ import 'package:vkatun/windows/window_fix_mistakes.dart';
 
 import '../design/colors.dart';
 
+import 'package:vkatun/windows_edit_resume/about_me_page.dart';
+import 'package:vkatun/windows_edit_resume/contact_info_page.dart';
+import 'package:vkatun/windows_edit_resume/desired_position_page.dart';
+import 'package:vkatun/windows_edit_resume/education_page.dart';
+import 'package:vkatun/windows_edit_resume/full_name_page.dart';
+import 'package:vkatun/windows_edit_resume/key_skills_page.dart';
+import 'package:vkatun/windows_edit_resume/language_skills_page.dart';
+import 'package:vkatun/windows_edit_resume/work_experience_page.dart';
+
+
 class ResumeViewPage extends StatefulWidget {
   final Map<String, dynamic> resume;
 
@@ -179,6 +189,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'ФИО',
               content: widget.resume['title'] ?? 'Не указано',
               hasCheck: true,
+              targetPage: const AboutMePage(),
             ),
 
             // Желаемая должность
@@ -186,6 +197,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'Желаемая должность',
               content: widget.resume['job'] ?? 'Не указано',
               hasCheck: true,
+
             ),
 
             // Контактные данные
@@ -261,6 +273,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     required String title,
     required String content,
     required bool hasCheck,
+    Widget? targetPage,
     // сюда добавляешь еще одну переменную, которая отвечает за то на какое окно будет переходить
   }) {
     return Column(
@@ -302,9 +315,14 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: () {
-                  // Navigator.push...
-                },
+                onPressed: targetPage != null
+                    ? () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => targetPage),
+                  );
+                }
+                    : null, // если targetPage не задан — кнопка будет неактивной
                 icon: forwardIconWBg,
               ),
             ),
