@@ -3,9 +3,11 @@ package analyzer
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"vkatun/config"
 	"vkatun/pkg/models"
 )
@@ -13,6 +15,7 @@ import (
 type issue struct {
 	Text       string `json:"text"`
 	Suggestion string `json:"suggestion"`
+	Type       string `json:"type"`
 }
 
 func GrammarCheck(text string) ([]issue, error) {
@@ -33,9 +36,16 @@ func StructureCheck(text string) ([]string, error) {
 	return out, nil
 }
 
-func SkillsCheck(resume models.Resume) []string {
+func SkillsCheck(resume models.Resume) ([]string, error) {
 	skills := config.Skills
+	if len(skills) == 0 {
+		return nil, errors.New("конфигурация skills пуста — ни одного навыка не загружено")
+	}
+
 	combined := resume.Skills + " " + resume.About + " " + resume.Experience
+	if strings.TrimSpace(combined) == "" {
+		return nil, errors.New("резюме не содержит текст в секциях skills, about или experience")
+	}
 
 	var found []string
 	for _, skill := range skills {
@@ -43,7 +53,7 @@ func SkillsCheck(resume models.Resume) []string {
 			found = append(found, skill)
 		}
 	}
-	return found
+	return found, nil
 }
 
 func requestIssuesFromAI(prompt, text string) ([]issue, error) {
@@ -67,8 +77,16 @@ func requestRawFromAI(systemPrompt, userText string) (string, error) {
 		},
 	}
 
-	jsonData, _ := json.Marshal(requestBody)
-	req, _ := http.NewRequest("POST", config.DeepSeekURL, bytes.NewBuffer(jsonData))
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("ошибка сериализации запроса: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", config.DeepSeekURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("ошибка создания запроса: %v", err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+config.DeepSeekAPIKey)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -84,16 +102,20 @@ func requestRawFromAI(systemPrompt, userText string) (string, error) {
 		return "", fmt.Errorf("ошибка чтения ответа: %v", err)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("неуспешный ответ от DeepSeek (%d): %s", resp.StatusCode, string(body))
+	}
+
 	var result models.DeepSeekResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return "", fmt.Errorf("ошибка парсинга ответа: %v", err)
 	}
 
-	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("модель не вернула выбор")
+	if len(result.Choices) > 0 {
+		return result.Choices[0].Message.Content, nil
 	}
 
-	return result.Choices[0].Message.Content, nil
+	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
 }
 
 func containsIgnoreCase(text, substr string) bool {

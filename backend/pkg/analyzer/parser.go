@@ -112,8 +112,16 @@ func checkAndExtractResumeWithAI(text string) (string, error) {
 		},
 	}
 
-	jsonData, _ := json.Marshal(requestBody)
-	req, _ := http.NewRequest("POST", config.DeepSeekURL, bytes.NewBuffer(jsonData))
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("ошибка сериализации запроса: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", config.DeepSeekURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("ошибка создания запроса: %v", err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+config.DeepSeekAPIKey)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -129,16 +137,20 @@ func checkAndExtractResumeWithAI(text string) (string, error) {
 		return "", fmt.Errorf("ошибка чтения ответа: %v", err)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("неуспешный ответ от DeepSeek (%d): %s", resp.StatusCode, string(body))
+	}
+
 	var result models.DeepSeekResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		return "", fmt.Errorf("ошибка парсинга ответ: %v", err)
 	}
 
 	if len(result.Choices) > 0 {
-		return result.Choices[0].Message.Content, fmt.Errorf("модель DeepSeek не вернула ответ")
+		return result.Choices[0].Message.Content, nil
 	}
 
-	return "", nil
+	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
 }
 
 func stripMarkdownCodeBlock(text string) string {

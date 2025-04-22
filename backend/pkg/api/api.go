@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"net/http"
 	"vkatun/pkg/db"
 )
@@ -9,17 +10,23 @@ import (
 type API struct {
 	router *mux.Router
 	db     db.DB
+	logger *zap.Logger
 }
 
-func New(db db.DB) *API {
+func New(db db.DB, logger *zap.Logger) *API {
 	api := &API{
 		router: mux.NewRouter(),
 		db:     db,
+		logger: logger,
 	}
 
 	api.endpoints()
 
 	return api
+}
+
+func (api *API) GetRouter() *mux.Router {
+	return api.router
 }
 
 func (api *API) Run(addr string) error {

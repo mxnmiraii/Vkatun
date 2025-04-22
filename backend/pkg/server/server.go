@@ -1,10 +1,12 @@
 package server
 
 import (
+	"go.uber.org/zap"
 	"vkatun/config"
 	"vkatun/pkg/api"
 	"vkatun/pkg/db"
 	"vkatun/pkg/db/pgsql"
+	"vkatun/pkg/logger"
 )
 
 type Server struct {
@@ -13,15 +15,19 @@ type Server struct {
 }
 
 func New() (*Server, error) {
+	logger.Init()
+	defer logger.Log.Sync()
+
 	srv := new(Server)
 
 	database, err := pgsql.New(config.Postgres)
 	if err != nil {
+		logger.Log.Error("failed to connect to DB", zap.Error(err))
 		return nil, err
 	}
 
 	srv.db = database
-	srv.api = api.New(srv.db)
+	srv.api = api.New(srv.db, logger.Log)
 
 	return srv, nil
 }

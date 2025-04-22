@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"go.uber.org/zap"
 	"net/http"
 	"vkatun/pkg/models"
 )
@@ -15,6 +16,7 @@ func (api *API) getMetrics(w http.ResponseWriter, r *http.Request) {
 
 	user, err := api.db.GetUserByID(r.Context(), userID)
 	if err != nil {
+		api.logger.Error("user not found for metrics", zap.Int("user_id", userID), zap.Error(err))
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
@@ -26,6 +28,7 @@ func (api *API) getMetrics(w http.ResponseWriter, r *http.Request) {
 
 	metrics, err := api.db.GetMetrics(r.Context())
 	if err != nil {
+		api.logger.Error("failed to fetch metrics", zap.Error(err))
 		http.Error(w, "Failed to fetch metrics", http.StatusInternalServerError)
 		return
 	}
@@ -41,6 +44,7 @@ func (api *API) updateMetrics(w http.ResponseWriter, r *http.Request) {
 
 	user, err := api.db.GetUserByID(r.Context(), userID)
 	if err != nil {
+		api.logger.Error("user not found for metrics", zap.Int("user_id", userID), zap.Error(err))
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
@@ -52,10 +56,12 @@ func (api *API) updateMetrics(w http.ResponseWriter, r *http.Request) {
 
 	var input models.MetricsUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		api.logger.Warn("invalid metrics update input", zap.Error(err))
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 	if err := api.db.UpdateMetrics(r.Context(), input); err != nil {
+		api.logger.Error("failed to update metrics", zap.Error(err))
 		http.Error(w, "Failed to update metrics", http.StatusInternalServerError)
 		return
 	}
