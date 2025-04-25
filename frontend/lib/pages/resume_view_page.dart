@@ -207,6 +207,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'Контактные данные',
               content: widget.resume['contacts'] ?? 'Не указано',
               hasCheck: true,
+              targetPage: const ContactInfoPage(),
             ),
 
             // Опыт работы
