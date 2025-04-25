@@ -74,3 +74,7 @@ final SvgPicture forwardIconWBg = SvgPicture.asset(
 final SvgPicture arrowDown = SvgPicture.asset(
   'assets/images/arrow_down_check_widget.svg',
 );
+
+final SvgPicture biggerDoneIcon = SvgPicture.asset(
+  'assets/images/bigger_done_icon.svg',
+);

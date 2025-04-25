@@ -32,69 +32,70 @@ class _AboutMePageState extends State<AboutMePage> {
     );
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final appBarHeight = screenHeight * 0.15 / 2;
+    final appBarHeight = screenHeight * 0.23 / 2;
 
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: Container(
           decoration: const BoxDecoration(
-            color: veryPaleBlue, // основной цвет AppBar
+            color: veryPaleBlue,
             boxShadow: [
               BoxShadow(
-                color: Color(0x1A000000), // черная тень с 10% прозрачностью
-                offset: Offset(0, 4),     // вниз на 4 пикселя
-                blurRadius: 8,            // мягкая тень
+                color: Color(0x1A000000),
+                offset: Offset(0, 4),
+                blurRadius: 8,
               ),
             ],
           ),
           child: AppBar(
-            backgroundColor: Colors.transparent, // чтобы тень была видна
+            backgroundColor: Colors.transparent,
             toolbarHeight: appBarHeight,
             automaticallyImplyLeading: false,
-            elevation: 0, // отключаем встроенную тень
+            elevation: 0,
             scrolledUnderElevation: 0,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: backIconWBg,
-                ),
-                Text(
-                  'ФИО',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
-                    fontFamily: 'Playfair',
-                    color: midnightPurple,
+            title: Container(
+              alignment: Alignment.topCenter,
+              height: appBarHeight,
+              padding: const EdgeInsets.only(top: 38), // вот этот отступ точно работает
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: backIconWBg,
                   ),
-                ),
-                Opacity(opacity: 0, child: backIconWBg),
-              ],
+                  Text(
+                    'ФИО',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 24,
+                      fontFamily: 'Playfair',
+                      color: midnightPurple,
+                    ),
+                  ),
+                  Opacity(opacity: 0, child: backIconWBg),
+                ],
+              ),
             ),
           ),
         ),
       ),
 
-      body: Padding(
+    body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: buttonPaddingVertical),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 36),
 
-            _buildTextField(
-              label: 'Фамилия',
-
-              controller: _surnameController,
-            ),
+            _buildTextField(label: 'Фамилия', controller: _surnameController),
 
             const SizedBox(height: 20),
 
             _buildTextField(
-              label: 'Имя',
-              controller: _nameController,
+                label: 'Имя',
+                controller: _nameController
             ),
 
             const SizedBox(height: 20),
@@ -109,11 +110,11 @@ class _AboutMePageState extends State<AboutMePage> {
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
-          icon: doneIcon,
+          icon: biggerDoneIcon,
           onPressed: () {
             Navigator.pop(context);
           },
-          iconSize: 36, // Можно настроить размер иконки
+          iconSize: 72, // Можно настроить размер иконки
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -136,7 +137,7 @@ class _AboutMePageState extends State<AboutMePage> {
             color: mediumGray,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 0),
         TextField(
           controller: controller,
           style: const TextStyle(
