@@ -10,11 +10,13 @@ import '../pages/resume_view_page.dart';
 class WindowResumesPage extends StatelessWidget {
   final VoidCallback onClose;
   final AnimationController rotationController;
+  final Map<String, dynamic> resume;
 
   const WindowResumesPage({
     super.key,
     required this.onClose,
     required this.rotationController,
+    required this.resume,
   });
 
   @override
@@ -54,7 +56,9 @@ class WindowResumesPage extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          vertical: padding / 2, horizontal: padding),
+                        vertical: padding / 2,
+                        horizontal: padding,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(borderRadius),
@@ -76,22 +80,18 @@ class WindowResumesPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         onClose();
-                        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                        Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder: (context) => ResumeViewPage(
-                              resume: {
-                                'id': 0,
-                                'title': 'Петров Иван Иванович',
-                                'contacts': 'Телефон: +7 (912) 345-67-89\nEmail: ivan.petrov@email.com',
-                                'job': null,
-                                'experience': 'ООО "Атом Майвинг"\nGolang backend developer\n2 года и 2 месяца',
-                                'education': 'Воронежский Государственный Университет (ВГУ)\nФакультет: компьютерных наук\nПрограммная инженерная\nБакалавр 2023',
-                                'skills': 'Git, SQL, Kafka, Golang, PostgreSQL',
-                                'about': 'Мужчина, 23 года, родился 8 февраля 2022 года\nГражданство России\nЕсть разрешение на работу в России\nПроживает: Воронеж\nГотов к переезду, готов к командировкам',
-                              },
-                            ),
+                            builder:
+                                (context) => ResumeViewPage(
+                                  resume: resume,
+                                ),
                           ),
-                              (Route<dynamic> route) => false, // удаляет всё из стека
+                          (Route<dynamic> route) =>
+                              false, // удаляет всё из стека
                         );
                       },
                       style: _buttonStyle(borderWindowColor),
@@ -139,10 +139,7 @@ class WindowResumesPage extends StatelessWidget {
 
   ButtonStyle _buttonStyle(Color borderColor) {
     return ElevatedButton.styleFrom(
-      side: BorderSide(
-        color: borderColor,
-        width: widthBorderRadius,
-      ),
+      side: BorderSide(color: borderColor, width: widthBorderRadius),
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius),
@@ -152,5 +149,3 @@ class WindowResumesPage extends StatelessWidget {
     );
   }
 }
-
-

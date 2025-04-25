@@ -100,6 +100,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             _closeDialog();
           },
           rotationController: _rotationController,
+          resume: widget.resume,
         );
       },
     ).then((_) {

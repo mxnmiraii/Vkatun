@@ -70,3 +70,7 @@ final SvgPicture backIconWBg = SvgPicture.asset(
 final SvgPicture forwardIconWBg = SvgPicture.asset(
   'assets/images/forward_icon_wbg.svg',
 );
+
+final SvgPicture arrowDown = SvgPicture.asset(
+  'assets/images/arrow_down_check_widget.svg',
+);
