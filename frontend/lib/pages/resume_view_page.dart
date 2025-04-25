@@ -190,7 +190,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'ФИО',
               content: widget.resume['title'] ?? 'Не указано',
               hasCheck: true,
-              targetPage: const AboutMePage(),
+              targetPage: const FullNamePage(),
             ),
 
             // Желаемая должность
@@ -199,7 +199,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               content: widget.resume['job'] ?? 'Не указано',
               hasCheck: true,
               targetPage: const DesiredPositionPage(),
-
             ),
 
             // Контактные данные
