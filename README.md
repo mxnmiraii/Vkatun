@@ -30,8 +30,10 @@
   - [Miro](https://miro.com/app/board/uXjVIZbfiP8=/?share_link_id=647696783087)
   - [Figma](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Untitled?node-id=1-4237&t=wZMH8RiMSeA4Ttob-0)
   - [YouTrack](https://codenest.youtrack.cloud/projects/0-1)
-
-‼️‼️YouTrack работает только с включенным VPN (например: Яндекс Браузер + включенное расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno))
+> ⚠️ **Важно:**  
+> Для доступа к [YouTrack](https://codenest.youtrack.cloud/projects/0-1) необходимо использовать VPN.  
+> 
+> Например: Яндекс Браузер + расширение [VeePN](https://chromewebstore.google.com/detail/бесплатный-vpn-для-chrome/majdfhpaihoncoakbjgbdhglocklcgno).
 
 ### 📽️ Презентация проекта
 - Презентация ТЗ [(PPTX)](Презентация/Prezentatsia_TZ.pptx) [(PDF)](Презентация/Prezentatsia_TZ.pdf)
@@ -55,6 +57,16 @@
 - Техническое задание [(DOCX)](Документация/tz.docx) [(PDF)](Документация/tz.pdf)
 - Курсовая работа (0.1) [(DOCX)](Документация/course_work_(0.1).docx)
 - [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/a82db827a9f13c178523c9c5f3389c52/raw/e3b8ee893bb0ecc3438a6378aa72d33921410fe1/swagger-v1.0.1.yaml)
+> **Важно!**  
+> Если схема API не загружается автоматически через ссылку (в некоторых браузерах это происходит из-за ограничений CORS):
+> 
+> 1. Откройте [Swagger Editor](https://editor.swagger.io/).
+> 2. Нажмите в верхней панели `File`, затем выберите `Import URL`
+> 3. Вставьте туда следующую ссылку:
+> 
+>    ```
+>    https://gist.githubusercontent.com/mxnmiraii/a82db827a9f13c178523c9c5f3389c52/raw/e3b8ee893bb0ecc3438a6378aa72d33921410fe1/swagger-v1.0.1.yaml
+>    ```
 
 ### 📌 Дополительная документация
 - [Git Flow](https://codenest.youtrack.cloud/articles/VN-A-20/Git-Flow)
