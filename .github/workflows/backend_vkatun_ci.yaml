@@ -42,13 +42,18 @@ jobs:
       - name: Checkout master
         uses: actions/checkout@v3
 
+      - name: Print current directory tree
+        run: |
+          pwd
+          ls -R
+
       - name: Copy docker-compose.yaml and nginx.conf to server
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSHKEY }}
-          source: "docker-compose.yaml,nginx.conf"
+          source: "**/docker-compose.yaml,**/nginx.conf"
           target: "~"
 
       - name: Deploy to Selectel Cloud via SSH
