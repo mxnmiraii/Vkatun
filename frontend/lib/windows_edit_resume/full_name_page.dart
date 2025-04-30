@@ -25,39 +25,26 @@ class _FullNamePageState extends State<FullNamePage> {
 
   @override
   Widget build(BuildContext context) {
-    final _textStyle = TextStyle(
-      color: midnightPurple,
-      fontFamily: 'Playfair',
-      height: 1.0,
-    );
-
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.23 / 2;
 
     return Scaffold(
+      extendBody: true,
+      backgroundColor: Colors.transparent,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: Container(
-          decoration: const BoxDecoration(
-            color: veryPaleBlue,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x1A000000),
-                offset: Offset(0, 4),
-                blurRadius: 8,
-              ),
-            ],
-          ),
+          color: Colors.white,
           child: AppBar(
             backgroundColor: Colors.transparent,
             toolbarHeight: appBarHeight,
             automaticallyImplyLeading: false,
-            elevation: 0,
+            elevation: 0, // убрали тень
             scrolledUnderElevation: 0,
             title: Container(
               alignment: Alignment.topCenter,
               height: appBarHeight,
-              padding: const EdgeInsets.only(top: 38), // вот этот отступ точно работает
+              padding: const EdgeInsets.only(top: 38),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -65,13 +52,13 @@ class _FullNamePageState extends State<FullNamePage> {
                     onPressed: () => Navigator.pop(context),
                     icon: backIconWBg,
                   ),
-                  Text(
+                  const Text(
                     'ФИО',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 24,
                       fontFamily: 'Playfair',
-                      color: midnightPurple,
+                      color: Color(0xFF2C2C86),
                     ),
                   ),
                   Opacity(opacity: 0, child: backIconWBg),
@@ -81,40 +68,61 @@ class _FullNamePageState extends State<FullNamePage> {
           ),
         ),
       ),
-
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: buttonPaddingVertical),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 36),
-
-            _buildTextField(label: 'Фамилия', controller: _surnameController),
-
-            const SizedBox(height: 20),
-
-            _buildTextField(
-                label: 'Имя',
-                controller: _nameController
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF8F9FF),
+              Color(0xFFE6EDFF),
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 24),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white, // чисто белый фон
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Color(0xFF979CFF), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x4D979CFF),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            _buildTextField(
-              label: 'Отчество',
-              controller: _patronymicController,
+            child: Column(
+              children: [
+                _buildTextField(label: 'Фамилия', controller: _surnameController),
+                const SizedBox(height: 16),
+                _buildTextField(label: 'Имя', controller: _nameController),
+                const SizedBox(height: 16),
+                _buildTextField(label: 'Отчество', controller: _patronymicController),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: bottom35),
-        child: IconButton(
-          icon: biggerDoneIcon,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          iconSize: 72, // Можно настроить размер иконки
+        padding: const EdgeInsets.only(bottom: 35),
+        child: SizedBox(
+          width: 72,
+          height: 72,
+          child: IconButton(
+            icon: circleWithPenIcon,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            padding: EdgeInsets.zero,
+            splashRadius: 36,
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -133,30 +141,29 @@ class _FullNamePageState extends State<FullNamePage> {
           style: const TextStyle(
             fontFamily: 'Playfair',
             fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: mediumGray,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF6A6AFF),
           ),
         ),
-        const SizedBox(height: 0),
         TextField(
           controller: controller,
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: black,
+            color: Colors.black,
           ),
           decoration: const InputDecoration(
             isDense: true,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
+            contentPadding: EdgeInsets.symmetric(vertical: 10),
             border: UnderlineInputBorder(
-              borderSide: BorderSide(color: lightGray),
+              borderSide: BorderSide(color: Color(0xFF6A6AFF)),
             ),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: lightGray),
+              borderSide: BorderSide(color: Color(0xFF6A6AFF)),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: gray),
+              borderSide: BorderSide(color: Color(0xFF2C2C86)),
             ),
           ),
         ),

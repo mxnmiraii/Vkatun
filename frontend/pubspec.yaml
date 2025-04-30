@@ -74,12 +74,7 @@ flutter:
       fonts:
         - asset: assets/fonts/NotoSansBengali-Light.ttf
           weight: 300
-        - asset: assets/fonts/NotoSansBengali-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/NotoSansBengali-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/NotoSansBengali-Black.ttf
-          weight: 900
+
 
   assets:
     - assets/images/

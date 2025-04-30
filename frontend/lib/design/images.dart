@@ -80,7 +80,7 @@ final SvgPicture biggerDoneIcon = SvgPicture.asset(
 );
 
 final SvgPicture circleWithPenIcon = SvgPicture.asset(
-    'assets/images/circle_with_pen_icon.svg'
+  'assets/icons/circle_with_pen_icon.svg',
 );
 
 final SvgPicture logOutIcon = SvgPicture.asset(
