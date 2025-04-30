@@ -63,7 +63,7 @@ jobs:
             
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
-            cd /home/${{ secrets.SSH_USERNAME }}/backend
+            cd ~
             
             cat > .env <<EOF
             JWT_SECRET=${{ vars.JWT_SECRET }}
