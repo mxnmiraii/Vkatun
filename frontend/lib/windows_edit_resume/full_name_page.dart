@@ -26,11 +26,10 @@ class _FullNamePageState extends State<FullNamePage> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final appBarHeight = screenHeight * 0.23 / 2;
+    final appBarHeight = screenHeight * 0.1;
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: Colors.transparent,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: Container(
