@@ -36,12 +36,22 @@ jobs:
 
   deploy-image:
     runs-on: ubuntu-latest
-    # выполняет только после выполнения image-build-and-push
     needs: image-build-and-push
 
     steps:
-      - name: Deploy to Selectel Cloud via SSH action
-        # ssh-action с помощью которого мы сможем залезть на сервак
+      - name: Checkout master
+        uses: actions/checkout@v3
+
+      - name: Copy docker-compose.yaml and nginx.conf to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSHKEY }}
+          source: "backend/docker-compose.yaml,backend/nginx.conf"
+          target: "/home/${{ secrets.SSH_USERNAME }}/backend/"
+
+      - name: Deploy to Selectel Cloud via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -49,15 +59,12 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,CONTAINER_NAME
           script: |
-            # Set up variables
             TAG_NAME=$(echo $GITHUB_SHA | head -c7)
             
-            # Login into Selectel Registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
-            cd backend
+            cd /home/${{ secrets.SSH_USERNAME }}/backend
             
-            # Generating the .env file
             cat > .env <<EOF
             JWT_SECRET=${{ vars.JWT_SECRET }}
             ADMIN_EMAILS=${{ vars.ADMIN_EMAILS }}
@@ -75,12 +82,10 @@ jobs:
             POSTGRES_USER=${{ vars.POSTGRES_USER }}
             POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
             EOF
-
+            
             docker-compose down
-
             sed -i "s|build:.*|image: $REGISTRY/$IMAGE_NAME:$TAG_NAME|" docker-compose.yaml
             sed -i "/dockerfile:/d" docker-compose.yaml
             sed -i "/context:/d" docker-compose.yaml
-          
             docker-compose pull
             docker-compose up -d --force-recreate
