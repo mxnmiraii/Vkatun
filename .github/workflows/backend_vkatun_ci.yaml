@@ -75,7 +75,7 @@ jobs:
             EOF
 
             # Stop all old services
-            docker-compose down
+            docker compose down
 
             # Update the backend image to the new one
             sed -i "s|build:.*|image: $REGISTRY/$IMAGE_NAME:$TAG_NAME|" docker-compose.yaml
@@ -83,7 +83,7 @@ jobs:
             sed -i "/context:/d" docker-compose.yaml
             
             # Pull the latest images
-            docker-compose pull
+            docker compose pull
             
             # Start all services
-            docker-compose up -d --force-recreate
+            docker compose up -d --force-recreate
