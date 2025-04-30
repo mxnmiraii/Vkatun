@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"go.uber.org/zap"
 	"vkatun/config"
 	"vkatun/pkg/api"
@@ -23,6 +24,11 @@ func New() (*Server, error) {
 	database, err := pgsql.New(config.Postgres)
 	if err != nil {
 		logger.Log.Error("failed to connect to DB", zap.Error(err))
+		return nil, err
+	}
+
+	if err := database.Migrate(context.Background()); err != nil {
+		logger.Log.Error("failed to run migration", zap.Error(err))
 		return nil, err
 	}
 

@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
 	"vkatun/pkg/utils"
 )
@@ -30,14 +29,7 @@ func InitConfig() {
 	if p := os.Getenv("ENV_PATH"); p != "" {
 		envPath = p
 	} else {
-		root, err := os.Getwd()
-		if err != nil {
-			log.Fatalf("ошибка получения текущей директории: %v", err)
-		}
-		for !strings.HasSuffix(root, "Vkatun") && root != "/" {
-			root = filepath.Dir(root)
-		}
-		envPath = filepath.Join(root, "backend", ".env")
+		envPath = ".env"
 	}
 
 	if _, err := os.Stat(envPath); err == nil {

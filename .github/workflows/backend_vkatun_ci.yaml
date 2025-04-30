@@ -55,11 +55,38 @@ jobs:
             # Login into Selectel Registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
-            # Stop running container
-            docker stop $CONTAINER_NAME
+            # Go to the backend directory
+            cd backend
             
-            # Remove old container
-            docker rm $CONTAINER_NAME
+            # Generating the .env file
+            cat > .env <<EOF
+            JWT_SECRET=${{ vars.JWT_SECRET }}
+            ADMIN_EMAILS=${{ vars.ADMIN_EMAILS }}
+            DEEPSEEK_API_KEY=${{ vars.DEEPSEEK_API_KEY }}
+            DEEPSEEK_URL=${{ vars.DEEPSEEK_URL }}
+            DEEPSEEK_MODEL=${{ vars.DEEPSEEK_MODEL }}
+            ROLE_SYSTEM=${{ vars.ROLE_SYSTEM }}
+            ROLE_USER=${{ vars.ROLE_USER }}
+            EXTRACT=${{ vars.EXTRACT }}
+            GRAMMAR=${{ vars.GRAMMAR }}
+            STRUCTURE=${{ vars.STRUCTURE }}
+            SKILLS=${{ vars.SKILLS }}
+            POSTGRES_STR=${{ vars.POSTGRES_STR }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
+            EOF
+
+            # Stop all old services
+            docker-compose down
+
+            # Update the backend image to the new one
+            sed -i "s|build:.*|image: $REGISTRY/$IMAGE_NAME:$TAG_NAME|" docker-compose.yaml
+            sed -i "/dockerfile:/d" docker-compose.yaml
+            sed -i "/context:/d" docker-compose.yaml
             
-            # Run a new container from a new image
-            docker run -d -p 8080:8080 --name $CONTAINER_NAME -t $REGISTRY/$IMAGE_NAME:$TAG_NAME
+            # Pull the latest images
+            docker-compose pull
+            
+            # Start all services
+            docker-compose up -d --force-recreate

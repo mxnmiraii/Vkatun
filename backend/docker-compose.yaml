@@ -4,12 +4,12 @@ volumes:
   postgres_volume:
 
 services:
-  pg-local:
+  pg:
     image: postgres:17.4-alpine3.21
     env_file:
       - .env
     ports:
-      - "54321:5432"
+      - "54322:5432"
     volumes:
       - postgres_volume:/var/lib/postgresql/data
 
@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - pg-local
+      - pg
     env_file:
       - .env
 
