@@ -37,74 +37,108 @@ class _FullNamePageState extends State<FullNamePage> {
           color: Colors.white,
           child: AppBar(
             backgroundColor: Colors.transparent,
-            toolbarHeight: appBarHeight,
-            automaticallyImplyLeading: false,
-            elevation: 0, // убрали тень
+            elevation: 0,
             scrolledUnderElevation: 0,
-            title: Container(
-              alignment: Alignment.topCenter,
-              height: appBarHeight,
-              padding: const EdgeInsets.only(top: 38),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: backIconWBg,
+            automaticallyImplyLeading: false,
+            toolbarHeight: appBarHeight,
+            centerTitle: false,
+            title: Row(
+              children: [
+                Flexible(
+                  flex: 3, // Первая колонка с тремя делениями
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Равномерное распределение элементов по вертикали
+                    children: [
+                      Container(), // Первое деление (пустое)
+                      Container(), // Второе деление (пустое)
+                      Align( // Третье деление, где будет стрелка
+                        alignment: Alignment.center, // Стрелка будет в центре
+                        child: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: lightArrowBackIcon,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Text(
-                    'ФИО',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 24,
-                      fontFamily: 'Playfair',
-                      color: purpleBlue,
+                ),
+                Flexible(
+                  flex: 5, // Вторая колонка с текстом "ФИО"
+                  child: Center(
+                    child: const Text(
+                      'ФИО',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 24,
+                        fontFamily: 'Playfair',
+                        color: purpleBlue,
+                      ),
                     ),
                   ),
-                  Opacity(opacity: 0, child: backIconWBg),
-                ],
-              ),
+                ),
+                Flexible(
+                  flex: 3, // Третья колонка (пустая)
+                  child: Container(),
+                ),
+              ],
             ),
           ),
         ),
       ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.white, // 🔁 заглушка-фон
-        // TODO: Заменить на BoxDecoration с градиентом
-        // BoxDecoration(
-        //   gradient: LinearGradient(...),
-        // ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(top: 24),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            decoration: BoxDecoration(
-              color: Colors.white, // чисто белый фон
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: vividPeriwinkleBlue, width: 2.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.50), // Почернее
-                  blurRadius: 4,                         // Меньшее размытие
-                  spreadRadius: 0.2,                     // Чуть-чуть вокруг блока
-                  offset: Offset(0, 1),                  // Немного вниз
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                _buildTextField(label: 'Фамилия', controller: _surnameController),
-                const SizedBox(height: 16),
-                _buildTextField(label: 'Имя', controller: _nameController),
-                const SizedBox(height: 16),
-                _buildTextField(label: 'Отчество', controller: _patronymicController),
-              ],
+
+
+      body: Stack(
+        children: [
+          // Градиент на фоне
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0.8, -0.1), // правый край, чуть выше центра
+                radius: 1.6,
+                colors: [
+                  Color(0xFFD8D7FF), // начало
+                  Color(0xFFE9F7FA), // середина
+                  Color(0xFFFFFFFF), // конец
+                ],
+                stops: [0.0, 0.75, 0.95],
+              ),
             ),
           ),
-        ),
+
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 24),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: vividPeriwinkleBlue.withOpacity(0.8), // прозрачность
+                  width: 1.6,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.30),
+                    blurRadius: 2,
+                    spreadRadius: 0.2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildTextField(label: 'Фамилия', controller: _surnameController),
+                  const SizedBox(height: 16),
+                  _buildTextField(label: 'Имя', controller: _nameController),
+                  const SizedBox(height: 16),
+                  _buildTextFieldWithoutBorder(label: 'Отчество', controller: _patronymicController),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 35),
@@ -112,7 +146,7 @@ class _FullNamePageState extends State<FullNamePage> {
           width: 72,
           height: 72,
           child: IconButton(
-            icon: circleWithPenIcon,
+            icon: darkerBiggerDoneIcon,
             onPressed: () {
               Navigator.pop(context);
             },
@@ -125,7 +159,7 @@ class _FullNamePageState extends State<FullNamePage> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildTextFieldWithoutBorder({
     required String label,
     required TextEditingController controller,
   }) {
@@ -137,7 +171,7 @@ class _FullNamePageState extends State<FullNamePage> {
           style: const TextStyle(
             fontFamily: 'Playfair',
             fontSize: 14,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             color: lavenderBlue,
           ),
         ),
@@ -151,15 +185,60 @@ class _FullNamePageState extends State<FullNamePage> {
           ),
           decoration: const InputDecoration(
             isDense: true,
-            contentPadding: EdgeInsets.symmetric(vertical: 10),
+            contentPadding: EdgeInsets.only(top:2, bottom: 2),
+            border: InputBorder.none, // Убираем границу
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Playfair',
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: lavenderBlue,
+          ),
+        ),
+        TextField(
+          controller: controller,
+          style: const TextStyle(
+            fontFamily: "NotoSans",
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: black,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            contentPadding: const EdgeInsets.only(top: 7, bottom: 14), // Уменьшаем отступы сверху и снизу
             border: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6A6AFF)),
+              borderSide: BorderSide(
+                color: lightDarkenLavender, // Цвет полоски
+                width: 2.5,
+              ),
             ),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF6A6AFF)),
+              borderSide: BorderSide(
+                  color: lightDarkenLavender,
+              width: 2.5,
+              ),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF2C2C86)),
+              borderSide: BorderSide(
+                  color: lightDarkenLavender,
+                  width: 2.5,
+              ),
             ),
           ),
         ),

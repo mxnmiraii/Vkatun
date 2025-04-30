@@ -86,7 +86,3 @@ final SvgPicture circleWithPenIcon = SvgPicture.asset(
 final SvgPicture logOutIcon = SvgPicture.asset(
     'assets/images/log_out_icon.svg'
 );
-
-final SvgPicture signUp = SvgPicture.asset(
-    'assets/images/sign_up.svg'
-);
