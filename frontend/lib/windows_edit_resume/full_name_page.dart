@@ -28,9 +28,15 @@ class _FullNamePageState extends State<FullNamePage> {
   void initState() {
     super.initState();
 
-    _surnameController = TextEditingController(text: widget.data.isNotEmpty ? widget.data[0] : '');
-    _nameController = TextEditingController(text: widget.data.length > 1 ? widget.data[1] : '');
-    _patronymicController = TextEditingController(text: widget.data.length > 2 ? widget.data[2] : '');
+    _surnameController = TextEditingController(
+      text: widget.data.isNotEmpty ? widget.data[0] : '',
+    );
+    _nameController = TextEditingController(
+      text: widget.data.length > 1 ? widget.data[1] : '',
+    );
+    _patronymicController = TextEditingController(
+      text: widget.data.length > 2 ? widget.data[2] : '',
+    );
   }
 
   @override
@@ -62,10 +68,11 @@ class _FullNamePageState extends State<FullNamePage> {
                     children: [
                       SizedBox(width: space),
                       IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: lightArrowBackIcon),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: lightArrowBackIcon,
+                      ),
                     ],
                   ),
                 ),
@@ -133,15 +140,22 @@ class _FullNamePageState extends State<FullNamePage> {
                   _buildTextField(
                     label: 'Фамилия',
                     controller: _surnameController,
+                    index: 0,
+                    length: widget.data.length,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                      label: 'Имя',
-                      controller: _nameController),
+                    label: 'Имя',
+                    controller: _nameController,
+                    index: 1,
+                    length: widget.data.length,
+                  ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Отчество',
                     controller: _patronymicController,
+                    index: 2,
+                    length: widget.data.length,
                   ),
                 ],
               ),
@@ -167,10 +181,11 @@ class _FullNamePageState extends State<FullNamePage> {
     );
   }
 
-
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
+    required int index,
+    required int length,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,37 +199,59 @@ class _FullNamePageState extends State<FullNamePage> {
             color: lavenderBlue,
           ),
         ),
-        TextField(
-          controller: controller,
-          style: const TextStyle(
-            fontFamily: "NotoSans",
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: black,
-          ),
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ), // Уменьшаем отступы сверху и снизу
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender, // Цвет полоски
-                width: 2.5,
+        index + 1 != length
+            ? TextField(
+              controller: controller,
+              style: const TextStyle(
+                fontFamily: "NotoSans",
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: black,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.only(
+                  top: 7,
+                  bottom: 14,
+                ), // Уменьшаем отступы сверху и снизу
+                border: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: lightDarkenLavender, // Цвет полоски
+                    width: 2.5,
+                  ),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: lightDarkenLavender,
+                    width: 2.5,
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: lightDarkenLavender,
+                    width: 2.5,
+                  ),
+                ),
+              ),
+            )
+            : TextField(
+              controller: controller,
+              style: const TextStyle(
+                fontFamily: "NotoSans",
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: black,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.only(
+                  top: 7,
+                  bottom: 14,
+                ), // Уменьшаем отступы сверху и снизу
+                border: InputBorder.none,
               ),
             ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: lightDarkenLavender, width: 2.5),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: lightDarkenLavender, width: 2.5),
-            ),
-          ),
-        ),
       ],
     );
   }
 }
-
-
