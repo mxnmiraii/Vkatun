@@ -53,7 +53,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSHKEY }}
-          source: "**/docker-compose.yaml,**/nginx.conf"
+          source: "backend/docker-compose.yaml,backend/nginx.conf"
           target: "~/backend"
 
       - name: Deploy to Selectel Cloud via SSH
