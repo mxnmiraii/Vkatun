@@ -200,7 +200,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'Желаемая должность',
               content: widget.resume['job'] ?? 'Не указано',
               hasCheck: true,
-              targetPage: const DesiredPositionPage(),
+              targetPage: DesiredPositionPage(
+                // data: widget.resume['']
+              ),
             ),
 
             // Контактные данные
