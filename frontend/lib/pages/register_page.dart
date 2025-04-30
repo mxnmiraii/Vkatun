@@ -18,7 +18,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _emailNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _passwordRepeatController = TextEditingController();
+  final TextEditingController _passwordRepeatController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -55,10 +56,20 @@ class _RegisterPageState extends State<RegisterPage> {
 
     final _inputDecoration = InputDecoration(
       filled: true,
-      fillColor: veryPaleBlue,
+      fillColor: Colors.white,
+      labelStyle: TextStyle(color: lightGrayText),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
+      ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide.none,
+        // Общее fallback-значение
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
       ),
     );
 
@@ -66,171 +77,206 @@ class _RegisterPageState extends State<RegisterPage> {
     const backgroundButtonColor = lightLavender;
 
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final appBarHeight = screenHeight * 0.10;
+    final backgroundHeight = screenHeight * 0.6;
+    final backgroundColorWater = waterBackground.withOpacity(0.21);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        toolbarHeight: appBarHeight,
-        title: Stack(
-          alignment: Alignment.center,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: arrowBackIcon,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => EntryPage()),
-                  );
-                },
-              ),
-            ),
-            Center(child: logoFullIcon),
-          ],
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
 
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            flex: 2,
-            child: Center(
-              child: Text(
-                'Регистрация',
-                style: _textStyle.copyWith(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
-                ),
-                textAlign: TextAlign.center,
-              ),
+          ClipPath(
+            clipper: BottomCurveClipper(),
+            child: Container(
+              height: backgroundHeight, // Высота изогнутого фона
+              color: backgroundColorWater, // Цвет фона (как на твоем макете)
             ),
           ),
 
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Создайте свою учетную запись,',
-                    style: _textStyle.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    'чтобы продолжить',
-                    style: _textStyle.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          Expanded(
-            flex: 3,
-            child: Padding(
-              padding: buttonPadding,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextField(
-                    controller: _loginController,
-                    decoration: _inputDecoration.copyWith(
-                      labelText: 'Имя пользователя',
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  TextField(
-                    controller: _emailNumberController,
-                    decoration: _inputDecoration.copyWith(
-                        labelText: 'Телефон или адрес эл.почты'
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: _inputDecoration.copyWith(
-                        labelText: 'Пароль'
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  TextField(
-                    controller: _passwordRepeatController,
-                    obscureText: true,
-                    decoration: _inputDecoration.copyWith(
-                        labelText: 'Подтверждение пароля'
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: buttonPaddingHorizontal,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => ResumesPage()),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        side: BorderSide(
-                            color: borderButtonColor,
-                            width: widthBorderRadius
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: 20),
+                        Text(
+                          'Создать аккаунт',
+                          style: _textStyle.copyWith(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w800,
+                            color: blue,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        backgroundColor: backgroundButtonColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(borderRadius),
+
+                        Text(
+                          'Добро пожаловать!',
+                          style: _textStyle.copyWith(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        minimumSize: const Size(double.infinity, 50),
-                        elevation: 0,
+                      ],
+                    ),
+                  ),
+                ),
+
+                Expanded(
+                  flex: 4,
+                  child: Padding(
+                    padding: buttonPadding,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextField(
+                          controller: _loginController,
+                          decoration: _inputDecoration.copyWith(
+                            labelText: 'Имя пользователя',
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        TextField(
+                          controller: _emailNumberController,
+                          decoration: _inputDecoration.copyWith(
+                            labelText: 'Телефон или адрес эл.почты',
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: _inputDecoration.copyWith(
+                            labelText: 'Пароль',
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        TextField(
+                          controller: _passwordRepeatController,
+                          obscureText: true,
+                          decoration: _inputDecoration.copyWith(
+                            labelText: 'Подтверждение пароля',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 40),
+
+                Expanded(
+                  flex: 2,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: buttonPaddingHorizontal,
                       ),
-                      child: Text(
-                        'Создать аккаунт',
-                        style: _textStyle.copyWith(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        textAlign: TextAlign.center,
+                      child: Column(
+                        // mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ResumesPage(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: mediumSlateBlue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(17),
+                              ),
+                              minimumSize: const Size(double.infinity, 50),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Создать аккаунт',
+                              style: _textStyle.copyWith(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+
+                          SizedBox(height: 10),
+
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ResumesPage(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  borderRadius,
+                                ),
+                              ),
+                              minimumSize: const Size(double.infinity, 50),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Уже есть аккаунт',
+                              style: _textStyle.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class BottomCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 250);
+
+    path.quadraticBezierTo(
+      size.width * 0.6,
+      size.height,
+      size.width,
+      size.height - 70,
+    );
+
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
