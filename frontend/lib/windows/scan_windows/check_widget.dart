@@ -262,19 +262,14 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 12),
-                          Text(
-                            'Объяснение:',
-                            style: textStyleDescription,
-                          ),
                           const SizedBox(height: 4),
                           Text(
                             widget.issue.description,
-                            style: textStyleDescription.copyWith(color: Colors.grey[600]),
+                            style: textStyleDescription.copyWith(color: Colors.black),
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Правильный вариант:',
+                            'Вариант исправления:',
                             style: textStyleDescription,
                           ),
                           const SizedBox(height: 4),

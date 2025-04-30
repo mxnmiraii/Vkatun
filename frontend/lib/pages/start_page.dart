@@ -24,6 +24,7 @@ class StartPage extends StatelessWidget {
     const backgroundButtonColor = lightLavender;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Center(

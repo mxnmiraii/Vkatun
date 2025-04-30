@@ -15,7 +15,11 @@ class MyApp extends StatelessWidget {
       title: 'VKatun',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.white,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: AppBarTheme(
+          color: Colors.white,
+        ),
       ),
       home: const StartPage(),
     );

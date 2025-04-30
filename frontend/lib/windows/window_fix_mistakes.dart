@@ -22,7 +22,18 @@ class WindowFixMistakes extends StatefulWidget {
 
 class _WindowFixMistakesState extends State<WindowFixMistakes> {
   int selectedIndex = 0;
-  bool isScanning = false;
+
+  // 3 главных раздела
+  bool isScanningFix = false;
+  bool isScanningStructure = false;
+  bool isScanningContent = false;
+
+  // 3 выбора для содержимого
+  bool isScanningSkills = false;
+  bool isScanningAboutMe = false;
+  bool isScanningExperience = false;
+
+  // 4 выбора для исправления ошибок
   bool isScanningSpell = false;
   bool isScanningPunctuation = false;
   bool isScanningGrammar = false;
@@ -155,10 +166,24 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
     }
   }
 
+  Widget _buildText(String text) {
+    final _textStyle = TextStyle(
+      fontFamily: 'Playfair',
+      height: 1.0,
+      color: deepIndigo,
+      fontSize: 12.8,
+      fontWeight: FontWeight.w800,
+    );
+
+    return Text(text, style: _textStyle, textAlign: TextAlign.left);
+  }
+
   Widget _getContent(int index) {
+    final _box = SizedBox(height: 6);
+
     switch (index) {
       case 0:
-        return isScanning
+        return isScanningFix
             ? (isScanningSpell
                 ? Scan(
                   onBackPressed: () {
@@ -173,13 +198,13 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     Issue(
                       errorText: "devoloper",
                       suggestion: "developer",
-                      description:
-                          "Неправильное написание слова на английском",
+                      description: "Неправильное написание слова на английском",
                     ),
                     Issue(
                       errorText: "програмная инжинерия",
                       suggestion: "программная инженерия",
-                      description: "Ошибка в корне и суффиксах (двойная «м», «е» вместо «и»)",
+                      description:
+                          "Ошибка в корне и суффиксах (двойная «м», «е» вместо «и»)",
                     ),
                     Issue(
                       errorText: "государственый",
@@ -189,7 +214,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     Issue(
                       errorText: "Мовинг",
                       suggestion: "Майвинг (или Moving)",
-                      description: "Не существует слова «Мовинг» — это искажение",
+                      description:
+                          "Не существует слова «Мовинг» — это искажение",
                     ),
                   ],
                 )
@@ -207,15 +233,13 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     Issue(
                       errorText: "общежитии ВГУ!",
                       suggestion: "общежитии ВГУ",
-                      description:
-                          "Восклицательный знак здесь неуместен",
+                      description: "Восклицательный знак здесь неуместен",
                     ),
                     Issue(
-                      errorText:
-                          "и, командировкам",
-                      suggestion:
-                          "	и командировкам",
-                      description: "Запятая не ставится между однородными членами",
+                      errorText: "и, командировкам",
+                      suggestion: "	и командировкам",
+                      description:
+                          "Запятая не ставится между однородными членами",
                     ),
                   ],
                 )
@@ -239,12 +263,14 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     Issue(
                       errorText: "проживает в г. Воронеже",
                       suggestion: "проживает в городе Воронеж",
-                      description: "Нарушена форма существительного в предложном падеже",
+                      description:
+                          "Нарушена форма существительного в предложном падеже",
                     ),
                     Issue(
                       errorText: "факультет компьютерных науков",
                       suggestion: "факультет компьютерных наук",
-                      description: "Согласование: нужен родительный падеж ед. ч. (если бы слово было «науки»)",
+                      description:
+                          "Согласование: нужен родительный падеж ед. ч. (если бы слово было «науки»)",
                     ),
                   ],
                 )
@@ -267,13 +293,16 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     ),
                     Issue(
                       errorText: "ВГУ",
-                      suggestion: "Воронежского государственного университета (ВГУ)",
-                      description: "Сначала расшифровка, затем аббревиатура — по стилю",
+                      suggestion:
+                          "Воронежского государственного университета (ВГУ)",
+                      description:
+                          "Сначала расшифровка, затем аббревиатура — по стилю",
                     ),
                     Issue(
                       errorText: "вахтёр",
                       suggestion: "сторож",
-                      description: "«Вахтёр» — разговорное слово, в деловом резюме лучше заменить",
+                      description:
+                          "«Вахтёр» — разговорное слово, в деловом резюме лучше заменить",
                     ),
                     Issue(
                       errorText: "два года и два месяца",
@@ -282,24 +311,160 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     ),
                   ],
                 )
-                : _scan())
-            : _buildPage();
+                : _scan(index, 'Исправление ошибок'))
+            : _buildPage(index, 'Исправление ошибок', [
+              _buildText(
+                'Данный раздел предназначен для автоматического выявления и исправления ошибок в тексте резюме. '
+                'Обработка ошибок включает в себя следующие категории: ',
+              ),
+              _box,
+              _buildText(
+                '–   Орфография: исправление орфографических ошибок, таких как неправильное написание слов, опечатки, '
+                'ошибки в употреблении паронимов и другие.',
+              ),
+              _box,
+              _buildText(
+                '–   Грамматика: исправление ошибок в построении предложений, согласовании слов, управлении падежами, '
+                'а также в использовании предлогов.',
+              ),
+              _box,
+              _buildText(
+                '–   Пунктуация: исправление ошибок в расстановке запятых, тире, двоеточие, а также исправление '
+                'пропущенных или лишних знаков препинания.',
+              ),
+              _box,
+              _buildText(
+                '–   Стилевые ошибки: улучшение стиля текста, включая устранение тавтологии, канцеляризмов и '
+                'нелогичных построений фраз.',
+              ),
+            ]);
       case 1:
-        return Container();
+        return isScanningStructure
+            ? Scan(
+              onBackPressed: () {
+                setState(() {
+                  isScanningStructure = false;
+                });
+              },
+              onClose: widget.onClose,
+              resume: widget.resume,
+              title: 'Структура',
+              issues: [
+                Issue(
+                  errorText: "Компоненты",
+                  suggestion: "",
+                  description:
+                      "Отсутствует содержание пунктов: желаемая должность",
+                ),
+                Issue(
+                  errorText: "Смысловые части",
+                  suggestion: "",
+                  description:
+                      "Тоже какая то тут ошибка у вас. Не знаю пока какая",
+                ),
+              ],
+            )
+            : _buildPage(index, 'Структура', [
+              _buildText(
+                'Данный раздел предназначен для автоматического выявления разделов, требующих редактирования. '
+                'Обработка ошибок включает в себя следующие категории: ',
+              ),
+              _box,
+              _buildText('–   Компоненты: выявление отсутствующих разделов. '),
+              _box,
+              _buildText(
+                '–   Смысловые части: рекомендации о разделении тексте на образцы. ',
+              ),
+            ]);
       case 2:
-        return Container();
+        return isScanningContent
+            ? (isScanningSkills
+                ? Scan(
+                  onBackPressed: () {
+                    setState(() {
+                      isScanningSkills = false;
+                    });
+                  },
+                  onClose: widget.onClose,
+                  resume: widget.resume,
+                  title: 'Навыки',
+                  issues: [
+                    Issue(
+                      errorText: "Рисование",
+                      suggestion: "",
+                      description:
+                          "В вашем резюме присутствуют нерелевантные навыки (навыки, которые не относятся к вашей "
+                          "профессии): 'рисование'",
+                    ),
+                    Issue(
+                      errorText: "Танцы",
+                      suggestion: "",
+                      description:
+                          "В вашем резюме присутствуют нерелевантные навыки (навыки, которые не относятся к вашей "
+                          "профессии): 'танцы'",
+                    ),
+                    Issue(
+                      errorText: "Музыка",
+                      suggestion: "",
+                      description:
+                          "В вашем резюме присутствуют нерелевантные навыки (навыки, которые не относятся к вашей "
+                          "профессии): 'музыка'",
+                    ),
+                  ],
+                )
+                : isScanningAboutMe
+                ? Scan(
+                  onBackPressed: () {
+                    setState(() {
+                      isScanningAboutMe = false;
+                    });
+                  },
+                  onClose: widget.onClose,
+                  resume: widget.resume,
+                  title: 'О себе',
+                  issues: [],
+                )
+                : isScanningExperience
+                ? Scan(
+                  onBackPressed: () {
+                    setState(() {
+                      isScanningExperience = false;
+                    });
+                  },
+                  onClose: widget.onClose,
+                  resume: widget.resume,
+                  title: 'Опыт работы',
+                  issues: [],
+                )
+                : _scan(index, 'Содержание'))
+            : _buildPage(index, 'Содержание', [
+              _buildText(
+                'Данный раздел предназначен для автоматического выявления ошибок в содержании текста резюме. '
+                'Обработка ошибок включает в себя следующие категории: ',
+              ),
+              _box,
+              _buildText(
+                '–   Навыки: в случае, если в вашем резюме присутствуют нерелевантные навыки (навыки, которые '
+                'не относятся к вашей профессии). ',
+              ),
+              _box,
+              _buildText(
+                '–   О себе: в данной категории будут предложения о добавлении важных пунктов о вас. ',
+              ),
+              _box,
+              _buildText(
+                '–   Опыт работы: в данной категории будут рекомендации о том, как лучше рассказать о вашем опыте работы. ',
+              ),
+            ]);
       default:
         return Container();
     }
   }
 
-  Widget _buildPage() {
+  Widget _buildPage(int index, title, list) {
     const borderWindowColor = royalPurple;
-    const windowColor = Colors.white;
-    const windowColorInBox = lightLavender;
     const padding = 12.0;
     const buttonColor = cosmicBlue;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     final textStyle = TextStyle(
       color: buttonColor,
@@ -325,7 +490,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             ),
           ),
           child: Text(
-            'Исправление ошибок',
+            title,
             style: textStyle.copyWith(
               fontWeight: FontWeight.w600,
               fontSize: 16,
@@ -336,73 +501,25 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         SizedBox(height: 20),
         Expanded(
           child: SingleChildScrollView(
-            child: Center(
-              child: Column(
-                children: [
-                  Text(
-                    'Данный раздел предназначен для автоматического выявления и исправления ошибок в тексте резюме. '
-                    'Обработка ошибок включает в себя следующие категории: ',
-                    style: textStyle.copyWith(
-                      color: deepIndigo,
-                      fontSize: 12.8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '–  Орфография: исправление орфографических ошибок, таких как неправильное написание слов, опечатки, '
-                    'ошибки в употреблении паронимов и другие.',
-                    style: textStyle.copyWith(
-                      color: deepIndigo,
-                      fontSize: 12.8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '–  Грамматика: исправление ошибок в построении предложений, согласовании слов, управлении падежами, '
-                    'а также в использовании предлогов.',
-                    style: textStyle.copyWith(
-                      color: deepIndigo,
-                      fontSize: 12.8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '–  Пунктуация: исправление ошибок в расстановке запятых, тире, двоеточие, а также исправление '
-                    'пропущенных или лишних знаков препинания.',
-                    style: textStyle.copyWith(
-                      color: deepIndigo,
-                      fontSize: 12.8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '–  Стилевые ошибки: улучшение стиля текста, включая устранение тавтологии, канцеляризмов и '
-                    'нелогичных построений фраз.',
-                    style: textStyle.copyWith(
-                      color: deepIndigo,
-                      fontSize: 12.8,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.left,
-                  ),
-                ],
-              ),
-            ),
+            child: Center(child: Column(children: list)),
           ),
         ),
         ElevatedButton(
           onPressed: () {
-            setState(() {
-              isScanning = true;
-            });
+            switch (index) {
+              case 0:
+                return setState(() {
+                  isScanningFix = true;
+                });
+              case 1:
+                return setState(() {
+                  isScanningStructure = true;
+                });
+              case 2:
+                setState(() {
+                  isScanningContent = true;
+                });
+            }
           },
           style: ElevatedButton.styleFrom(
             side: BorderSide(color: midnightPurple, width: widthBorderRadius),
@@ -428,13 +545,14 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
     );
   }
 
-  Widget _scan() {
+  Widget _scan(int index, String title) {
     const borderWindowColor = royalPurple;
     const windowColor = Colors.white;
     const windowColorInBox = lightLavender;
     const padding = 12.0;
     const buttonColor = cosmicBlue;
     final screenHeight = MediaQuery.of(context).size.height;
+    final space = screenHeight * 0.05;
 
     final textStyle = TextStyle(
       color: buttonColor,
@@ -459,7 +577,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             ),
           ),
           child: Text(
-            'Исправление ошибок',
+            title,
             style: textStyle.copyWith(
               fontWeight: FontWeight.w600,
               fontSize: 16,
@@ -467,131 +585,80 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             textAlign: TextAlign.center,
           ),
         ),
-        SizedBox(height: 20),
+        SizedBox(height: space,),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isScanningSpell = true;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  side: BorderSide(
-                    color: midnightPurple,
-                    width: widthBorderRadius,
-                  ),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Орфография',
-                  style: TextStyle(
-                    color: midnightPurple,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isScanningPunctuation = true;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  side: BorderSide(
-                    color: midnightPurple,
-                    width: widthBorderRadius,
-                  ),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Пунктуация',
-                  style: TextStyle(
-                    color: midnightPurple,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isScanningGrammar = true;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  side: BorderSide(
-                    color: midnightPurple,
-                    width: widthBorderRadius,
-                  ),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Грамматика',
-                  style: TextStyle(
-                    color: midnightPurple,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isScanningStyle = true;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  side: BorderSide(
-                    color: midnightPurple,
-                    width: widthBorderRadius,
-                  ),
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(borderRadius),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Стилевые ошибки',
-                  style: TextStyle(
-                    color: midnightPurple,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
+            children:
+                index == 0
+                    ? [
+                      _buildButton('Орфография', () {
+                        setState(() {
+                          isScanningSpell = true;
+                        });
+                      }),
+                      _buildButton('Пунктуация', () {
+                        setState(() {
+                          isScanningPunctuation = true;
+                        });
+                      }),
+                      _buildButton('Грамматика', () {
+                        setState(() {
+                          isScanningGrammar = true;
+                        });
+                      }),
+                      _buildButton('Стилевые ошибки', () {
+                        setState(() {
+                          isScanningStyle = true;
+                        });
+                      }),
+                    ]
+                    : [
+                      _buildButton('Навыки', () {
+                        setState(() {
+                          isScanningSkills = true;
+                        });
+                      }),
+                      _buildButton('О себе', () {
+                        setState(() {
+                          isScanningAboutMe = true;
+                        });
+                      }),
+                      _buildButton('Опыт работы', () {
+                        setState(() {
+                          isScanningExperience = true;
+                        });
+                      }),
+                    ],
           ),
         ),
+        SizedBox(height: space,),
       ],
+    );
+  }
+
+  Widget _buildButton(String text, onPressed) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        side: BorderSide(color: midnightPurple, width: widthBorderRadius),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        minimumSize: const Size(double.infinity, 50),
+        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        elevation: 0,
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: midnightPurple,
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+        ),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
