@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSHKEY }}
           source: "**/docker-compose.yaml,**/nginx.conf"
-          target: "~"
+          target: "~/backend"
 
       - name: Deploy to Selectel Cloud via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -68,7 +68,7 @@ jobs:
             
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
-            cd ~
+            cd ~/backend
             
             echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
             echo "ADMIN_EMAILS=${{ vars.ADMIN_EMAILS }}" >> .env
