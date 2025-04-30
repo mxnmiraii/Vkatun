@@ -50,7 +50,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
       _resumes = [
         {
           'id': 0,
-          'title': 'Петров Иван Иванович',
+          'title': 'Петров Иван Натанович',
           'created_at': '2023-12-25', // Самое новое (будет слева вверху)
         },
         {
@@ -93,7 +93,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
       case 0:
         return {
           'id': 0,
-          'title': 'Петров Иван Иванович',
+          'title': 'Петров Иван Натанович',
           'contacts': 'Телефон: +7 (912) 345-67-89 Email: ivan.petrov@email.com',
           'job': 'вахтёр в №5 общежитии ВГУ!',
           'experience': 'ООО "Атом Мовинг"\nGolang backend devoloper\nдва года и два месяца',

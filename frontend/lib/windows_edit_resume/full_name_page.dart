@@ -4,16 +4,17 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class FullNamePage extends StatefulWidget {
-  const FullNamePage({super.key});
+  final List<String> data;
+  const FullNamePage({super.key, required this.data});
 
   @override
   State<FullNamePage> createState() => _FullNamePageState();
 }
 
 class _FullNamePageState extends State<FullNamePage> {
-  final TextEditingController _surnameController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _patronymicController = TextEditingController();
+  late TextEditingController _surnameController = TextEditingController();
+  late TextEditingController _nameController = TextEditingController();
+  late TextEditingController _patronymicController = TextEditingController();
 
   @override
   void dispose() {
@@ -24,9 +25,20 @@ class _FullNamePageState extends State<FullNamePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _surnameController = TextEditingController(text: widget.data.isNotEmpty ? widget.data[0] : '');
+    _nameController = TextEditingController(text: widget.data.length > 1 ? widget.data[1] : '');
+    _patronymicController = TextEditingController(text: widget.data.length > 2 ? widget.data[2] : '');
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -41,49 +53,39 @@ class _FullNamePageState extends State<FullNamePage> {
             automaticallyImplyLeading: false,
             toolbarHeight: appBarHeight,
             centerTitle: false,
-            title: Row(
+            title: Stack(
+              alignment: Alignment.center,
               children: [
-                Flexible(
-                  flex: 3, // Первая колонка с тремя делениями
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Равномерное распределение элементов по вертикали
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
                     children: [
-                      Container(), // Первое деление (пустое)
-                      Container(), // Второе деление (пустое)
-                      Align( // Третье деление, где будет стрелка
-                        alignment: Alignment.center, // Стрелка будет в центре
-                        child: IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: lightArrowBackIcon,
-                        ),
-                      ),
+                      SizedBox(width: space),
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: lightArrowBackIcon),
                     ],
                   ),
                 ),
-                Flexible(
-                  flex: 5, // Вторая колонка с текстом "ФИО"
-                  child: Center(
-                    child: const Text(
-                      'ФИО',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 24,
-                        fontFamily: 'Playfair',
-                        color: purpleBlue,
-                      ),
+
+                Center(
+                  child: Text(
+                    'ФИО',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                      fontFamily: 'Playfair',
+                      color: purpleBlue,
                     ),
                   ),
-                ),
-                Flexible(
-                  flex: 3, // Третья колонка (пустая)
-                  child: Container(),
                 ),
               ],
             ),
           ),
         ),
       ),
-
 
       body: Stack(
         children: [
@@ -128,11 +130,19 @@ class _FullNamePageState extends State<FullNamePage> {
               ),
               child: Column(
                 children: [
-                  _buildTextField(label: 'Фамилия', controller: _surnameController),
+                  _buildTextField(
+                    label: 'Фамилия',
+                    controller: _surnameController,
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField(label: 'Имя', controller: _nameController),
+                  _buildTextField(
+                      label: 'Имя',
+                      controller: _nameController),
                   const SizedBox(height: 16),
-                  _buildTextFieldWithoutBorder(label: 'Отчество', controller: _patronymicController),
+                  _buildTextField(
+                    label: 'Отчество',
+                    controller: _patronymicController,
+                  ),
                 ],
               ),
             ),
@@ -140,13 +150,12 @@ class _FullNamePageState extends State<FullNamePage> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 35),
+        padding: const EdgeInsets.only(bottom: bottom35),
         child: SizedBox(
-          width: 72,
-          height: 72,
           child: IconButton(
             icon: darkerBiggerDoneIcon,
             onPressed: () {
+              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
               Navigator.pop(context);
             },
             padding: EdgeInsets.zero,
@@ -157,41 +166,6 @@ class _FullNamePageState extends State<FullNamePage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
-
-  Widget _buildTextFieldWithoutBorder({
-    required String label,
-    required TextEditingController controller,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontFamily: 'Playfair',
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: lavenderBlue,
-          ),
-        ),
-        TextField(
-          controller: controller,
-          style: const TextStyle(
-            fontFamily: "NotoSans",
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: black,
-          ),
-          decoration: const InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.only(top:2, bottom: 2),
-            border: InputBorder.none, // Убираем границу
-          ),
-        ),
-      ],
-    );
-  }
-
 
 
   Widget _buildTextField({
@@ -220,7 +194,10 @@ class _FullNamePageState extends State<FullNamePage> {
           ),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.only(top: 7, bottom: 14), // Уменьшаем отступы сверху и снизу
+            contentPadding: const EdgeInsets.only(
+              top: 7,
+              bottom: 14,
+            ), // Уменьшаем отступы сверху и снизу
             border: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender, // Цвет полоски
@@ -228,16 +205,10 @@ class _FullNamePageState extends State<FullNamePage> {
               ),
             ),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                  color: lightDarkenLavender,
-              width: 2.5,
-              ),
+              borderSide: BorderSide(color: lightDarkenLavender, width: 2.5),
             ),
             focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                  color: lightDarkenLavender,
-                  width: 2.5,
-              ),
+              borderSide: BorderSide(color: lightDarkenLavender, width: 2.5),
             ),
           ),
         ),
@@ -245,3 +216,5 @@ class _FullNamePageState extends State<FullNamePage> {
     );
   }
 }
+
+

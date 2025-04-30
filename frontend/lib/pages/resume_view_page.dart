@@ -190,7 +190,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'ФИО',
               content: widget.resume['title'] ?? 'Не указано',
               hasCheck: true,
-              targetPage: const FullNamePage(),
+              targetPage: FullNamePage(
+                  data: widget.resume['title'] == null || widget.resume['title'] == ''
+                  ? ['', '', ''] : widget.resume['title'].split(' ')),
             ),
 
             // Желаемая должность
