@@ -78,3 +78,11 @@ final SvgPicture arrowDown = SvgPicture.asset(
 final SvgPicture biggerDoneIcon = SvgPicture.asset(
   'assets/images/bigger_done_icon.svg',
 );
+
+final SvgPicture circleWithPenIcon = SvgPicture.asset(
+    'assets/images/circle_with_pen_icon.svg'
+);
+
+final SvgPicture logOutIcon = SvgPicture.asset(
+    'assets/images/log_out_icon.svg'
+);
