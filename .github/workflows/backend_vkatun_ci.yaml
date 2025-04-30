@@ -55,6 +55,8 @@ jobs:
             # Login into Selectel Registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
+            cd backend
+            
             # Generating the .env file
             cat > .env <<EOF
             JWT_SECRET=${{ vars.JWT_SECRET }}
@@ -74,16 +76,11 @@ jobs:
             POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
             EOF
 
-            # Stop all old services
-            docker compose down
+            docker-compose down
 
-            # Update the backend image to the new one
             sed -i "s|build:.*|image: $REGISTRY/$IMAGE_NAME:$TAG_NAME|" docker-compose.yaml
             sed -i "/dockerfile:/d" docker-compose.yaml
             sed -i "/context:/d" docker-compose.yaml
-            
-            # Pull the latest images
-            docker compose pull
-            
-            # Start all services
-            docker compose up -d --force-recreate
+          
+            docker-compose pull
+            docker-compose up -d --force-recreate
