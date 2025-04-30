@@ -58,7 +58,7 @@ class _FullNamePageState extends State<FullNamePage> {
                       fontWeight: FontWeight.w800,
                       fontSize: 24,
                       fontFamily: 'Playfair',
-                      color: Color(0xFF2C2C86),
+                      color: purpleBlue,
                     ),
                   ),
                   Opacity(opacity: 0, child: backIconWBg),
@@ -71,16 +71,11 @@ class _FullNamePageState extends State<FullNamePage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF8F9FF),
-              Color(0xFFE6EDFF),
-            ],
-          ),
-        ),
+        color: Colors.white, // 🔁 заглушка-фон
+        // TODO: Заменить на BoxDecoration с градиентом
+        // BoxDecoration(
+        //   gradient: LinearGradient(...),
+        // ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(top: 24),
           child: Container(
@@ -89,12 +84,13 @@ class _FullNamePageState extends State<FullNamePage> {
             decoration: BoxDecoration(
               color: Colors.white, // чисто белый фон
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Color(0xFF979CFF), width: 1.5),
+              border: Border.all(color: vividPeriwinkleBlue, width: 2.0),
               boxShadow: [
                 BoxShadow(
-                  color: Color(0x4D979CFF),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: Colors.black.withOpacity(0.50), // Почернее
+                  blurRadius: 4,                         // Меньшее размытие
+                  spreadRadius: 0.2,                     // Чуть-чуть вокруг блока
+                  offset: Offset(0, 1),                  // Немного вниз
                 ),
               ],
             ),
@@ -142,16 +138,16 @@ class _FullNamePageState extends State<FullNamePage> {
             fontFamily: 'Playfair',
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF6A6AFF),
+            color: lavenderBlue,
           ),
         ),
         TextField(
           controller: controller,
           style: const TextStyle(
             fontFamily: "NotoSans",
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: Colors.black,
+            color: black,
           ),
           decoration: const InputDecoration(
             isDense: true,
