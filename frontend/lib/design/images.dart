@@ -90,3 +90,11 @@ final SvgPicture logOutIcon = SvgPicture.asset(
 final SvgPicture signUp = SvgPicture.asset(
     'assets/images/sign_up.svg'
 );
+
+final SvgPicture lightArrowBackIcon = SvgPicture.asset(
+    'assets/images/light_arrow_back_icon.svg'
+);
+
+final SvgPicture darkerBiggerDoneIcon = SvgPicture.asset(
+    'assets/images/darker_bigger_done_icon.svg'
+);

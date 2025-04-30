@@ -36,7 +36,7 @@ const Color gray = Color(0xFFA9A9A9);
 const Color purpleBlue = Color(0xFF4C29C8);
 const Color lavenderBlue = Color(0xFF8F87FF);
 const Color vividPeriwinkleBlue = Color(0xFF6563FF);
-const Color sda = Color(0xFFB2B1FF);
+const Color lightDarkenLavender = Color(0xFFB2B1FF);
 
 const Color waterBackground = Color(0xFF9799FF);
 const Color mediumSlateBlue = Color(0xFF6C69FB);
