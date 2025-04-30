@@ -42,15 +42,6 @@ jobs:
       - name: Checkout master
         uses: actions/checkout@v3
 
-      - name: Create backend directory on server
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSHKEY }}
-          script: |
-            mkdir -p /home/${{ secrets.SSH_USERNAME }}/backend
-
       - name: Copy docker-compose.yaml and nginx.conf to server
         uses: appleboy/scp-action@v0.1.3
         with:
@@ -58,7 +49,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSHKEY }}
           source: "backend/docker-compose.yaml,backend/nginx.conf"
-          target: "/home/${{ secrets.SSH_USERNAME }}/backend/"
+          target: "~"
 
       - name: Deploy to Selectel Cloud via SSH
         uses: appleboy/ssh-action@v1.0.0
