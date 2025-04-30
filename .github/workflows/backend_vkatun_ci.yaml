@@ -55,6 +55,7 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           source: "backend/docker-compose.yaml,backend/nginx.conf"
           target: "~/backend"
+          strip_components: 1
 
       - name: Deploy to Selectel Cloud via SSH
         uses: appleboy/ssh-action@v1.0.0
