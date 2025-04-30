@@ -55,9 +55,6 @@ jobs:
             # Login into Selectel Registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
-            # Go to the backend directory
-            cd backend
-            
             # Generating the .env file
             cat > .env <<EOF
             JWT_SECRET=${{ vars.JWT_SECRET }}
