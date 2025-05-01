@@ -27,7 +27,7 @@ func New() (*Server, error) {
 		return nil, err
 	}
 
-	if err := database.Migrate(context.Background()); err != nil {
+	if err = database.Migrate(context.Background()); err != nil {
 		logger.Log.Error("failed to run migration", zap.Error(err))
 		return nil, err
 	}
