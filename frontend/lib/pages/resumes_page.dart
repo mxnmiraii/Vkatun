@@ -161,7 +161,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           'id': 5,
           'title': 'Фролова Екатерина Дмитриевна',
           'contacts': 'Телефон: +7 (967) 890-12-34 Email: ekaterina.frolova@email.com',
-          'job': 'Юрист',
+          'job': 'Бухгалтерка, Космонавт, Пилотка, Самолетка, косметка, повариха, Айтишка, Капитанка, ',
           'experience': 'Юридическая фирма "Право и Закон"\n5 лет опыта',
           'education': 'МГЮА им. Кутафина\nЮриспруденция\nМагистр, 2017',
           'skills': 'Гражданское право, Договорное право, Судебные споры',

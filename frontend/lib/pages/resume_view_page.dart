@@ -198,9 +198,15 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // Желаемая должность
             _buildSection(
               title: 'Желаемая должность',
-              content: widget.resume['job'] ?? 'Не указано',
+              content: widget.resume['job']?.isNotEmpty == true
+                  ? widget.resume['job']
+                  : 'Не указано',
               hasCheck: true,
-              targetPage: const DesiredPositionPage(),
+              targetPage: DesiredPositionPage(
+                data: widget.resume['job']?.isNotEmpty == true
+                    ? [widget.resume['job']!.trim()]
+                    : [''],
+              ),
             ),
 
             // Контактные данные
