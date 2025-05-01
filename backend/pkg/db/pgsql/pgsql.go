@@ -4,6 +4,9 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"time"
+
+	"github.com/avast/retry-go"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -12,9 +15,27 @@ type DB struct {
 }
 
 func New(connString string) (*DB, error) {
-	pool, err := pgxpool.New(context.Background(), connString)
+	var pool *pgxpool.Pool
+
+	err := retry.Do(
+		func() error {
+			var err error
+			pool, err = pgxpool.New(context.Background(), connString)
+			if err != nil {
+				return err
+			}
+			return pool.Ping(context.Background())
+		},
+		retry.Attempts(10),
+		retry.Delay(2*time.Second),
+		retry.DelayType(retry.FixedDelay),
+		retry.OnRetry(func(n uint, err error) {
+			fmt.Printf("Retry %d: waiting for DB... (%v)\n", n+1, err)
+		}),
+	)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	return &DB{pool: pool}, nil
