@@ -168,8 +168,7 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
           ),
         ),
         const SizedBox(height: 4),
-        index + 1 != length
-            ? TextField(
+        TextField(
           controller: controller,
           style: const TextStyle(
             fontFamily: "NotoSans",
@@ -177,41 +176,34 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
             fontWeight: FontWeight.w400,
             color: black,
           ),
-          decoration: const InputDecoration(
+          maxLines: null, // 🟢 Позволяет перенос строки и авторасширение
+          decoration: InputDecoration(
             isDense: true,
-            contentPadding: EdgeInsets.only(top: 7, bottom: 14),
-            border: UnderlineInputBorder(
+            contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
+            border: index + 1 != length
+                ? const UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            ),
-            enabledBorder: UnderlineInputBorder(
+            )
+                : InputBorder.none,
+            enabledBorder: index + 1 != length
+                ? const UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            ),
-            focusedBorder: UnderlineInputBorder(
+            )
+                : InputBorder.none,
+            focusedBorder: index + 1 != length
+                ? const UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            ),
-          ),
-        )
-            : TextField(
-          controller: controller,
-          style: const TextStyle(
-            fontFamily: "NotoSans",
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: black,
-          ),
-          decoration: const InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.only(top: 7, bottom: 14),
-            border: InputBorder.none,
+            )
+                : InputBorder.none,
           ),
         ),
       ],
