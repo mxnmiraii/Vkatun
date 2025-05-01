@@ -33,7 +33,10 @@ services:
     image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.crt:/etc/nginx/certs/nginx.crt:ro
+      - ./nginx.key:/etc/nginx/certs/nginx.key:ro
     depends_on:
       - backend
