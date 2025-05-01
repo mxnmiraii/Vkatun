@@ -98,3 +98,7 @@ final SvgPicture lightArrowBackIcon = SvgPicture.asset(
 final SvgPicture darkerBiggerDoneIcon = SvgPicture.asset(
     'assets/images/darker_bigger_done_icon.svg'
 );
+
+final SvgPicture lightArrowForwardIcon = SvgPicture.asset(
+    'assets/images/light_arrow_forward_icon.svg'
+);

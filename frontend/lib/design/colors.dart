@@ -43,3 +43,5 @@ const Color mediumSlateBlue = Color(0xFF6C69FB);
 const Color electricVioletBlue = Color(0xFF544FFB);
 const Color blue = Color(0xFF4318DA);
 const Color lightGrayText = Color(0xFF9D97A4);
+const Color lightVioletDivider = Color(0xFFB2B1FF);
+const Color darkImperialBlue = Color(0xFF210096);

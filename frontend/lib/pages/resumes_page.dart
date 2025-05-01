@@ -7,6 +7,7 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/pages/resume_view_page.dart';
 import 'package:vkatun/windows/window_resumes_page.dart';
 
+import '../account/account_main_page.dart';
 import '../design/colors.dart';
 
 class ResumesPage extends StatefulWidget {
@@ -300,7 +301,12 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           children: [
             IconButton(
               icon: accountIcon,
-              onPressed: () {}
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccountMainPage())
+                );
+              }
             ),
             Flexible(
               child: Transform.translate(
