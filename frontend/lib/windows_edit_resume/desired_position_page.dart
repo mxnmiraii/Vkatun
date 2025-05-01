@@ -4,27 +4,29 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class DesiredPositionPage extends StatefulWidget {
-  final String? initialPosition;
-
-  const DesiredPositionPage({super.key, this.initialPosition});
+  final List<String> data;
+  const DesiredPositionPage({super.key, required this.data});
 
   @override
   State<DesiredPositionPage> createState() => _DesiredPositionPageState();
 }
 
 class _DesiredPositionPageState extends State<DesiredPositionPage> {
-  late TextEditingController _positionController;
-
-  @override
-  void initState() {
-    super.initState();
-    _positionController = TextEditingController(text: widget.initialPosition ?? '');
-  }
+  late TextEditingController _positionController = TextEditingController();
 
   @override
   void dispose() {
     _positionController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _positionController = TextEditingController(
+      text: widget.data.isNotEmpty ? widget.data[0] : '',
+    );
   }
 
   @override
@@ -46,6 +48,7 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
             scrolledUnderElevation: 0,
             automaticallyImplyLeading: false,
             toolbarHeight: appBarHeight,
+            centerTitle: false,
             title: Stack(
               alignment: Alignment.center,
               children: [
@@ -77,6 +80,7 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
           ),
         ),
       ),
+
       body: Stack(
         children: [
           // Градиент на фоне
@@ -96,6 +100,7 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
               ),
             ),
           ),
+
           SingleChildScrollView(
             padding: const EdgeInsets.only(top: 24),
             child: Container(
@@ -120,23 +125,24 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
               child: _buildTextField(
                 label: 'Должность',
                 controller: _positionController,
+                index: 0,
+                length: widget.data.length,
               ),
             ),
           ),
         ],
       ),
+
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: bottom35),
-        child: SizedBox(
-          child: IconButton(
-            icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
-              Navigator.pop(context);
-            },
-            padding: EdgeInsets.zero,
-            splashRadius: 36,
-          ),
+        child: IconButton(
+          icon: darkerBiggerDoneIcon,
+          onPressed: () {
+            // Здесь можно сохранить данные
+            Navigator.pop(context);
+          },
+          padding: EdgeInsets.zero,
+          splashRadius: 36,
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -146,6 +152,8 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
+    required int index,
+    required int length,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +167,9 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
             color: lavenderBlue,
           ),
         ),
-        TextField(
+        const SizedBox(height: 4),
+        index + 1 != length
+            ? TextField(
           controller: controller,
           style: const TextStyle(
             fontFamily: "NotoSans",
@@ -167,24 +177,41 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
             fontWeight: FontWeight.w400,
             color: black,
           ),
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ),
-            border: const UnderlineInputBorder(
+            contentPadding: EdgeInsets.only(top: 7, bottom: 14),
+            border: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
             ),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: lightDarkenLavender, width: 2.5),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
+              ),
             ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: lightDarkenLavender, width: 2.5),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
+              ),
             ),
+          ),
+        )
+            : TextField(
+          controller: controller,
+          style: const TextStyle(
+            fontFamily: "NotoSans",
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: black,
+          ),
+          decoration: const InputDecoration(
+            isDense: true,
+            contentPadding: EdgeInsets.only(top: 7, bottom: 14),
+            border: InputBorder.none,
           ),
         ),
       ],
