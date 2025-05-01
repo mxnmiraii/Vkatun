@@ -185,6 +185,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             // ФИО
             _buildSection(
               title: 'ФИО',
@@ -238,8 +239,25 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             _buildSection(
               title: 'Образование',
               content: widget.resume['education'] ?? 'Не указано',
-              hasCheck: false,
+              hasCheck: true,
+              targetPage: EducationPage(
+                data: () {
+                  final raw = widget.resume['education'];
+                  if (raw == null || raw.trim().isEmpty) return ['', '', '', ''];
+
+                  final lines = raw.split('\n').map((e) => e.trim()).toList();
+
+                  // Обеспечиваем ровно 4 поля, заполняя пустыми строками
+                  final fixed = List.filled(4, '');
+                  for (int i = 0; i < lines.length && i < 4; i++) {
+                    fixed[i] = lines[i];
+                  }
+
+                  return fixed;
+                }(),
+              ),
             ),
+
 
             // Знание языков
             _buildSection(
