@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:vkatun/account/account_page.dart';
+import 'package:vkatun/account/period_selector.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
-import 'metrics_page.dart';
-
-class AccountMainPage extends StatefulWidget {
-  const AccountMainPage({super.key});
+class MetricsPage extends StatefulWidget {
+  const MetricsPage({super.key});
 
   @override
-  State<AccountMainPage> createState() => _AccountMainPageState();
+  State<MetricsPage> createState() => _MetricsPageState();
 }
 
-class _AccountMainPageState extends State<AccountMainPage> {
+class _MetricsPageState extends State<MetricsPage> {
+  Map<String, dynamic> metrics = {
+    "total_users": 16,
+    "active_users_today": 5,
+    "total_resumes": 25,
+    "total_changes_app": 83,
+    "last_updated_at": "2025-05-01T00:37:12.723Z",
+  };
+
+  DateTime? selectedFrom;
+  DateTime? selectedTo;
+
   @override
   void dispose() {
     super.dispose();
@@ -22,6 +32,10 @@ class _AccountMainPageState extends State<AccountMainPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  String _format(DateTime date) {
+    return "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
   }
 
   @override
@@ -48,10 +62,10 @@ class _AccountMainPageState extends State<AccountMainPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: lightArrowBackIcon
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: lightArrowBackIcon,
                 ),
 
                 Text(
@@ -73,6 +87,7 @@ class _AccountMainPageState extends State<AccountMainPage> {
 
       body: Stack(
         children: [
+
           // Градиент на фоне
           Container(
             width: double.infinity,
@@ -112,21 +127,40 @@ class _AccountMainPageState extends State<AccountMainPage> {
                   ),
                 ],
               ),
-              child: Column(children: [
-                _buildTextField(label: 'Данные об аккаунте', onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AccountPage())
-                  );
-                }),
-                SizedBox(height: 30,),
-                _buildTextField(label: 'Метрики', onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => MetricsPage())
-                  );
-                }),
-              ]),
+              child: Column(
+                children: [
+                  PeriodSelector(
+                    onPeriodChanged: (from, to) {
+                      setState(() {
+                        selectedFrom = from;
+                        selectedTo = to;
+                      });
+                    },
+                  ),
+
+                  SizedBox(height: 50,),
+
+                  _buildTextField(
+                    label:
+                        'Количество загруженных резюме – ${metrics['total_resumes']}',
+                  ),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    label:
+                        'Количество активных пользователей в день – ${metrics['active_users_today']}',
+                  ),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    label:
+                        'Общее количество зарегистрированных пользователей – ${metrics['total_users']}',
+                  ),
+                  SizedBox(height: 20),
+                  _buildTextField(
+                    label:
+                        'Процент принятых рекомендаций – ${metrics['total_changes_app']}%',
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -134,37 +168,25 @@ class _AccountMainPageState extends State<AccountMainPage> {
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required onPressed,
-  }) {
+  Widget _buildTextField({required String label}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Playfair',
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-                color: darkImperialBlue,
-              ),
+        Padding(
+          padding: EdgeInsets.only(left: 8, right: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'NotoSans',
+              fontWeight: FontWeight.w400,
+              fontSize: 16.4,
+              color: cosmicBlue,
             ),
-
-            IconButton(
-                onPressed: onPressed,
-                icon: lightArrowForwardIcon,
-            )
-          ],
+          ),
         ),
+        SizedBox(height: 10),
 
-        Divider(
-          color: lightVioletDivider.withOpacity(0.5),
-          thickness: 1,
-        )
+        Divider(color: lightVioletDivider.withOpacity(0.5), thickness: 1),
       ],
     );
   }
