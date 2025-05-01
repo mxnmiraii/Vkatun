@@ -25,11 +25,11 @@ jobs:
         with:
           go-version: 1.24
 
-      - name: Download Go modules
-        run: go mod download
-
       - name: Run tests
-        run: go test ./... -v
+        run: |
+          cd backend
+          go mod download
+          go test ./... -v
 
   # пушим в наш registry
   image-build-and-push:
