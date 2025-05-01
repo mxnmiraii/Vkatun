@@ -84,17 +84,29 @@ final SvgPicture circleWithPenIcon = SvgPicture.asset(
 );
 
 final SvgPicture logOutIcon = SvgPicture.asset(
-    'assets/images/log_out_icon.svg'
+    'assets/images/log_out_icon.svg',
 );
 
 final SvgPicture signUp = SvgPicture.asset(
-    'assets/images/sign_up.svg'
+    'assets/images/sign_up.svg',
 );
 
 final SvgPicture lightArrowBackIcon = SvgPicture.asset(
-    'assets/images/light_arrow_back_icon.svg'
+    'assets/images/light_arrow_back_icon.svg',
 );
 
 final SvgPicture darkerBiggerDoneIcon = SvgPicture.asset(
-    'assets/images/darker_bigger_done_icon.svg'
+    'assets/images/darker_bigger_done_icon.svg',
+);
+
+final SvgPicture lightArrowForwardIcon = SvgPicture.asset(
+    'assets/images/light_arrow_forward_icon.svg',
+);
+
+final SvgPicture timeArrowBack = SvgPicture.asset(
+    'assets/images/time_arrow_back.svg',
+);
+
+final SvgPicture timeArrowForward = SvgPicture.asset(
+    'assets/images/time_arrow_forward.svg',
 );
