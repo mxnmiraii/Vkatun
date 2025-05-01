@@ -12,8 +12,7 @@ env:
   CONTAINER_NAME: "vkatun-container"
 
 jobs:
-  test:
-    name: Run Go unit tests
+  run-go-unit-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,7 +33,7 @@ jobs:
   # пушим в наш registry
   image-build-and-push:
     runs-on: ubuntu-latest
-    needs: test
+    needs: run-go-unit-tests
 
     steps:
       - name: Checkout master
@@ -56,18 +55,15 @@ jobs:
 
   deploy-image:
     runs-on: ubuntu-latest
+    # выполняется только после выполнения image-build-and-push
     needs: image-build-and-push
 
     steps:
       - name: Checkout master
         uses: actions/checkout@v3
 
-      - name: Print current directory tree
-        run: |
-          pwd
-          ls -R
-
       - name: Copy docker-compose.yaml and nginx.conf to server
+        # ssh-action с помощью которого мы сможем залезть на сервак
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -85,14 +81,19 @@ jobs:
           key: ${{ secrets.SSHKEY }}
           envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,CONTAINER_NAME
           script: |
+            # Set up variables
             TAG_NAME=$(echo $GITHUB_SHA | head -c7)
             
+            # Login into Selectel Registry
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
             
+            # Navigate to the home directory
             cd ~/
             
+            # Clear the .env file 
             > .env
             
+            # Add secrets to the .env file (one by one)
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             echo "ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}" >> .env
             echo "DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}" >> .env
@@ -109,9 +110,18 @@ jobs:
             echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             
+            # Shut down any running Docker containers
             docker-compose down
+            
+            # Update the backend image in the docker-compose.yaml to use the new image tag
             sed -i "s|build:.*|image: $REGISTRY/$IMAGE_NAME:$TAG_NAME|" docker-compose.yaml
+            
+            # Remove the build-related configurations from docker-compose.yaml
             sed -i "/dockerfile:/d" docker-compose.yaml
             sed -i "/context:/d" docker-compose.yaml
+            
+            # Pull the latest Docker images
             docker-compose pull
+            
+            # Start all services with the new configuration, force recreate containers
             docker-compose up -d --force-recreate
