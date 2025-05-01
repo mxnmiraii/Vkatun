@@ -12,9 +12,29 @@ env:
   CONTAINER_NAME: "vkatun-container"
 
 jobs:
+  test:
+    name: Run Go unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.24
+
+      - name: Download Go modules
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./... -v
+
   # пушим в наш registry
   image-build-and-push:
     runs-on: ubuntu-latest
+    needs: test
 
     steps:
       - name: Checkout master
@@ -28,7 +48,7 @@ jobs:
         run: docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
 
       - name: Build and Push Docker Image
-        # многострочный ru. (echo $GITHUB_SHA | head -c7) -хэш коммита в 7 символов
+        # многострочный run (echo $GITHUB_SHA | head -c7) -хэш коммита в 7 символов
         run: |
           TAG_NAME=$(echo $GITHUB_SHA | head -c7)
           docker buildx create --use
@@ -73,21 +93,21 @@ jobs:
             
             > .env
             
-            echo "JWT_SECRET=${{ vars.JWT_SECRET }}" >> .env
-            echo "ADMIN_EMAILS=${{ vars.ADMIN_EMAILS }}" >> .env
-            echo "DEEPSEEK_API_KEY=${{ vars.DEEPSEEK_API_KEY }}" >> .env
-            echo "DEEPSEEK_URL=${{ vars.DEEPSEEK_URL }}" >> .env
-            echo "DEEPSEEK_MODEL=${{ vars.DEEPSEEK_MODEL }}" >> .env
-            echo "ROLE_SYSTEM=${{ vars.ROLE_SYSTEM }}" >> .env
-            echo "ROLE_USER=${{ vars.ROLE_USER }}" >> .env
-            echo "EXTRACT=${{ vars.EXTRACT }}" >> .env
-            echo "GRAMMAR=${{ vars.GRAMMAR }}" >> .env
-            echo "STRUCTURE=${{ vars.STRUCTURE }}" >> .env
-            echo "SKILLS=${{ vars.SKILLS }}" >> .env
-            echo "POSTGRES_STR=${{ vars.POSTGRES_STR }}" >> .env
-            echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
-            echo "POSTGRES_USER=${{ vars.POSTGRES_USER }}" >> .env
-            echo "POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "ADMIN_EMAILS=${{ secrets.ADMIN_EMAILS }}" >> .env
+            echo "DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}" >> .env
+            echo "DEEPSEEK_URL=${{ secrets.DEEPSEEK_URL }}" >> .env
+            echo "DEEPSEEK_MODEL=${{ secrets.DEEPSEEK_MODEL }}" >> .env
+            echo "ROLE_SYSTEM=${{ secrets.ROLE_SYSTEM }}" >> .env
+            echo "ROLE_USER=${{ secrets.ROLE_USER }}" >> .env
+            echo "EXTRACT=${{ secrets.EXTRACT }}" >> .env
+            echo "GRAMMAR=${{ secrets.GRAMMAR }}" >> .env
+            echo "STRUCTURE=${{ secrets.STRUCTURE }}" >> .env
+            echo "SKILLS=${{ secrets.SKILLS }}" >> .env
+            echo "POSTGRES_STR=${{ secrets.POSTGRES_STR }}" >> .env
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
             
             docker-compose down
             sed -i "s|build:.*|image: $REGISTRY/$IMAGE_NAME:$TAG_NAME|" docker-compose.yaml
