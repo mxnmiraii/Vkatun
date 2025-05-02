@@ -146,3 +146,19 @@ final SvgPicture toggleOnIcon = SvgPicture.asset(
 final SvgPicture toggleOffIcon = SvgPicture.asset(
   'assets/images/toggle_off_icon.svg',
 );
+
+final SvgPicture accessIcon = SvgPicture.asset(
+  'assets/images/access_icon.svg',
+);
+
+final SvgPicture errorIcon = SvgPicture.asset(
+  'assets/images/error_icon.svg',
+);
+
+final SvgPicture warningIcon = SvgPicture.asset(
+  'assets/images/warning_icon.svg',
+);
+
+final SvgPicture cancelIcon2 = SvgPicture.asset(
+  'assets/images/cancel_icon_2.svg',
+);

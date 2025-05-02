@@ -9,6 +9,7 @@ import 'package:vkatun/windows/window_resumes_page.dart';
 
 import '../account/account_main_page.dart';
 import '../design/colors.dart';
+import '../dialogs/error_dialog.dart';
 
 class ResumesPage extends StatefulWidget {
   const ResumesPage({super.key});

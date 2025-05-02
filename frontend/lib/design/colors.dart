@@ -52,3 +52,6 @@ const Color lightViolet = Color(0xFF7F5CFB);
 const Color lightVioletBlue = Color(0xFFA68DFF);
 const Color upColorGradient = Color(0xFFE2E5FF);
 const Color downColorGradient = Color(0xFFB2B1FF);
+
+const Color vibrantViolet = Color(0xFF5537AE);
+const Color electricLavender = Color(0xFF674FBE);

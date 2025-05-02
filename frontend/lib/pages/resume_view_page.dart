@@ -299,7 +299,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     required String content,
     required bool hasCheck,
     Widget? targetPage,
-    // сюда добавляешь еще одну переменную, которая отвечает за то на какое окно будет переходить
   }) {
     return Column(
       children: [
