@@ -241,6 +241,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               content: widget.resume['education'] ?? 'Не указано',
               hasCheck: true,
               targetPage: EducationPage(
+                // Нужно переделать
                 data: () {
                   final raw = widget.resume['education'];
                   if (raw == null || raw.trim().isEmpty) return ['', '', '', ''];
@@ -276,8 +277,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // О себе
             _buildSection(
               title: 'О себе',
-              content: widget.resume['about'] ?? 'Не указано',
-              hasCheck: false,
+              content: (widget.resume['about'] ?? 'Не указано').replaceAll('\n', ', '),
+              hasCheck: true,
+              targetPage: AboutMePage(
+                data: widget.resume['about'] ?? '',
+              ),
             ),
           ],
         ),

@@ -220,7 +220,7 @@ class _FullNamePageState extends State<FullNamePage> {
                 width: 2.5,
               ),
             )
-                : InputBorder.none, // Для последнего поля без подчеркивания
+                : InputBorder.none,
             enabledBorder: index != length - 1
                 ? UnderlineInputBorder(
               borderSide: BorderSide(
@@ -228,7 +228,7 @@ class _FullNamePageState extends State<FullNamePage> {
                 width: 2.5,
               ),
             )
-                : InputBorder.none, // Для последнего поля без подчеркивания
+                : InputBorder.none,
             focusedBorder: index != length - 1
                 ? UnderlineInputBorder(
               borderSide: BorderSide(
