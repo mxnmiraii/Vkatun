@@ -43,7 +43,7 @@ class Scan extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(
                 vertical: padding / 2 * 1.5,
-                horizontal: padding / 2 * 1.5,
+                horizontal: padding * 3,
               ),
               decoration: BoxDecoration(
                 color: Colors.white,

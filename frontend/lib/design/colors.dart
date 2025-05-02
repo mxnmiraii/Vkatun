@@ -49,3 +49,6 @@ const Color timeColor = Color(0xFF3306D4);
 const Color darkViolet = Color(0xFF6563FF);
 const Color violet = Color(0xFF583BBF);
 const Color lightViolet = Color(0xFF7F5CFB);
+const Color lightVioletBlue = Color(0xFFA68DFF);
+const Color upColorGradient = Color(0xFFE2E5FF);
+const Color downColorGradient = Color(0xFFB2B1FF);

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/pages/start_page.dart';
+import 'api_service.dart';
 import 'pages/resumes_page.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    Provider(
+      create: (context) => ApiService(), // или с токеном, если есть
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

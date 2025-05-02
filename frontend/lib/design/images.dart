@@ -122,3 +122,19 @@ final SvgPicture miniDownloadIcon = SvgPicture.asset(
 final SvgPicture miniDeleteIcon = SvgPicture.asset(
   'assets/images/mini_delete_icon.svg',
 );
+
+final SvgPicture textAIconNoFill = SvgPicture.asset(
+  'assets/images/text_a_icon_no_fill.svg',
+);
+
+final SvgPicture moreIconNoFill = SvgPicture.asset(
+  'assets/images/more_icon_no_fill.svg',
+);
+
+final SvgPicture penIconNoFill = SvgPicture.asset(
+  'assets/images/pen_icon_no_fill.svg',
+);
+
+final SvgPicture miniDoneIcon = SvgPicture.asset(
+  'assets/images/mini_done_icon.svg',
+);

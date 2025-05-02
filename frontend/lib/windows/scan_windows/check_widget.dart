@@ -120,7 +120,7 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                       'Внедрить все',
                       style: TextStyle(
                         fontFamily: 'Playfair',
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         height: 1.0,
                       ),
@@ -316,7 +316,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                     'Внедрить',
                                     style: TextStyle(
                                       fontFamily: 'Playfair',
-                                      fontSize: 15,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       height: 1.0,
                                     ),
