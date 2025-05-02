@@ -243,24 +243,44 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // Образование
             _buildSection(
               title: 'Образование',
-              content: widget.resume['education'] ?? 'Не указано',
+              content: widget.resume['education']?.toString().trim().isNotEmpty == true
+                  ? widget.resume['education'].toString().trim()
+                  : 'Не указано',
               hasCheck: true,
               targetPage: EducationPage(
-                // Нужно переделать
-                data: () {
-                  final raw = widget.resume['education'];
-                  if (raw == null || raw.trim().isEmpty) return ['', '', '', ''];
+                data: widget.resume['education']?.toString().trim().isNotEmpty == true
+                    ? (() {
+                  final parts = widget.resume['education']
+                      .toString()
+                      .split('\n')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList();
 
-                  final lines = raw.split('\n').map((e) => e.trim()).toList();
+                  String institution = '';
+                  String faculty = '';
+                  String specialization = '';
+                  String degree = '';
+                  String graduationYear = '';
 
-                  // Обеспечиваем ровно 4 поля, заполняя пустыми строками
-                  final fixed = List.filled(4, '');
-                  for (int i = 0; i < lines.length && i < 4; i++) {
-                    fixed[i] = lines[i];
+                  for (final part in parts) {
+                    if (RegExp(r'^\d{4}$').hasMatch(part)) {
+                      graduationYear = part;
+                    } else if (RegExp(r'бакалавр|магистр|специалист', caseSensitive: false)
+                        .hasMatch(part)) {
+                      degree = part;
+                    } else if (institution.isEmpty) {
+                      institution = part;
+                    } else if (faculty.isEmpty) {
+                      faculty = part;
+                    } else if (specialization.isEmpty) {
+                      specialization = part;
+                    }
                   }
 
-                  return fixed;
-                }(),
+                  return [institution, faculty, specialization, degree, graduationYear];
+                })()
+                    : ['', '', '', '', ''],
               ),
             ),
 
