@@ -175,7 +175,12 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
       fontWeight: FontWeight.w800,
     );
 
-    return Text(text, style: _textStyle, textAlign: TextAlign.left);
+    return Column(
+      children: [
+        Text(text, style: _textStyle, textAlign: TextAlign.left),
+        SizedBox(height: 5,),
+      ],
+    );
   }
 
   Widget _getContent(int index) {
@@ -314,28 +319,26 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                 : _scan(index, 'Исправление ошибок'))
             : _buildPage(index, 'Исправление ошибок', [
               _buildText(
-                'Данный раздел предназначен для автоматического выявления и исправления ошибок в тексте резюме. '
-                'Обработка ошибок включает в себя следующие категории: ',
+                'Раздел предназначен для автоматического поиска и исправления ошибок в резюме. '
+                    'Обработка включает: ',
               ),
               _box,
               _buildText(
-                '–   Орфография: исправление орфографических ошибок, таких как неправильное написание слов, опечатки, '
-                'ошибки в употреблении паронимов и другие.',
+                '–   Орфография: исправление неправильного написания слов, опечаток, паронимов.',
               ),
               _box,
               _buildText(
-                '–   Грамматика: исправление ошибок в построении предложений, согласовании слов, управлении падежами, '
-                'а также в использовании предлогов.',
+                '–   Грамматика: исправление ошибок в построении предложений, согласовании, управлении падежами, '
+                'использовании предлогов.',
               ),
               _box,
               _buildText(
-                '–   Пунктуация: исправление ошибок в расстановке запятых, тире, двоеточие, а также исправление '
-                'пропущенных или лишних знаков препинания.',
+                '–   Пунктуация: исправление ошибок в расстановке запятых, тире, двоеточий, лишних или '
+                    'пропущенных знаков',
               ),
               _box,
               _buildText(
-                '–   Стилевые ошибки: улучшение стиля текста, включая устранение тавтологии, канцеляризмов и '
-                'нелогичных построений фраз.',
+                '–   Стиль: устранение тавтологии, канцеляризмов и нелогичных фраз.',
               ),
             ]);
       case 1:
@@ -481,24 +484,23 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             vertical: padding / 2,
             horizontal: padding / 2,
           ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(
-              color: borderWindowColor,
-              width: widthBorderRadius,
-            ),
-          ),
-          child: Text(
-            title,
-            style: textStyle.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          child: Column(
+            children: [
+              Text(
+                title,
+                style: textStyle.copyWith(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                  color: violet,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 10,),
+              Divider(color: lightViolet.withOpacity(0.5), thickness: 2,)
+            ],
+          )
         ),
-        SizedBox(height: 20),
+        SizedBox(height: 10),
         Expanded(
           child: SingleChildScrollView(
             child: Center(child: Column(children: list)),
@@ -522,7 +524,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             }
           },
           style: ElevatedButton.styleFrom(
-            side: BorderSide(color: midnightPurple, width: widthBorderRadius),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),

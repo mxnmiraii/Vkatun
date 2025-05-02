@@ -110,3 +110,15 @@ final SvgPicture timeArrowBack = SvgPicture.asset(
 final SvgPicture timeArrowForward = SvgPicture.asset(
     'assets/images/time_arrow_forward.svg',
 );
+
+final SvgPicture miniPenIcon = SvgPicture.asset(
+  'assets/images/mini_pen_icon.svg',
+);
+
+final SvgPicture miniDownloadIcon = SvgPicture.asset(
+  'assets/images/mini_download_icon.svg',
+);
+
+final SvgPicture miniDeleteIcon = SvgPicture.asset(
+  'assets/images/mini_delete_icon.svg',
+);

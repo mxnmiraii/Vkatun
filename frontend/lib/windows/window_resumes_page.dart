@@ -46,7 +46,7 @@ class WindowResumesPage extends StatelessWidget {
                   color: windowColor,
                   borderRadius: BorderRadius.circular(borderRadius),
                   border: Border.all(
-                    color: borderWindowColor,
+                    color: darkViolet.withOpacity(0.64),
                     width: widthBorderRadius,
                   ),
                 ),
@@ -61,11 +61,7 @@ class WindowResumesPage extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(borderRadius),
-                        border: Border.all(
-                          color: borderWindowColor,
-                          width: widthBorderRadius,
-                        ),
+                        borderRadius: BorderRadius.circular(15),
                       ),
                       child: Text(
                         'Резюме',
@@ -74,7 +70,7 @@ class WindowResumesPage extends StatelessWidget {
                           fontSize: 20,
                         ),
                         textAlign: TextAlign.center,
-                      ),
+                      )
                     ),
                     const SizedBox(height: 30),
                     ElevatedButton(
@@ -95,37 +91,52 @@ class WindowResumesPage extends StatelessWidget {
                         );
                       },
                       style: _buttonStyle(borderWindowColor),
-                      child: Text(
-                        'Редактировать резюме',
-                        style: textStyle.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: Row(
+                        children: [
+                          miniPenIcon,
+                          Text(
+                            'Редактировать резюме',
+                            style: textStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {},
                       style: _buttonStyle(borderWindowColor),
-                      child: Text(
-                        'Экспорт резюме',
-                        style: textStyle.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: Row(
+                        children: [
+                          miniDownloadIcon,
+                          Text(
+                            'Экспорт резюме',
+                            style: textStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {},
                       style: _buttonStyle(borderWindowColor),
-                      child: Text(
-                        'Удалить резюме',
-                        style: textStyle.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      child: Row(
+                        children: [
+                          miniDeleteIcon,
+                          Text(
+                            'Удалить резюме',
+                            style: textStyle.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
                     ),
                   ],
                 ),
@@ -139,12 +150,11 @@ class WindowResumesPage extends StatelessWidget {
 
   ButtonStyle _buttonStyle(Color borderColor) {
     return ElevatedButton.styleFrom(
-      side: BorderSide(color: borderColor, width: widthBorderRadius),
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius),
       ),
-      minimumSize: const Size(double.infinity, 50),
+      minimumSize: const Size(double.infinity, 60),
       elevation: 0,
     );
   }
