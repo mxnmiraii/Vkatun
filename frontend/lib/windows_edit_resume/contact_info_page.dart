@@ -202,7 +202,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w600,
             color: black,
           ),
           decoration: InputDecoration(

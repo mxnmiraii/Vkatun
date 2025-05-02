@@ -173,10 +173,10 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             color: black,
           ),
-          maxLines: null, // 🟢 Позволяет перенос строки и авторасширение
+          maxLines: null, //
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),

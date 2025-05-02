@@ -136,7 +136,7 @@ class _AboutMePageState extends State<AboutMePage> {
                     style: const TextStyle(
                       fontFamily: "NotoSans",
                       fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                       color: black,
                     ),
                     maxLines: null, // Делаем поле расширяемым

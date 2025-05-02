@@ -232,7 +232,7 @@ class _EducationPageState extends State<EducationPage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             color: black,
           ),
           decoration: InputDecoration(

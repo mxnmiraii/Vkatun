@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
@@ -9,7 +10,6 @@ class WorkExperiencePage extends StatefulWidget {
   @override
   State<WorkExperiencePage> createState() => _WorkExperiencePageState();
 }
-
 
 class _WorkExperiencePageState extends State<WorkExperiencePage> {
   final _startDateController = TextEditingController();
@@ -31,19 +31,10 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final screenWidth = MediaQuery.of(context).size.width;
     final space = screenWidth * 0.05;
-
-    // определяем количество полей в зависимости от переключателя
-    final int fieldCount = _currentlyWorking ? 4 : 5;
 
     return Scaffold(
       extendBody: true,
@@ -133,45 +124,36 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
                   _buildTextField(
                     label: 'Начало работы',
                     controller: _startDateController,
-                    index: 0,
-                    length: fieldCount,
                   ),
                   const SizedBox(height: 16),
 
-                  if (_currentlyWorking)
-                    _buildSwitch()
-                  else
-                    ...[
-                      _buildTextField(
-                        label: 'Окончание',
-                        controller: _endDateController,
-                        index: 1,
-                        length: fieldCount,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSwitch(),
-                    ],
+                  if (_currentlyWorking) ...[
+                    _buildSwitchRow(),
+                    const SizedBox(height: 16),
+                  ] else ...[
+                    _buildTextField(
+                      label: 'Окончание',
+                      controller: _endDateController,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSwitchRow(),
+                    const SizedBox(height: 16),
+                  ],
 
-                  const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Название компании',
                     controller: _companyController,
-                    index: _currentlyWorking ? 1 : 2,
-                    length: fieldCount,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Должность',
                     controller: _positionController,
-                    index: _currentlyWorking ? 2 : 3,
-                    length: fieldCount,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Обязанности',
                     controller: _dutiesController,
-                    index: _currentlyWorking ? 3 : 4,
-                    length: fieldCount,
+                    noUnderline: true,
                   ),
                 ],
               ),
@@ -181,15 +163,13 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: bottom35),
-        child: SizedBox(
-          child: IconButton(
-            icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            padding: EdgeInsets.zero,
-            splashRadius: 36,
-          ),
+        child: IconButton(
+          icon: darkerBiggerDoneIcon,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          padding: EdgeInsets.zero,
+          splashRadius: 36,
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -199,11 +179,8 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
-    required int index,
-    required int length,
+    bool noUnderline = false,
   }) {
-    final bool noUnderline = label == 'Обязанности';
-    final bool isLast = index == length - 1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -221,43 +198,43 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             color: black,
           ),
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
-            border: (!noUnderline && !isLast)
-                ? UnderlineInputBorder(
+            border: noUnderline
+                ? InputBorder.none
+                : UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            )
-                : InputBorder.none,
-            enabledBorder: (!noUnderline && !isLast)
-                ? UnderlineInputBorder(
+            ),
+            enabledBorder: noUnderline
+                ? InputBorder.none
+                : UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            )
-                : InputBorder.none,
-            focusedBorder: (!noUnderline && !isLast)
-                ? UnderlineInputBorder(
+            ),
+            focusedBorder: noUnderline
+                ? InputBorder.none
+                : UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            )
-                : InputBorder.none,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSwitch() {
+  Widget _buildSwitchRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -277,11 +254,19 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
               if (_currentlyWorking) _endDateController.clear();
             });
           },
-          child: _currentlyWorking ? toggleOnIcon : toggleOffIcon,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (child, animation) =>
+                FadeTransition(opacity: animation, child: child),
+            child: SvgPicture.asset(
+              _currentlyWorking
+                  ? 'assets/images/toggle_on_icon.svg'
+                  : 'assets/images/toggle_off_icon.svg',
+              key: ValueKey(_currentlyWorking),
+            ),
+          ),
         ),
       ],
     );
   }
 }
-
-
