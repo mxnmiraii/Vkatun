@@ -138,3 +138,11 @@ final SvgPicture penIconNoFill = SvgPicture.asset(
 final SvgPicture miniDoneIcon = SvgPicture.asset(
   'assets/images/mini_done_icon.svg',
 );
+
+final SvgPicture toggleOnIcon = SvgPicture.asset(
+  'assets/images/toggle_on_icon.svg',
+);
+
+final SvgPicture toggleOffIcon = SvgPicture.asset(
+  'assets/images/toggle_off_icon.svg',
+);

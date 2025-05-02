@@ -228,6 +228,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'Опыт работы',
               content: widget.resume['experience'] ?? 'Не указано',
               hasCheck: false,
+              targetPage: WorkExperiencePage(),
             ),
 
             // Кнопка добавления опыта
@@ -241,7 +242,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ),
 
             // Образование
-            _buildSection(
+            _buildSection( //поменять
               title: 'Образование',
               content: widget.resume['education']?.toString().trim().isNotEmpty == true
                   ? widget.resume['education'].toString().trim()
@@ -282,7 +283,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 })()
                     : ['', '', '', '', ''],
               ),
-            ),
+            ), //поменять
 
             // Ключевые навыки
             _buildSection(
