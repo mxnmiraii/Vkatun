@@ -245,48 +245,15 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ),
 
             // Образование
-            _buildSection( //поменять
+            _buildSection(
               title: 'Образование',
-              content: widget.resume['education']?.toString().trim().isNotEmpty == true
-                  ? widget.resume['education'].toString().trim()
-                  : 'Не указано',
+              content: _formatEducation(widget.resume['education']),
               hasCheck: true,
               targetPage: EducationPage(
-                data: widget.resume['education']?.toString().trim().isNotEmpty == true
-                    ? (() {
-                  final parts = widget.resume['education']
-                      .toString()
-                      .split('\n')
-                      .map((e) => e.trim())
-                      .where((e) => e.isNotEmpty)
-                      .toList();
-
-                  String institution = '';
-                  String faculty = '';
-                  String specialization = '';
-                  String degree = '';
-                  String graduationYear = '';
-
-                  for (final part in parts) {
-                    if (RegExp(r'^\d{4}$').hasMatch(part)) {
-                      graduationYear = part;
-                    } else if (RegExp(r'бакалавр|магистр|специалист', caseSensitive: false)
-                        .hasMatch(part)) {
-                      degree = part;
-                    } else if (institution.isEmpty) {
-                      institution = part;
-                    } else if (faculty.isEmpty) {
-                      faculty = part;
-                    } else if (specialization.isEmpty) {
-                      specialization = part;
-                    }
-                  }
-
-                  return [institution, faculty, specialization, degree, graduationYear];
-                })()
-                    : ['', '', '', '', ''],
+                data: _parseEducation(widget.resume['education']),
               ),
-            ), //поменять
+            ),
+
 
             // Ключевые навыки
             _buildSection(
@@ -466,5 +433,40 @@ String _formatPhone(String rawPhone) {
   return '+7 (${rawPhone.substring(1, 4)}) ${rawPhone.substring(4, 7)}-${rawPhone.substring(7, 9)}-${rawPhone.substring(9)}';
 }
 
+String _formatEducation(String? raw) {
+  if (raw == null || raw.trim().isEmpty) return 'Не указано';
+  final lines = raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
+
+  String institution = lines.isNotEmpty ? lines[0] : '';
+  String specialization = lines.length > 2 ? lines[2] : '';
+  String degree = lines.length > 3 ? lines[3] : '';
+  String year = lines.length > 4 ? _extractYear(lines[4]) : '';
+
+  return [institution, specialization, degree, year]
+      .where((s) => s.trim().isNotEmpty)
+      .join(', ');
+}
+
+List<String> _parseEducation(String? raw) {
+  if (raw == null || raw.trim().isEmpty) return List.filled(5, '');
+
+  final lines = raw.split('\n').map((s) => s.trim()).toList();
+  while (lines.length < 5) {
+    lines.add('');
+  }
+
+  return [
+    lines[0], // institution
+    lines[1], // faculty
+    lines[2], // specialization
+    lines[4], // graduation year (original line — для контроллера будет парситься)
+    lines[3], // degree
+  ];
+}
+
+String _extractYear(String input) {
+  final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);
+  return match?.group(0) ?? '';
+}
 
 
