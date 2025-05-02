@@ -46,3 +46,6 @@ const Color lightGrayText = Color(0xFF9D97A4);
 const Color lightVioletDivider = Color(0xFFB2B1FF);
 const Color darkImperialBlue = Color(0xFF210096);
 const Color timeColor = Color(0xFF3306D4);
+const Color darkViolet = Color(0xFF6563FF);
+const Color violet = Color(0xFF583BBF);
+const Color lightViolet = Color(0xFF7F5CFB);
