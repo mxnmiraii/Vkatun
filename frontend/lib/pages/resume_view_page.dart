@@ -226,14 +226,17 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // Опыт работы
             _buildSection(
               title: 'Опыт работы',
-              content: widget.resume['experience'] ?? 'Не указано',
-              hasCheck: false,
-              targetPage: WorkExperiencePage(),
+              content: widget.resume['experience'] == null || widget.resume['experience'].isEmpty
+                  ? 'Не указано'
+                  : _parseExperienceShort(widget.resume['experience']),
+              hasCheck: true,
+              targetPage: WorkExperiencePage(
+                data: _parseExperienceData(widget.resume['experience']),
+              ),
             ),
 
             // Кнопка добавления опыта
-            if (widget.resume['experience'] == null ||
-                widget.resume['experience'].isEmpty)
+            if (widget.resume['experience'] == null || widget.resume['experience'].isEmpty)
               TextButton(
                 onPressed: () {
                   // Добавление опыта работы
@@ -391,6 +394,38 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 }
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
+
+List<String> _parseExperienceData(String? raw) {
+  if (raw == null || raw.trim().isEmpty) return ['', '', '', '', '', 'false'];
+
+  final lines = raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+  String start = lines.isNotEmpty && _isDate(lines[0]) ? lines[0] : '';
+  String end = lines.length > 1 && _isDate(lines[1]) ? lines[1] : '';
+  int index = (start.isNotEmpty ? 1 : 0) + (end.isNotEmpty ? 1 : 0);
+
+  final company = lines.length > index ? lines[index] : '';
+  final position = lines.length > index + 1 ? lines[index + 1] : '';
+  final duties = lines.length > index + 2 ? lines[index + 2] : '';
+  final isCurrent = 'false'; // всегда по умолчанию false
+
+  return [start, end, company, position, duties, isCurrent];
+}
+
+String _parseExperienceShort(String? raw) {
+  final data = _parseExperienceData(raw);
+  final start = data[0];
+  final end = data[1];
+  final company = data[2];
+  final position = data[3];
+  return '$company\n$position\n${start.isNotEmpty ? start : ''}${end.isNotEmpty ? ' — $end' : ' — настоящее время'}';
+}
+
+bool _isDate(String str) {
+  final regex = RegExp(r'^\d{1,2}\.\d{1,2}\.\d{4}$');
+  return regex.hasMatch(str);
+}
+
 
 
 List<String> _parseContacts(String contacts) {

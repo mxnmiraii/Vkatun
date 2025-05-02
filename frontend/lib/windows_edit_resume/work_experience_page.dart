@@ -5,19 +5,45 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class WorkExperiencePage extends StatefulWidget {
-  const WorkExperiencePage({super.key});
+  final List<String> data;
+  const WorkExperiencePage({super.key, required this.data});
 
   @override
   State<WorkExperiencePage> createState() => _WorkExperiencePageState();
 }
 
 class _WorkExperiencePageState extends State<WorkExperiencePage> {
-  final _startDateController = TextEditingController();
-  final _endDateController = TextEditingController();
-  final _companyController = TextEditingController();
-  final _positionController = TextEditingController();
-  final _dutiesController = TextEditingController();
+
+  late TextEditingController _startDateController = TextEditingController();
+  late TextEditingController _endDateController = TextEditingController();
+  late TextEditingController _companyController = TextEditingController();
+  late TextEditingController _positionController = TextEditingController();
+  late TextEditingController _dutiesController = TextEditingController();
   bool _currentlyWorking = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final data = widget.data;
+
+    _startDateController = TextEditingController(
+      text: data.isNotEmpty ? data[0] : '',
+    );
+    _endDateController = TextEditingController(
+      text: data.length > 1 ? data[1] : '',
+    );
+    _companyController = TextEditingController(
+      text: data.length > 2 ? data[2] : '',
+    );
+    _positionController = TextEditingController(
+      text: data.length > 3 ? data[3] : '',
+    );
+    _dutiesController = TextEditingController(
+      text: data.length > 4 ? data[4] : '',
+    );
+    _currentlyWorking = data.length > 5 ? data[5].toLowerCase() == 'true' : false;
+  }
 
   @override
   void dispose() {
@@ -27,6 +53,39 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
     _positionController.dispose();
     _dutiesController.dispose();
     super.dispose();
+  }
+
+  bool _validateInputs() {
+    if (_startDateController.text.trim().isEmpty) {
+      _showError('Введите дату начала работы');
+      return false;
+    }
+
+    if (!_currentlyWorking && _endDateController.text.trim().isEmpty) {
+      _showError('Введите дату окончания работы');
+      return false;
+    }
+
+    if (_companyController.text.trim().isEmpty) {
+      _showError('Введите название компании');
+      return false;
+    }
+
+    if (_positionController.text.trim().isEmpty) {
+      _showError('Введите должность');
+      return false;
+    }
+
+    return true;
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
   }
 
   @override
@@ -166,7 +225,9 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
         child: IconButton(
           icon: darkerBiggerDoneIcon,
           onPressed: () {
-            Navigator.pop(context);
+            if (_validateInputs()) {
+              Navigator.pop(context);
+            }
           },
           padding: EdgeInsets.zero,
           splashRadius: 36,
