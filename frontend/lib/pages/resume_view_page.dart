@@ -270,9 +270,14 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // Ключевые навыки
             _buildSection(
               title: 'Ключевые навыки',
-              content: widget.resume['skills'] ?? 'Не указано',
+              content: (widget.resume['skills'] ?? 'Не указано').replaceAll('\n', ', '),
               hasCheck: true,
+              targetPage: KeySkillsPage(
+                //Нужно переделать
+                data: widget.resume['skills'] ?? '',
+              ),
             ),
+
 
             // О себе
             _buildSection(
