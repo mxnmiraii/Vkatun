@@ -14,7 +14,6 @@ import 'package:vkatun/windows_edit_resume/desired_position_page.dart';
 import 'package:vkatun/windows_edit_resume/education_page.dart';
 import 'package:vkatun/windows_edit_resume/full_name_page.dart';
 import 'package:vkatun/windows_edit_resume/key_skills_page.dart';
-import 'package:vkatun/windows_edit_resume/language_skills_page.dart';
 import 'package:vkatun/windows_edit_resume/work_experience_page.dart';
 
 
@@ -213,9 +212,15 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // Контактные данные
             _buildSection(
               title: 'Контактные данные',
-              content: widget.resume['contacts'] ?? 'Не указано',
+              content: widget.resume['contacts']?.isNotEmpty == true
+                  ? widget.resume['contacts']!
+                  : 'Не указано',
               hasCheck: true,
-              targetPage: const ContactInfoPage(),
+              targetPage: ContactInfoPage(
+                data: widget.resume['contacts']?.isNotEmpty == true
+                    ? _parseContacts(widget.resume['contacts']!)
+                    : ['', ''],
+              ),
             ),
 
             // Опыт работы
@@ -259,25 +264,17 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ),
             ),
 
-
-            // Знание языков
-            _buildSection(
-              title: 'Знание языков',
-              content: 'Русский — Родной\nАнглийский — B1',
-              hasCheck: true,
-            ),
-
             // Ключевые навыки
             _buildSection(
               title: 'Ключевые навыки',
-              content: (widget.resume['skills'] ?? 'Не указано').replaceAll('\n', ', '),
+              content: (widget.resume['skills'] == null || widget.resume['skills'].trim().isEmpty)
+                  ? 'Не указано'
+                  : widget.resume['skills'].replaceAll('\n', ', '),
               hasCheck: true,
               targetPage: KeySkillsPage(
-                //Нужно переделать
-                data: widget.resume['skills'] ?? '',
+                data: (widget.resume['skills'] ?? '').replaceAll('\n', ', '),
               ),
             ),
-
 
             // О себе
             _buildSection(
@@ -373,3 +370,45 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 }
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
+
+
+List<String> _parseContacts(String contacts) {
+  String phone = '';
+  String email = '';
+
+  // Парсим "сырой" телефон (только цифры)
+  final phoneRegex = RegExp(r'(\+7|7|8)[\s\-]?[\(\s\-]?\d{3}[\)\s\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}');
+  final phoneMatch = phoneRegex.firstMatch(contacts);
+  if (phoneMatch != null) {
+    String rawPhone = phoneMatch.group(0)!.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Приводим к формату +7...
+    if (rawPhone.startsWith('8')) {
+      rawPhone = '7${rawPhone.substring(1)}';
+    } else if (!rawPhone.startsWith('7')) {
+      rawPhone = '7$rawPhone';
+    }
+
+    // Форматируем в красивый вид
+    phone = _formatPhone(rawPhone);
+  }
+
+  // Парсинг email (остаётся без изменений)
+  final emailRegex = RegExp(r'[\w\.-]+@[\w\.-]+\.\w+');
+  final emailMatch = emailRegex.firstMatch(contacts);
+  if (emailMatch != null) {
+    email = emailMatch.group(0)!;
+  }
+
+  return [phone, email];
+}
+
+String _formatPhone(String rawPhone) {
+  if (rawPhone.length < 11) return rawPhone; // На всякий случай
+
+  // +7 (XXX) XXX-XX-XX
+  return '+7 (${rawPhone.substring(1, 4)}) ${rawPhone.substring(4, 7)}-${rawPhone.substring(7, 9)}-${rawPhone.substring(9)}';
+}
+
+
+
