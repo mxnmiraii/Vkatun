@@ -199,58 +199,46 @@ class _FullNamePageState extends State<FullNamePage> {
             color: lavenderBlue,
           ),
         ),
-        index + 1 != length
-            ? TextField(
-              controller: controller,
-              style: const TextStyle(
-                fontFamily: "NotoSans",
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: black,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.only(
-                  top: 7,
-                  bottom: 14,
-                ), // Уменьшаем отступы сверху и снизу
-                border: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: lightDarkenLavender, // Цвет полоски
-                    width: 2.5,
-                  ),
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: lightDarkenLavender,
-                    width: 2.5,
-                  ),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: lightDarkenLavender,
-                    width: 2.5,
-                  ),
-                ),
+        TextField(
+          controller: controller,
+          style: const TextStyle(
+            fontFamily: "NotoSans",
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: black,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            contentPadding: const EdgeInsets.only(
+              top: 7,
+              bottom: 14,
+            ),
+            border: index != length - 1
+                ? UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender, // Цвет полоски
+                width: 2.5,
               ),
             )
-            : TextField(
-              controller: controller,
-              style: const TextStyle(
-                fontFamily: "NotoSans",
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: black,
+                : InputBorder.none,
+            enabledBorder: index != length - 1
+                ? UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
               ),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.only(
-                  top: 7,
-                  bottom: 14,
-                ), // Уменьшаем отступы сверху и снизу
-                border: InputBorder.none,
+            )
+                : InputBorder.none,
+            focusedBorder: index != length - 1
+                ? UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
               ),
-            ),
+            )
+                : InputBorder.none, // Для последнего поля без подчеркивания
+          ),
+        ),
       ],
     );
   }
