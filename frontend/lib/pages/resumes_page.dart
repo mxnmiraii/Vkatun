@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/design/dimensions.dart';
+import 'package:vkatun/dialogs/access_dialog.dart';
+import 'package:vkatun/dialogs/warning_dialog.dart';
 import 'package:vkatun/pages/resume_view_page.dart';
 import 'package:vkatun/windows/window_resumes_page.dart';
 
@@ -315,7 +317,8 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                 child: logoFullIcon,
               ),
             ),
-            IconButton(icon: parametersIcon, onPressed: () {}),
+            IconButton(icon: parametersIcon, onPressed: () {}
+            ),
           ],
         ),
         centerTitle: true,

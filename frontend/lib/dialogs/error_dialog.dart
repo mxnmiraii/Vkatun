@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../design/colors.dart'; // vibrantViolet, electricLavender
+import '../design/dimensions.dart';
 import '../design/images.dart';
 
 class ErrorDialog extends StatelessWidget {
@@ -13,92 +14,101 @@ class ErrorDialog extends StatelessWidget {
     final dialogHeight = screenSize.height / 3;
     final dialogWidth = screenSize.width * 4 / 6;
 
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Лёгкое затемнение фона
-        GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            color: Colors.black.withOpacity(0.1),
-            width: double.infinity,
-            height: double.infinity,
-          ),
-        ),
-
-        // Диалог
-        Positioned(
-          top: screenSize.height / 3.5,
-          child: Material(
-            color: Colors.transparent,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
             child: Container(
-              height: dialogHeight,
-              width: dialogWidth,
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/errorIcon.svg',
-                    height: 60,
-                    width: 60,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Ошибка загрузки',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: vibrantViolet,
+              color: const Color(0xFFEFEFEF).withOpacity(0.6), // Серый полупрозрачный
+            ),
+          ),
+          // Диалог
+          Positioned(
+            top: screenSize.height / 3.5,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                height: dialogHeight,
+                width: dialogWidth,
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 20,
+                      spreadRadius: 1,
+                      offset: Offset(0, 8),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Извините!\nЧто-то пошло не так:(',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: electricLavender,
+                  ],
+                ),
+
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(child: errorIcon),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Ошибка загрузки',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        fontFamily: 'Playfair',
+                        color: vibrantViolet,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Извините!\nЧто-то пошло не так:(',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        fontFamily: 'Playfair',
+                        color: electricLavender,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
 
-        // Кнопка "закрыть"
-        Positioned(
-          bottom: 40,
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: const BoxDecoration(
-                color: vibrantViolet,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: cancelIcon2, // ← твоя иконка
-              ),
+          // Кнопка "закрыть"
+          Positioned(
+            bottom: 28,
+            child: AnimatedBuilder(
+              animation: AlwaysStoppedAnimation(0),
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: 0,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      child: Center(
+                        child: cancelIcon2,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
