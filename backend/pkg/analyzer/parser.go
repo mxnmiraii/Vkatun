@@ -28,6 +28,7 @@ func ParseResumeFromPDF(data []byte) (models.ResumeInput, string, error) {
 	}
 
 	fullText := buf.String()
+	log.Printf("текст резюме до ллм: %s", fullText)
 
 	resume, resumeStr, err := restoreTextStructure(fullText)
 
