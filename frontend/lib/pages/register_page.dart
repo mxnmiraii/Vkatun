@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/pages/resumes_page.dart';
 import 'package:vkatun/pages/start_page.dart';
 
+import '../api_service.dart';
 import '../design/colors.dart';
 import '../design/dimensions.dart';
 import '../design/images.dart';
@@ -20,6 +22,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordRepeatController =
       TextEditingController();
+  bool _isLoading = false;
+  String _errorMessage = '';
 
   @override
   void dispose() {
@@ -38,13 +42,8 @@ class _RegisterPageState extends State<RegisterPage> {
       final emailNumber = _emailNumberController.text;
       final password = _passwordController.text;
       final passwordRepeat = _passwordRepeatController.text;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => ResumesPage()),
-      );
-
-      // реализация регистрации
+      print('Регистрация: login=$login, emailOrPhone=$emailNumber, pass=$password, passRepeat=$passwordRepeat');
+      _handleRegister(login, emailNumber, password, passwordRepeat);
     }
 
     final _textStyle = TextStyle(
@@ -187,14 +186,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ResumesPage(),
-                                ),
-                              );
-                            },
+                            onPressed: _handleLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: mediumSlateBlue,
                               shape: RoundedRectangleBorder(
@@ -203,34 +195,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               minimumSize: const Size(double.infinity, 50),
                               elevation: 0,
                             ),
-                            child: Text(
+                            child: _isLoading
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text(
                               'Создать аккаунт',
                               style: _textStyle.copyWith(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
 
-                          SizedBox(height: 10),
-
+                          // Кнопка входа:
                           ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ResumesPage(),
-                                ),
-                              );
-                            },
+                            onPressed: _isLoading
+                                ? null
+                                : () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => EntryPage()),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  borderRadius,
-                                ),
+                                borderRadius: BorderRadius.circular(borderRadius),
                               ),
                               minimumSize: const Size(double.infinity, 50),
                               elevation: 0,
@@ -242,7 +230,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
                         ],
@@ -256,6 +243,42 @@ class _RegisterPageState extends State<RegisterPage> {
         ],
       ),
     );
+  }
+  Future<void> _handleRegister(String login, String emailNumber, String pass, String passRepeat) async {
+    // Валидация
+    if (pass != passRepeat) {
+      setState(() => _errorMessage = 'Пароли не совпадают');
+      return;
+    }
+
+    if (login.isEmpty ||
+        emailNumber.isEmpty) {
+      setState(() => _errorMessage = 'Заполните все поля');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      await apiService.register(
+        username: _loginController.text,
+        emailOrPhone: _emailNumberController.text,
+        password: _passwordController.text,
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => ResumesPage()),
+      );
+    } catch (e) {
+      setState(() => _errorMessage = e.toString());
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 }
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
+import '../api_service.dart';
 import '../pages/start_page.dart';
 
 class AccountPage extends StatefulWidget {
@@ -71,14 +73,34 @@ class _AccountMainPageState extends State<AccountPage> {
                 ),
 
                 IconButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => StartPage())
+                  onPressed: () async {
+                    try {
+                      // 1. Получаем экземпляр ApiService
+                      final apiService = Provider.of<ApiService>(context, listen: false);
+
+                      // 2. Очищаем токен
+                      await apiService.clearToken();
+
+                      // 3. Переходим на стартовую страницу
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => StartPage()),
+                            (Route<dynamic> route) => false, // Удаляем все предыдущие маршруты
                       );
-                    },
-                    icon: logOutIcon,
-                )
+
+                      // 4. Показываем уведомление
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Вы успешно вышли из аккаунта')),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Ошибка при выходе: $e')),
+                      );
+                    }
+                  },
+                  icon: logOutIcon,
+                  tooltip: 'Выйти из аккаунта', // Всплывающая подсказка
+                ),
               ],
             ),
           ),
