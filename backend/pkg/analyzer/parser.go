@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/ledongthuc/pdf"
 	"io"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -41,6 +42,7 @@ func restoreTextStructure(text string) (models.ResumeInput, string, error) {
 	if strings.HasPrefix(jsonResume, "```json") || strings.HasPrefix(jsonResume, "```") {
 		jsonResume = stripMarkdownCodeBlock(jsonResume)
 	}
+	log.Printf("резюме после парсинга: %s", jsonResume)
 
 	var resume models.ResumeInput
 	err = json.Unmarshal([]byte(jsonResume), &resume)
