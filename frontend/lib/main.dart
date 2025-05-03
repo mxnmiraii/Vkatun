@@ -15,43 +15,42 @@ Future<void> main() async {
 
   // Гостевой токен или токен пользователя
   final authToken = prefs.getString('user_token') ?? 'guest_token';
-  // 1. Сначала настраиваем HTTP-клиент
+
+  // Настройка HTTP-клиента
   HttpOverrides.global = HttpOverridesForTesting();
 
-  // 2. Потом запускаем приложение
   runApp(
     Provider(
       create: (_) => ApiService(authToken: authToken, prefs: prefs),
-      child: MaterialApp(
-        home: authToken != 'guest_token' ? ResumesPage() : StartPage(),
-        routes: {
-          '/login': (_) => EntryPage(),
-          '/register': (_) => RegisterPage(),
-        },
-      ),
+      child: MyApp(authToken: authToken), // Используем MyApp с параметром
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String authToken;
+
+  const MyApp({super.key, required this.authToken});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'VKatun',
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false, // Отключение баннера здесь
       theme: ThemeData(
         primaryColor: Colors.white,
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           color: Colors.white,
         ),
       ),
-      home: const StartPage(),
+      home: authToken != 'guest_token' ? const ResumesPage() : const StartPage(),
+      routes: {
+        '/login': (_) => const EntryPage(),
+        '/register': (_) => const RegisterPage(),
+      },
     );
   }
-
 }
 
 class HttpOverridesForTesting extends HttpOverrides {
@@ -59,11 +58,7 @@ class HttpOverridesForTesting extends HttpOverrides {
   HttpClient createHttpClient(SecurityContext? context) {
     final HttpClient client = super.createHttpClient(context)
       ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-
-    // Правильные параметры таймаута
     client.connectionTimeout = const Duration(seconds: 15);
     return client;
   }
 }
-
-
