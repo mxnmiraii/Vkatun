@@ -1,17 +1,19 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/design/dimensions.dart';
-import 'package:vkatun/dialogs/access_dialog.dart';
-import 'package:vkatun/dialogs/warning_dialog.dart';
 import 'package:vkatun/pages/resume_view_page.dart';
 import 'package:vkatun/windows/window_resumes_page.dart';
+import 'package:vkatun/api_service.dart';
 
 import '../account/account_main_page.dart';
 import '../design/colors.dart';
-import '../dialogs/error_dialog.dart';
 
 class ResumesPage extends StatefulWidget {
   const ResumesPage({super.key});
@@ -47,138 +49,35 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
   }
 
   Future<void> _loadResumes() async {
-    // Имитация API запроса с задержкой
-    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final resumes = await apiService.getResumes();
 
-    setState(() {
-      _resumes = [
-        {
-          'id': 0,
-          'title': 'Петров Иван Натанович',
-          'created_at': '2023-12-25', // Самое новое (будет слева вверху)
-        },
-        {
-          'id': 1,
-          'title': 'Сидорова Анна Михайловна',
-          'created_at': '2023-12-20',
-        },
-        {
-          'id': 2,
-          'title': 'Кузнецов Дмитрий Сергеевич',
-          'created_at': '2023-12-15',
-        },
-        {
-          'id': 3,
-          'title': 'Иванова Мария Петровна',
-          'created_at': '2023-12-10',
-        },
-        {
-          'id': 4,
-          'title': 'Смирнов Алексей Владимирович',
-          'created_at': '2023-12-05',
-        },
-        {
-          'id': 5,
-          'title': 'Фролова Екатерина Дмитриевна',
-          'created_at': '2023-11-30',
-        },
-      ];
-
-      // Сортируем по дате (новые сверху)
-      _resumes.sort((a, b) => b['created_at'].compareTo(a['created_at']));
-    });
-  }
-
-  // Заглушка для получения полного резюме по ID
-  Map<String, dynamic> _getResumeById(int id) {
-    // ... (оставляем предыдущую реализацию без изменений)
-    // Добавим новые примеры для новых резюме
-    switch (id) {
-      case 0:
-        return {
-          'id': 0,
-          'title': 'Петров Иван Натанович',
-          'contacts': 'Телефон: +7 (912) 345-67-89\nEmail: ivan.petrov@email.com',
-          'job': 'вахтёр в №5 общежитии ВГУ!',
-          'experience': '21.11.2004\n2.05.2025\nООО "Криптотрейдерс"\nGolang backend devoloper\nДелал черновую работу',
-          'education': 'Воронежский государственый университет (ВГУ),\nфакультет компьютерных науков\nпрограмная инжинерия\nБакалавр\n2023',
-          'skills': 'git\nsql\nkafka\ngolang\npostgreSQL',
-          'about': 'Мужчина, 23 лет, родился 8 февраля 2002 года.\nГражданство: Россия\nЕсть разрешение на работу, проживает в г. Воронеже\nГотов к переезду и, командировкам',
-          'created_at': '2023-12-25',
-          'updated_at': '2023-12-25',
-        };
-      case 1:
-        return {
-          'id': 1,
-          'title': 'Сидорова Анна Михайловна',
-          'contacts': 'Телефон: +7 (923) 456-78-90\nEmail: annasidorova@email.com',
-          'job': '',
-          'experience': '\n\nООО "ДизайнСтудия"\nБровистка\n',
-          'education': 'СПбГУ\nфакультет искусств\n\nМагистр\n2021',
-          'skills': '',
-          'about': 'Женщина\n25 лет\nищу удаленную работу',
-          'created_at': '2023-12-20',
-          'updated_at': '2023-12-20',
-        };
-      case 2:
-        return {
-          'id': 2,
-          'title': 'Кузнецов Дмитрий Сергеевич',
-          'contacts': 'Телефон: 89345678901\nEmail: d.kuznetsov@gmail.com',
-          'job': 'Project Manager',
-          'experience': '\n\nЯндекс\nМенеджер проектов\nУволил 30сотрудников',
-          'education': 'МГУ\nэкономический факультет\n\nМагистр\n2018',
-          'skills': 'Agile\nScrum\nJira\nTeam Management',
-          'about': 'Опыт управления командами до 10 человек',
-          'created_at': '2023-12-15',
-          'updated_at': '2023-12-15',
-        };
-      case 3:
-        return {
-          'id': 3,
-          'title': 'Иванова Мария Петровна',
-          'contacts': 'Телефон: +7 (945) 678-90-12\nEmail: maria.ivanova@email.com',
-          'job': 'Маркетолог',
-          'experience': '21.11.2024\n\nООО "РекламаМир"\nСтояла в костюме курицы\nРаздала 100 листовок',
-          'education': 'МГИМО\nфакультет международных отношений\n\nБакалавр\n2020',
-          'skills': 'SMM\nGoogle Ads\nКопирайтинг',
-          'about': 'Специалист по digital-маркетингу',
-          'created_at': '2023-12-10',
-          'updated_at': '2023-12-10',
-        };
-      case 4:
-        return {
-          'id': 4,
-          'title': 'Смирнов Алексей Владимирович',
-          'contacts': 'Телефон: +7 (956) 789-01-23\nEmail: alex.smirnov@email.com',
-          'job': 'Бухгалтер',
-          'experience': '\n\nПАО "Сбербанк"\nГлавный бухгалтер\nПотерял 20млн',
-          'education': 'РЭУ им. Плеханова\n\nФинансы и кредит\nМагистр\n2015',
-          'skills': '1С\nНалоговый учет\nМСФО',
-          'about': 'Сертифицированный профессиональный бухгалтер',
-          'created_at': '2023-12-05',
-          'updated_at': '2023-12-05',
-        };
-      case 5:
-        return {
-          'id': 5,
-          'title': 'Фролова Екатерина Дмитриевна',
-          'contacts': 'Телефон: +7 (967) 890-12-34\nEmail: ekaterina.frolova@email.com',
-          'job': 'Бухгалтерка, Космонавт, Пилотка, Самолетка, косметка, повариха, Айтишка, Капитанка, ',
-          'experience': '\n24.12.2005\nЮридическая фирма "Право и Закон"\nПравил\nПосадил 300 своих клиентов',
-          'education': 'МГЮА им. Кутафина\n\nЮриспруденция\nМагистр\n2017',
-          'skills': 'Гражданское право\nДоговорное право\nСудебные споры',
-          'about': 'Специализация: корпоративное право',
-          'created_at': '2023-11-30',
-          'updated_at': '2023-11-30',
-        };
-      default:
-        return {};
+      setState(() {
+        _resumes = resumes;
+        _resumes.sort((a, b) => (b['updated_at'] ?? b['created_at']).compareTo(a['updated_at'] ?? a['created_at']));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка загрузки резюме: $e')),
+      );
     }
   }
 
-  void _openDialog(int resumeId) {
-    final resume = _getResumeById(resumeId);
+  Future<Map<String, dynamic>> _getResumeById(int id) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      return await apiService.getResumeById(id);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка загрузки резюме: $e')),
+      );
+      return {};
+    }
+  }
+
+  void _openDialog(int resumeId) async {
+    final resume = await _getResumeById(resumeId);
 
     _rotationController.forward();
     setState(() {
@@ -237,6 +136,9 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           },
           rotationController: _rotationController,
           resume: resume,
+          // onSave: (updatedResume) async {
+          //   await _updateResume(updatedResume);
+          // },
         );
       },
     ).then((_) {
@@ -247,6 +149,39 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
         _closeDialog();
       }
     });
+  }
+
+  Future<void> _updateResume(Map<String, dynamic> updatedResume) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final prefs = await SharedPreferences.getInstance();
+
+      // Обновляем локально сразу
+      final index = _resumes.indexWhere((r) => r['id'] == updatedResume['id']);
+      if (index != -1) {
+        setState(() {
+          _resumes[index] = {
+            ..._resumes[index],
+            ...updatedResume,
+            'updated_at': DateTime.now().toIso8601String(),
+            'is_modified': true,
+          };
+        });
+
+        // Сохраняем локально
+        await prefs.setString('local_resumes', json.encode(_resumes));
+
+        // Пытаемся синхронизировать с сервером
+        if (apiService.authToken != 'guest_token') {
+          await apiService.editResume(updatedResume['id'], updatedResume);
+          // Если успешно, снимаем флаг изменения
+          _resumes[index].remove('is_modified');
+          await prefs.setString('local_resumes', json.encode(_resumes));
+        }
+      }
+    } catch (e) {
+      print('Ошибка при обновлении резюме: $e');
+    }
   }
 
   void _closeDialog() {
@@ -275,8 +210,9 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('PDF файл выбран: ${file.name}')),
           );
-          // После выбора файла обновляем список резюме
-          _loadResumes();
+
+          // Загружаем файл
+          await _uploadResume(File(file.path!));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Ошибка: выбранный файл не является PDF')),
@@ -286,6 +222,33 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка при выборе файла: ${e.toString()}')),
+      );
+    }
+  }
+
+  Future<void> _uploadResume(File file) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+
+      // 1. Загружаем на сервер и получаем ответ
+      final serverResponse = await apiService.uploadResume(file);
+
+      // 2. Создаем полноценный объект резюме из ответа сервера
+      // final newResume = await _getResumeById(serverResponse['id']);
+
+      // 3. Обновляем состояние
+      // setState(() {
+      //   _resumes.insert(0, newResume);
+      // });
+
+      // 4. Показываем уведомление
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Резюме успешно сохранено')),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: ${e.toString()}')),
       );
     }
   }
@@ -303,13 +266,13 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              icon: accountIcon,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AccountMainPage())
-                );
-              }
+                icon: accountIcon,
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AccountMainPage())
+                  );
+                }
             ),
             Flexible(
               child: Transform.translate(
@@ -317,8 +280,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                 child: logoFullIcon,
               ),
             ),
-            IconButton(icon: parametersIcon, onPressed: () {}
-            ),
+            IconButton(icon: parametersIcon, onPressed: () {}),
           ],
         ),
         centerTitle: true,
@@ -343,14 +305,29 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
             final resume = _resumes[itemIndex];
 
             return GestureDetector(
-              onTap: () {
-                // Короткое нажатие - открываем ResumeViewPage
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ResumeViewPage(resume: _getResumeById(resume['id'])),
-                  ),
+              onTap: () async {
+                // Показываем индикатор загрузки
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(child: CircularProgressIndicator()),
                 );
+
+                try {
+                  final loadedResume = await _getResumeById(resume['id']);
+                  Navigator.pop(context); // Закрываем индикатор
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ResumeViewPage(resume: loadedResume),
+                    ),
+                  );
+                } catch (e) {
+                  Navigator.pop(context); // Закрываем индикатор
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Ошибка загрузки резюме: $e')),
+                  );
+                }
               },
               onLongPress: () {
                 // Долгое нажатие - открываем диалог как раньше
@@ -406,7 +383,6 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Text(
                           resume['title'],
-                          // 'Java-разработчик\nгод и 2 месяца',
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -418,6 +394,15 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                           ),
                         ),
                       ),
+                      if (resume['is_modified'] == true || resume['is_local'] == true)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Icon(
+                            Icons.cloud_off,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -447,14 +432,11 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     );
   }
 
-  // Функция для определения индекса в зигзагообразном порядке
   int _getZigzagIndex(int displayIndex, int totalItems) {
     final row = displayIndex ~/ 2;
     if (row % 2 == 0) {
-      // Четные ряды (0, 2, 4...) - обычный порядок
       return displayIndex;
     } else {
-      // Нечетные ряды (1, 3, 5...) - обратный порядок
       final start = row * 2;
       final end = math.min(start + 1, totalItems - 1);
       return end - (displayIndex - start);
