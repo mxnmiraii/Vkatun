@@ -30,7 +30,7 @@ func (m *MockDB) DeleteResume(ctx context.Context, id int) error {
 	return args.Error(0)
 }
 
-func (m *MockDB) ListResumes(ctx context.Context, userID int) ([]models.Resume, error) {
+func (m *MockDB) ListResumes(ctx context.Context, userID int) ([]models.ResumeOutput, error) {
 	args := m.Called(ctx, userID)
-	return args.Get(0).([]models.Resume), args.Error(1)
+	return args.Get(0).([]models.ResumeOutput), args.Error(1)
 }

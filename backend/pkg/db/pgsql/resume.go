@@ -54,7 +54,7 @@ func (d *DB) DeleteResume(ctx context.Context, id int) error {
 }
 
 // ListResumes возвращает список резюме пользователя
-func (d *DB) ListResumes(ctx context.Context, userID int) ([]models.Resume, error) {
+func (d *DB) ListResumes(ctx context.Context, userID int) ([]models.ResumeOutput, error) {
 	rows, err := d.pool.Query(ctx, `
         SELECT id, title, created_at FROM resume WHERE user_id = $1
     `, userID)
@@ -63,9 +63,9 @@ func (d *DB) ListResumes(ctx context.Context, userID int) ([]models.Resume, erro
 	}
 	defer rows.Close()
 
-	var resumes []models.Resume
+	var resumes []models.ResumeOutput
 	for rows.Next() {
-		var r models.Resume
+		var r models.ResumeOutput
 		if err := rows.Scan(&r.ID, &r.Title, &r.CreatedAt); err != nil {
 			return nil, err
 		}

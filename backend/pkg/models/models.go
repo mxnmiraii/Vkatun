@@ -26,6 +26,12 @@ type ResumeInput struct {
 	About      string `json:"about"`
 }
 
+type ResumeOutput struct {
+	ID        int       `json:"id"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Metrics struct {
 	TotalUsers       int       `json:"total_users"`
 	ActiveUsersToday int       `json:"active_users_today"`

@@ -11,7 +11,7 @@ type DB interface {
 	UpdateResume(ctx context.Context, id int, resume models.Resume) error
 	UpdateResumeSection(ctx context.Context, id int, section string, content string) error
 	DeleteResume(ctx context.Context, id int) error
-	ListResumes(ctx context.Context, userID int) ([]models.Resume, error)
+	ListResumes(ctx context.Context, userID int) ([]models.ResumeOutput, error)
 
 	GetMetrics(ctx context.Context) (*models.Metrics, error)
 	UpdateMetrics(ctx context.Context, updates models.MetricsUpdateRequest) error
