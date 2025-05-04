@@ -42,12 +42,11 @@ func restoreTextStructure(text string) (models.ResumeInput, string, error) {
 	if err != nil {
 		return models.ResumeInput{}, "", err
 	}
+	log.Printf("резюме после парсинга: %s", jsonResume)
 
-	jsonResume = strings.TrimSpace(jsonResume)
 	if strings.HasPrefix(jsonResume, "```json") || strings.HasPrefix(jsonResume, "```") {
 		jsonResume = utils.StripMarkdownCodeBlock(jsonResume)
 	}
-	log.Printf("резюме после парсинга: %s", jsonResume)
 
 	var resume models.ResumeInput
 	err = json.Unmarshal([]byte(jsonResume), &resume)
