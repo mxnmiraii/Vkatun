@@ -93,7 +93,10 @@ func (api *API) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"token":   tokenString,
+		"user_id": user.ID,
+	})
 }
 
 func (api *API) getProfile(w http.ResponseWriter, r *http.Request) {
