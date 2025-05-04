@@ -78,9 +78,9 @@
 > 2. Нажмите в верхней панели `File`, затем выберите `Import URL`
 > 3. Вставьте туда следующую ссылку:
 >
->    ```
->    https://gist.githubusercontent.com/mxnmiraii/a82db827a9f13c178523c9c5f3389c52/raw/e3b8ee893bb0ecc3438a6378aa72d33921410fe1/swagger-v1.0.1.yaml
->    ```
+> ```
+> https://gist.githubusercontent.com/mxnmiraii/a82db827a9f13c178523c9c5f3389c52/raw/e3b8ee893bb0ecc3438a6378aa72d33921410fe1/swagger-v1.0.1.yaml
+> ```
 
 ### 📌 Дополительная документация
 - [Git Flow](https://codenest.youtrack.cloud/articles/VN-A-20/Git-Flow)
