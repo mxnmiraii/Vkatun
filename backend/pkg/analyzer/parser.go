@@ -12,6 +12,7 @@ import (
 	"strings"
 	"vkatun/config"
 	"vkatun/pkg/models"
+	"vkatun/pkg/utils"
 )
 
 func ParseResumeFromPDF(data []byte) (models.ResumeInput, string, error) {
@@ -38,10 +39,13 @@ func ParseResumeFromPDF(data []byte) (models.ResumeInput, string, error) {
 func restoreTextStructure(text string) (models.ResumeInput, string, error) {
 	cleaned := baseTextStructure(text)
 	jsonResume, err := checkAndExtractResumeWithAI(cleaned)
+	if err != nil {
+		return models.ResumeInput{}, "", err
+	}
 
 	jsonResume = strings.TrimSpace(jsonResume)
 	if strings.HasPrefix(jsonResume, "```json") || strings.HasPrefix(jsonResume, "```") {
-		jsonResume = stripMarkdownCodeBlock(jsonResume)
+		jsonResume = utils.StripMarkdownCodeBlock(jsonResume)
 	}
 	log.Printf("резюме после парсинга: %s", jsonResume)
 
@@ -154,13 +158,4 @@ func checkAndExtractResumeWithAI(text string) (string, error) {
 	}
 
 	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
-}
-
-func stripMarkdownCodeBlock(text string) string {
-	re := regexp.MustCompile("(?s)```(?:json)?(.*?)```")
-	matches := re.FindStringSubmatch(text)
-	if len(matches) > 1 {
-		return strings.TrimSpace(matches[1])
-	}
-	return text
 }

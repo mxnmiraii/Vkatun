@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"vkatun/config"
 	"vkatun/pkg/models"
+	"vkatun/pkg/utils"
 )
 
 type issue struct {
@@ -61,6 +63,7 @@ func requestIssuesFromAI(prompt, text string) ([]issue, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var issues []issue
 	if err := json.Unmarshal([]byte(resp), &issues); err != nil {
 		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
@@ -112,7 +115,12 @@ func requestRawFromAI(systemPrompt, userText string) (string, error) {
 	}
 
 	if len(result.Choices) > 0 {
-		return result.Choices[0].Message.Content, nil
+		content := result.Choices[0].Message.Content
+		log.Printf("результат анализа от ллм: %s", content)
+
+		cleaned := utils.StripMarkdownCodeBlock(result.Choices[0].Message.Content)
+		log.Printf("после форматирования %s", cleaned)
+		return cleaned, nil
 	}
 
 	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
