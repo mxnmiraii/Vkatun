@@ -27,12 +27,19 @@ class _EntryPageState extends State<EntryPage> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (_loginController.text.isEmpty || _passwordController.text.isEmpty) {
+  void _handleLogin() {
+    final emailNumber = _loginController.text;
+    final password = _passwordController.text;
+
+    if (emailNumber.isEmpty || password.isEmpty) {
       setState(() => _errorMessage = 'Заполните все поля');
       return;
     }
 
+    _performLogin(emailNumber, password);
+  }
+
+  Future<void> _performLogin(String emailNumber, String password) async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -41,8 +48,8 @@ class _EntryPageState extends State<EntryPage> {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       await apiService.login(
-        emailOrPhone: _loginController.text,
-        password: _passwordController.text,
+        emailOrPhone: emailNumber,
+        password: password,
       );
 
       Navigator.pushReplacement(
@@ -50,7 +57,7 @@ class _EntryPageState extends State<EntryPage> {
         MaterialPageRoute(builder: (context) => ResumesPage()),
       );
     } catch (e) {
-      setState(() => _errorMessage = 'Ошибка входа: $e');
+      setState(() => _errorMessage = 'Ошибка входа: ${e.toString()}');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -141,7 +148,7 @@ class _EntryPageState extends State<EntryPage> {
                         TextField(
                           controller: _loginController,
                           decoration: _inputDecoration.copyWith(
-                            labelText: 'Имя пользователя или email',
+                            labelText: 'Email',
                           ),
                         ),
                         const SizedBox(height: 10),

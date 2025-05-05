@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/windows/scan_windows/check_widget.dart';
 import 'package:vkatun/windows/scan_windows/scan.dart';
+
+import '../api_service.dart';
 
 class WindowFixMistakes extends StatefulWidget {
   final VoidCallback onClose;
@@ -40,22 +43,123 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   bool isScanningGrammar = false;
   bool isScanningStyle = false;
 
+  bool isLoading = false;
+
+  List<Issue> spellingIssues = [];
+  List<Issue> punctuationIssues = [];
+  List<Issue> grammarIssues = [];
+  List<Issue> styleIssues = [];
+
+  List<Issue> structureIssues = [];
+
+  List<Issue> skillsIssues = [];
+  List<Issue> aboutMeIssues = [];
+  List<Issue> experienceIssues = [];
+
   final Color activeColor = Colors.white; // основной бэкграунд
   final Color inactiveColor = Colors.transparent;
 
+  Future<List<Issue>> _analyzeResumeSkills(int id) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.analyzeResumeSkills(16);
+
+      // Преобразуем ответ в List<Issue>
+      final skills = response['skills'] as List<dynamic>? ?? [];
+
+      return skills
+          .map(
+            (skill) => Issue(
+              errorText: skill.toString(), // Сам навык как текст ошибки
+              suggestion: '', // Пустое предложение (нет исправления)
+              description: 'Недостающий навык',
+            ),
+          )
+          .toList();
+    } catch (e) {
+      print('Ошибка при анализе навыков: $e');
+      return []; // Возвращаем пустой список при ошибке
+    }
+  }
+
+  Future<List<Issue>> _analyzeResumeStructure(int id) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.checkResumeStructure(16);
+
+      // Преобразуем ответ в List<Issue>
+      final structure = response['missing_sections'] as List<dynamic>? ?? [];
+
+      return structure
+          .map(
+            (skill) => Issue(
+              errorText: skill.toString(),
+              suggestion: '',
+              description: 'Пропущенный раздел',
+            ),
+          )
+          .toList();
+    } catch (e) {
+      print('Ошибка при анализе структуры: $e');
+      return []; // Возвращаем пустой список при ошибке
+    }
+  }
+
+  Future<List<Issue>> _analyzeResumeGrammar(int id, String requiredType) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.checkResumeGrammar(id);
+
+      // Проверяем наличие данных
+      if (response['issues'] == null) return [];
+
+      // Фильтруем и преобразуем в Issue
+      return (response['issues'] as List)
+          .where((issue) => issue['type'] == requiredType)
+          .map(
+            (issue) => Issue(
+              errorText: issue['text'] ?? '',
+              suggestion: issue['suggestion'] ?? '',
+              description: '', // description не приходит из БД
+            ),
+          )
+          .toList();
+    } catch (e) {
+      print('Ошибка при получении ошибок: $e');
+      return [];
+    }
+  }
+
+  Future<void> scanningStructureState() async {
+    setState(() {
+      isLoading = true;
+      isScanningStructure = true;
+      structureIssues = [];
+    });
+
+    try {
+      final issues = await _analyzeResumeStructure(widget.resume['id']);
+      setState(() {
+        structureIssues = issues;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isScanningStructure = false;
+        isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+      }
+    }
+  }
+
   final List<Map<String, Widget>> iconsList = [
-    {
-      'active': textAIconNoFill,
-      'inactive': textAIcon,
-    },
-    {
-      'active': moreIconNoFill,
-      'inactive': moreIcon,
-    },
-    {
-      'active': penIconNoFill,
-      'inactive': penIcon,
-    },
+    {'active': textAIconNoFill, 'inactive': textAIcon},
+    {'active': moreIconNoFill, 'inactive': moreIcon},
+    {'active': penIconNoFill, 'inactive': penIcon},
   ];
 
   @override
@@ -107,13 +211,21 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: List.generate(3, (index) {
-                        final bool isFirst = index == 0;  // Первая (левая) иконка
-                        final bool isLast = index == 2;   // Последняя (правая) иконка
+                        final bool isFirst =
+                            index == 0; // Первая (левая) иконка
+                        final bool isLast =
+                            index == 2; // Последняя (правая) иконка
 
                         return Padding(
                           padding: EdgeInsets.only(
-                            left: isFirst ? 16 : 0,   // Отступ слева только для первой
-                            right: isLast ? 16 : 0,   // Отступ справа только для последней
+                            left:
+                                isFirst
+                                    ? 16
+                                    : 0, // Отступ слева только для первой
+                            right:
+                                isLast
+                                    ? 16
+                                    : 0, // Отступ справа только для последней
                           ),
                           child: GestureDetector(
                             onTap: () {
@@ -121,15 +233,20 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                                 selectedIndex = index;
                               });
                             },
-                            child: Container( // ← Просто Container вместо AnimatedContainer
+                            child: Container(
+                              // ← Просто Container вместо AnimatedContainer
                               decoration: BoxDecoration(
-                                color: selectedIndex == index ? Colors.white : Colors.transparent,
+                                color:
+                                    selectedIndex == index
+                                        ? Colors.white
+                                        : Colors.transparent,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               padding: const EdgeInsets.all(8),
-                              child: selectedIndex == index
-                                  ? iconsList[index]['active']
-                                  : iconsList[index]['inactive'],
+                              child:
+                                  selectedIndex == index
+                                      ? iconsList[index]['active']
+                                      : iconsList[index]['inactive'],
                             ),
                           ),
                         );
@@ -151,13 +268,17 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              upColorGradient,    // Верхний цвет (#E2E5FF)
-                              downColorGradient.withOpacity(0.6), // Нижний цвет (#B2B1FF99 с 60% прозрачностью)
+                              upColorGradient, // Верхний цвет (#E2E5FF)
+                              downColorGradient.withOpacity(
+                                0.6,
+                              ), // Нижний цвет (#B2B1FF99 с 60% прозрачностью)
                             ],
                           ),
                         ),
                         child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: timeShowAnimation),
+                          duration: const Duration(
+                            milliseconds: timeShowAnimation,
+                          ),
                           child: _getContent(selectedIndex),
                         ),
                       ),
@@ -170,19 +291,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         ],
       ),
     );
-  }
-
-  Widget _getIcon(int index) {
-    switch (index) {
-      case 0:
-        return textAIcon;
-      case 1:
-        return moreIcon;
-      case 2:
-        return penIcon;
-      default:
-        return textAIcon;
-    }
   }
 
   Widget _buildText(String text, bool mark) {
@@ -202,13 +310,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             padding: const EdgeInsets.only(top: 2.0, right: 6),
             child: miniDoneIcon,
           ),
-        Expanded(
-          child: Text(
-            text,
-            style: _textStyle,
-            softWrap: true,
-          ),
-        ),
+        Expanded(child: Text(text, style: _textStyle, softWrap: true)),
       ],
     );
   }
@@ -229,30 +331,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Орфография',
-                  issues: [
-                    Issue(
-                      errorText: "devoloper",
-                      suggestion: "developer",
-                      description: "Неправильное написание слова на английском",
-                    ),
-                    Issue(
-                      errorText: "програмная инжинерия",
-                      suggestion: "программная инженерия",
-                      description:
-                          "Ошибка в корне и суффиксах (двойная «м», «е» вместо «и»)",
-                    ),
-                    Issue(
-                      errorText: "государственый",
-                      suggestion: "государственный",
-                      description: "Пропущена буква «н»",
-                    ),
-                    Issue(
-                      errorText: "Мовинг",
-                      suggestion: "Майвинг (или Moving)",
-                      description:
-                          "Не существует слова «Мовинг» — это искажение",
-                    ),
-                  ],
+                  issues: spellingIssues,
+                  isLoading: isLoading,
                 )
                 : isScanningPunctuation
                 ? Scan(
@@ -264,19 +344,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Пунктуация',
-                  issues: [
-                    Issue(
-                      errorText: "общежитии ВГУ!",
-                      suggestion: "общежитии ВГУ",
-                      description: "Восклицательный знак здесь неуместен",
-                    ),
-                    Issue(
-                      errorText: "и, командировкам",
-                      suggestion: "	и командировкам",
-                      description:
-                          "Запятая не ставится между однородными членами",
-                    ),
-                  ],
+                  issues: punctuationIssues,
+                  isLoading: isLoading,
                 )
                 : isScanningGrammar
                 ? Scan(
@@ -288,26 +357,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Грамматика',
-                  issues: [
-                    Issue(
-                      errorText: "23 лет",
-                      suggestion: "23 года",
-                      description:
-                          "Ошибка в управлении числительного и существительного",
-                    ),
-                    Issue(
-                      errorText: "проживает в г. Воронеже",
-                      suggestion: "проживает в городе Воронеж",
-                      description:
-                          "Нарушена форма существительного в предложном падеже",
-                    ),
-                    Issue(
-                      errorText: "факультет компьютерных науков",
-                      suggestion: "факультет компьютерных наук",
-                      description:
-                          "Согласование: нужен родительный падеж ед. ч. (если бы слово было «науки»)",
-                    ),
-                  ],
+                  issues: grammarIssues,
+                  isLoading: isLoading,
                 )
                 : isScanningStyle
                 ? Scan(
@@ -319,56 +370,37 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Стилевые ошибки',
-                  issues: [
-                    Issue(
-                      errorText: "git, sql, kafka golang postgreSQL",
-                      suggestion: "Git, SQL, Kafka, Golang, PostgreSQL",
-                      description:
-                          "Несоблюдение регистра и структуры перечисления",
-                    ),
-                    Issue(
-                      errorText: "ВГУ",
-                      suggestion:
-                          "Воронежского государственного университета (ВГУ)",
-                      description:
-                          "Сначала расшифровка, затем аббревиатура — по стилю",
-                    ),
-                    Issue(
-                      errorText: "вахтёр",
-                      suggestion: "сторож",
-                      description:
-                          "«Вахтёр» — разговорное слово, в деловом резюме лучше заменить",
-                    ),
-                    Issue(
-                      errorText: "два года и два месяца",
-                      suggestion: "2 года и 2 месяца",
-                      description: "В деловом стиле принято использовать цифры",
-                    ),
-                  ],
+                  issues: styleIssues,
+                  isLoading: isLoading,
                 )
                 : _scan(index, 'Исправление ошибок'))
             : _buildPage(index, 'Исправление ошибок', [
               _buildText(
                 'Раздел предназначен для автоматического поиска и исправления ошибок в резюме. '
-                'Обработка включает: ', false,
+                'Обработка включает: ',
+                false,
               ),
               _box,
               _buildText(
-                'Орфография: исправление неправильного написания слов, опечаток, паронимов.', true,
+                'Орфография: исправление неправильного написания слов, опечаток, паронимов.',
+                true,
               ),
               _box,
               _buildText(
                 'Грамматика: исправление ошибок в построении предложений, согласовании, управлении падежами, '
-                'использовании предлогов.', true,
+                'использовании предлогов.',
+                true,
               ),
               _box,
               _buildText(
                 'Пунктуация: исправление ошибок в расстановке запятых, тире, двоеточий, лишних или '
-                'пропущенных знаков', true,
+                'пропущенных знаков',
+                true,
               ),
               _box,
               _buildText(
-                'Стиль: устранение тавтологии, канцеляризмов и нелогичных фраз.', true,
+                'Стиль: устранение тавтологии, канцеляризмов и нелогичных фраз.',
+                true,
               ),
             ]);
       case 1:
@@ -382,31 +414,24 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               onClose: widget.onClose,
               resume: widget.resume,
               title: 'Структура',
-              issues: [
-                Issue(
-                  errorText: "Компоненты",
-                  suggestion: "",
-                  description:
-                      "Отсутствует содержание пунктов: желаемая должность",
-                ),
-                Issue(
-                  errorText: "Смысловые части",
-                  suggestion: "",
-                  description:
-                      "Тоже какая то тут ошибка у вас. Не знаю пока какая",
-                ),
-              ],
+              issues: structureIssues,
+              isLoading: false,
             )
             : _buildPage(index, 'Структура', [
               _buildText(
                 'Данный раздел предназначен для автоматического выявления разделов, требующих редактирования. '
-                'Обработка ошибок включает в себя следующие категории: ', false,
+                'Обработка ошибок включает в себя следующие категории: ',
+                false,
               ),
               _box,
-              _buildText('Компоненты: выявление отсутствующих разделов. ', true),
+              _buildText(
+                'Компоненты: выявление отсутствующих разделов. ',
+                true,
+              ),
               _box,
               _buildText(
-                'Смысловые части: рекомендации о разделении тексте на образцы. ', true,
+                'Смысловые части: рекомендации о разделении тексте на образцы. ',
+                true,
               ),
             ]);
       case 2:
@@ -421,29 +446,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Навыки',
-                  issues: [
-                    Issue(
-                      errorText: "Рисование",
-                      suggestion: "",
-                      description:
-                          "В вашем резюме присутствуют нерелевантные навыки (навыки, которые не относятся к вашей "
-                          "профессии): 'рисование'",
-                    ),
-                    Issue(
-                      errorText: "Танцы",
-                      suggestion: "",
-                      description:
-                          "В вашем резюме присутствуют нерелевантные навыки (навыки, которые не относятся к вашей "
-                          "профессии): 'танцы'",
-                    ),
-                    Issue(
-                      errorText: "Музыка",
-                      suggestion: "",
-                      description:
-                          "В вашем резюме присутствуют нерелевантные навыки (навыки, которые не относятся к вашей "
-                          "профессии): 'музыка'",
-                    ),
-                  ],
+                  issues: skillsIssues,
                 )
                 : isScanningAboutMe
                 ? Scan(
@@ -455,7 +458,23 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'О себе',
-                  issues: [],
+                  isLoading: isLoading,
+                  issues: [
+                    Issue(
+                      errorText: "Cлишком общее и не подкреплено примерами",
+                      suggestion: "",
+                      description:
+                          "Фразы вроде «умею быстро вливаться в команду» и «думаю о продукте» — клише",
+                    ),
+
+                    Issue(
+                      errorText:
+                          "Разнородность по теме: от командной работы до Telegram-ботов.",
+                      suggestion: "",
+                      description:
+                          "Неясно, при чём тут боты — это часть текущей работы или хобби?",
+                    ),
+                  ],
                 )
                 : isScanningExperience
                 ? Scan(
@@ -467,26 +486,44 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Опыт работы',
-                  issues: [],
+                  issues: [
+                    Issue(
+                      errorText:
+                          "Нечёткое разделение обязанностей и достижений",
+                      suggestion: "",
+                      description: "Сейчас просто список задач, без результата",
+                    ),
+
+                    Issue(
+                      errorText: "Недостаточная конкретика",
+                      suggestion: "",
+                      description:
+                          "Например, «разработка CRM-системы» — не указано, какую роль выполнял, каких результатов добился.",
+                    ),
+                  ],
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [
               _buildText(
                 'Данный раздел предназначен для автоматического выявления ошибок в содержании текста резюме. '
-                'Обработка ошибок включает в себя следующие категории: ', false,
+                'Обработка ошибок включает в себя следующие категории: ',
+                false,
               ),
               _box,
               _buildText(
                 'Навыки: в случае, если в вашем резюме присутствуют нерелевантные навыки (навыки, которые '
-                'не относятся к вашей профессии). ', true,
+                'не относятся к вашей профессии). ',
+                true,
               ),
               _box,
               _buildText(
-                'О себе: в данной категории будут предложения о добавлении важных пунктов о вас. ', true,
+                'О себе: в данной категории будут предложения о добавлении важных пунктов о вас. ',
+                true,
               ),
               _box,
               _buildText(
-                'Опыт работы: в данной категории будут рекомендации о том, как лучше рассказать о вашем опыте работы. ', true,
+                'Опыт работы: в данной категории будут рекомендации о том, как лучше рассказать о вашем опыте работы. ',
+                true,
               ),
             ]);
       default:
@@ -576,17 +613,22 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                 onPressed: () {
                   switch (index) {
                     case 0:
-                      return setState(() {
+                      setState(() {
                         isScanningFix = true;
+                        // print(widget.resume['id']);
+                        // print(_analyzeResumeSkills(widget.resume['id']));
+                        // print(_analyzeResumeStructure(widget.resume['id']));
+                        // print(_analyzeResumeGrammar(18, 'style'));
                       });
+                      break;
                     case 1:
-                      return setState(() {
-                        isScanningStructure = true;
-                      });
+                      scanningStructureState();
+                      break;
                     case 2:
                       setState(() {
                         isScanningContent = true;
                       });
+                      break;
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -613,9 +655,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         );
       },
     );
-
-
-
   }
 
   Widget _scan(int index, String title) {
@@ -659,10 +698,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
           ),
         ),
         SizedBox(height: 10),
-        Divider(
-          color: lightViolet.withOpacity(0.5),
-          thickness: 2,
-        ),
+        Divider(color: lightViolet.withOpacity(0.5), thickness: 2),
         SizedBox(height: space / 2),
         Expanded(
           child: Column(
@@ -670,32 +706,136 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             children:
                 index == 0
                     ? [
-                      _buildButton('Орфография', () {
+                      _buildButton('Орфография', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningSpell = true;
+                          spellingIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeGrammar(
+                            widget.resume['id'],
+                            'spelling',
+                          );
+                          setState(() {
+                            spellingIssues = issues;
+                            isLoading = false;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isScanningSpell = false;
+                            isLoading = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
-                      _buildButton('Пунктуация', () {
+                      _buildButton('Пунктуация', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningPunctuation = true;
+                          punctuationIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeGrammar(
+                            widget.resume['id'],
+                            'punctuation',
+                          );
+                          setState(() {
+                            punctuationIssues = issues;
+                            isLoading = false;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isScanningPunctuation = false;
+                            isLoading = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
-                      _buildButton('Грамматика', () {
+                      _buildButton('Грамматика', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningGrammar = true;
+                          grammarIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeGrammar(
+                            widget.resume['id'],
+                            'grammar',
+                          );
+                          setState(() {
+                            isLoading = false;
+                            grammarIssues = issues;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                            isScanningGrammar = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
-                      _buildButton('Стилевые ошибки', () {
+                      _buildButton('Стилевые ошибки', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningStyle = true;
+                          styleIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeGrammar(
+                            widget.resume['id'],
+                            'style',
+                          );
+                          setState(() {
+                            isLoading = false;
+                            styleIssues = issues;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                            isScanningStyle = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
                     ]
                     : [
-                      _buildButton('Навыки', () {
+                      _buildButton('Навыки', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningSkills = true;
+                          skillsIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeSkills(
+                            widget.resume['id'],
+                          );
+                          setState(() {
+                            isLoading = false;
+                            skillsIssues = issues;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                            isScanningSkills = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
                       _buildButton('О себе', () {
                         setState(() {

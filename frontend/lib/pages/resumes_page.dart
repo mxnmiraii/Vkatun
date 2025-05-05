@@ -136,6 +136,11 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           },
           rotationController: _rotationController,
           resume: resume,
+          onDelete: () {
+            setState(() {
+              _resumes.removeWhere((r) => r['id'] == resume['id']);
+            });
+          },
           // onSave: (updatedResume) async {
           //   await _updateResume(updatedResume);
           // },
@@ -262,27 +267,77 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
       appBar: AppBar(
         automaticallyImplyLeading: false,
         toolbarHeight: appBarHeight,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        title: Column(
           children: [
-            IconButton(
-                icon: accountIcon,
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AccountMainPage())
-                  );
-                }
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 15), // Отступ слева 30
+                  child: IconButton(
+                    icon: accountIcon,
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AccountMainPage())
+                      );
+                    },
+                  ),
+                ),
+                Flexible(
+                  child: Transform.translate(
+                    offset: Offset(0, -appBarHeight * 0.09),
+                    child: logoFullIcon,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 15), // Отступ справа 30
+                  child: IconButton(
+                    icon: parametersIcon,
+                    onPressed: () {},
+                  ),
+                ),
+              ],
             ),
-            Flexible(
-              child: Transform.translate(
-                offset: Offset(0, -appBarHeight * 0.125),
-                child: logoFullIcon,
-              ),
+
+            SizedBox(height: 8,),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center, // Центрируем всю строку
+              crossAxisAlignment: CrossAxisAlignment.center, // Выравниваем по вертикали
+              children: [
+                SizedBox( // Левая линия (занимает всё доступное пространство слева)
+                  width: MediaQuery.of(context).size.width * 0.05,
+                  child: Divider(
+                    thickness: 3,
+                    color: lightLavender.withOpacity(0.5),
+                    height: 1,
+                  ),
+                ),
+                Padding( // Текст "Сегодня" с отступами
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    'Сегодня',
+                    style: TextStyle(
+                      color: royalBlue, // Можно настроить цвет текста
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Playfair',
+                      fontSize: 20,// Жирность
+                    ),
+                  ),
+                ),
+                Expanded( // Правая линия (занимает всё доступное пространство справа)
+                  child: Divider(
+                    thickness: 3,
+                    color: lightLavender.withOpacity(0.5),
+                    height: 1,
+                  ),
+                ),
+              ],
             ),
-            IconButton(icon: parametersIcon, onPressed: () {}),
           ],
         ),
+
         centerTitle: true,
         elevation: 0,
       ),
@@ -294,7 +349,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 8,
+            crossAxisSpacing: 16,
             mainAxisSpacing: 32,
             childAspectRatio: 1.4,
           ),
@@ -384,7 +439,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                         child: Text(
                           resume['title'],
                           textAlign: TextAlign.center,
-                          maxLines: 2,
+                          maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontFamily: 'Playfair',

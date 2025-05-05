@@ -4,6 +4,7 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 import 'check_widget.dart';
+import 'indicator.dart';
 
 class Scan extends StatelessWidget {
   final VoidCallback onBackPressed;
@@ -11,6 +12,7 @@ class Scan extends StatelessWidget {
   final Map<String, dynamic> resume;
   final String title;
   final List<Issue> issues;
+  final bool isLoading;
   const Scan({
     super.key,
     required this.onBackPressed,
@@ -18,6 +20,7 @@ class Scan extends StatelessWidget {
     required this.resume,
     required this.title,
     required this.issues,
+    this.isLoading = false,
   });
 
   @override
@@ -32,52 +35,95 @@ class Scan extends StatelessWidget {
       height: 1.0,
     );
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
+    return isLoading
+        ? Center(
+      child: GradientCircularProgressIndicator(
+        size: 70.0, // Размер индикатора
+        strokeWidth: 5.0, // Толщина линии
+      ),
+    )
+        : Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            IconButton(onPressed: onBackPressed, icon: backCircleIcon),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(onPressed: onBackPressed, icon: backCircleIcon),
 
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: padding / 2 * 1.5,
-                horizontal: padding * 3,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(borderRadius),
-                border: Border.all(
-                  color: borderWindowColor.withOpacity(0.47),
-                  width: widthBorderRadius,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: padding / 2 * 1.5,
+                    horizontal: padding * 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: Border.all(
+                      color: borderWindowColor.withOpacity(0.47),
+                      width: widthBorderRadius,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      title,
+                      style: textStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(
-                title,
-                style: textStyle.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+
+                IconButton(
+                  onPressed: () {},
+                  icon: Opacity(opacity: 0, child: backCircleIcon),
                 ),
-                textAlign: TextAlign.center,
-              ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child:
+                  issues.isEmpty
+                      ? Center(
+                        child: Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          padding: EdgeInsets.all(30),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            color: Colors.white,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              accessIcon,
+                              SizedBox(height: 16),
+                              Text(
+                                'Ошибок не обнаружено',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  color: vividPeriwinkleBlue,
+                                  fontFamily: 'Playfair',
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      : LayoutBuilder(
+                        builder: (context, constraints) {
+                          return CheckWidget(
+                            availableHeight: constraints.maxHeight - 114,
+                            onClose: onClose,
+                            resume: resume,
+                            issues: issues,
+                          );
+                        },
+                      ),
             ),
           ],
-        ),
-        SizedBox(height: 20),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return CheckWidget(
-                availableHeight: constraints.maxHeight - 114,
-                onClose: onClose,
-                resume: resume,
-                issues: issues,
-              );
-            },
-          ),
-        ),
-      ],
-    );
+        );
   }
 }

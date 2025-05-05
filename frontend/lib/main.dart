@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vkatun/pages/entry_page.dart';
@@ -34,26 +35,35 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VKatun',
-      debugShowCheckedModeBanner: false, // Отключение баннера здесь
-      theme: ThemeData(
-        primaryColor: Colors.white,
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          color: Colors.white,
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
-      home: authToken != 'guest_token' ? const ResumesPage() : const StartPage(),
-      routes: {
-        '/login': (_) => const EntryPage(),
-        '/register': (_) => const RegisterPage(),
-      },
+      child: MaterialApp(
+        title: 'VKatun',
+        debugShowCheckedModeBanner: false, // Отключение баннера здесь
+        theme: ThemeData(
+          primaryColor: Colors.white,
+          scaffoldBackgroundColor: Colors.white,
+          iconTheme: IconThemeData(color: Colors.black),
+          appBarTheme: const AppBarTheme(
+            color: Colors.white,
+          ),
+        ),
+        home: authToken != 'guest_token' ? const ResumesPage() : const StartPage(),
+        routes: {
+          '/login': (_) => const EntryPage(),
+          '/register': (_) => const RegisterPage(),
+        },
+      ),
     );
   }
 }
 
 class HttpOverridesForTesting extends HttpOverrides {
+
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     final HttpClient client = super.createHttpClient(context)

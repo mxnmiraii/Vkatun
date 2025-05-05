@@ -50,118 +50,122 @@ class _FullNamePageState extends State<FullNamePage> {
       extendBody: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          color: Colors.white,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            toolbarHeight: appBarHeight,
-            centerTitle: false,
-            title: Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      SizedBox(width: space),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: lightArrowBackIcon,
-                      ),
-                    ],
-                  ),
-                ),
-
-                Center(
-                  child: Text(
-                    'ФИО',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 24,
-                      fontFamily: 'Playfair',
-                      color: purpleBlue,
+        child: SafeArea(  // Добавлен SafeArea для AppBar
+          child: Container(
+            color: Colors.white,
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              automaticallyImplyLeading: false,
+              toolbarHeight: appBarHeight,
+              centerTitle: false,
+              title: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
+                        SizedBox(width: space),
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: lightArrowBackIcon,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Center(
+                    child: Text(
+                      'ФИО',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 24,
+                        fontFamily: 'Playfair',
+                        color: purpleBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
 
-      body: Stack(
-        children: [
-          // Градиент на фоне
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(0.8, -0.1), // правый край, чуть выше центра
-                radius: 1.6,
-                colors: [
-                  Color(0xFFD8D7FF), // начало
-                  Color(0xFFE9F7FA), // середина
-                  Color(0xFFFFFFFF), // конец
-                ],
-                stops: [0.0, 0.75, 0.95],
-              ),
-            ),
-          ),
-
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(top: 24),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(
-                  color: vividPeriwinkleBlue.withOpacity(0.8), // прозрачность
-                  width: 1.6,
+      body: SafeArea(  // Добавлен SafeArea для основного контента
+        top: false,    // Отключаем верхний SafeArea, так как он уже есть в AppBar
+        child: Stack(
+          children: [
+            // Градиент на фоне
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0.8, -0.1),
+                  radius: 1.6,
+                  colors: [
+                    Color(0xFFD8D7FF),
+                    Color(0xFFE9F7FA),
+                    Color(0xFFFFFFFF),
+                  ],
+                  stops: [0.0, 0.75, 0.95],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.30),
-                    blurRadius: 2,
-                    spreadRadius: 0.2,
-                    offset: Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _buildTextField(
-                    label: 'Фамилия',
-                    controller: _surnameController,
-                    index: 0,
-                    length: widget.data.length,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Имя',
-                    controller: _nameController,
-                    index: 1,
-                    length: widget.data.length,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Отчество',
-                    controller: _patronymicController,
-                    index: 2,
-                    length: widget.data.length,
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
+
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 24),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: vividPeriwinkleBlue.withOpacity(0.8),
+                    width: 1.6,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.30),
+                      blurRadius: 2,
+                      spreadRadius: 0.2,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _buildTextField(
+                      label: 'Фамилия',
+                      controller: _surnameController,
+                      index: 0,
+                      length: widget.data.length,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: 'Имя',
+                      controller: _nameController,
+                      index: 1,
+                      length: widget.data.length,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: 'Отчество',
+                      controller: _patronymicController,
+                      index: 2,
+                      length: widget.data.length,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: bottom35),
@@ -169,7 +173,6 @@ class _FullNamePageState extends State<FullNamePage> {
           child: IconButton(
             icon: darkerBiggerDoneIcon,
             onPressed: () {
-              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
               Navigator.pop(context);
             },
             padding: EdgeInsets.zero,
@@ -216,7 +219,7 @@ class _FullNamePageState extends State<FullNamePage> {
             border: index != length - 1
                 ? UnderlineInputBorder(
               borderSide: BorderSide(
-                color: lightDarkenLavender, // Цвет полоски
+                color: lightDarkenLavender,
                 width: 2.5,
               ),
             )
@@ -236,7 +239,7 @@ class _FullNamePageState extends State<FullNamePage> {
                 width: 2.5,
               ),
             )
-                : InputBorder.none, // Для последнего поля без подчеркивания
+                : InputBorder.none,
           ),
         ),
       ],

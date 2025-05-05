@@ -37,13 +37,64 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    void _handleLogin() {
+    Future<void> _performRegistration(String login, String emailNumber, String password) async {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
+
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+        await apiService.register(
+          username: login,
+          emailOrPhone: emailNumber,
+          password: password,
+        );
+
+        // Успешная регистрация
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ResumesPage()),
+        );
+      } catch (e) {
+        // Обработка реальных ошибок
+        final errorMessage = e.toString().contains('User registered successfully')
+            ? 'Регистрация успешна! Выполняется вход...'
+            : 'Ошибка регистрации: ${e.toString().replaceAll('Exception: ', '')}';
+
+        setState(() => _errorMessage = errorMessage);
+
+        // Если регистрация фактически успешна, но была обработана как ошибка
+        if (e.toString().contains('User registered successfully')) {
+          await Future.delayed(Duration(seconds: 2));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ResumesPage()),
+          );
+        }
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+
+    void _handleRegister() {
       final login = _loginController.text;
       final emailNumber = _emailNumberController.text;
       final password = _passwordController.text;
       final passwordRepeat = _passwordRepeatController.text;
-      print('Регистрация: login=$login, emailOrPhone=$emailNumber, pass=$password, passRepeat=$passwordRepeat');
-      _handleRegister(login, emailNumber, password, passwordRepeat);
+
+      // Валидация
+      if (password != passwordRepeat) {
+        setState(() => _errorMessage = 'Пароли не совпадают');
+        return;
+      }
+
+      if (login.isEmpty || emailNumber.isEmpty || password.isEmpty) {
+        setState(() => _errorMessage = 'Заполните все поля');
+        return;
+      }
+
+      _performRegistration(login, emailNumber, password);
     }
 
     final _textStyle = TextStyle(
@@ -145,7 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         TextField(
                           controller: _emailNumberController,
                           decoration: _inputDecoration.copyWith(
-                            labelText: 'Телефон или адрес эл.почты',
+                            labelText: 'Адрес электронной почты',
                           ),
                         ),
 
@@ -186,7 +237,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
-                            onPressed: _handleLogin,
+                            onPressed: _handleRegister,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: mediumSlateBlue,
                               shape: RoundedRectangleBorder(
@@ -243,42 +294,6 @@ class _RegisterPageState extends State<RegisterPage> {
         ],
       ),
     );
-  }
-  Future<void> _handleRegister(String login, String emailNumber, String pass, String passRepeat) async {
-    // Валидация
-    if (pass != passRepeat) {
-      setState(() => _errorMessage = 'Пароли не совпадают');
-      return;
-    }
-
-    if (login.isEmpty ||
-        emailNumber.isEmpty) {
-      setState(() => _errorMessage = 'Заполните все поля');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-
-    try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      await apiService.register(
-        username: _loginController.text,
-        emailOrPhone: _emailNumberController.text,
-        password: _passwordController.text,
-      );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => ResumesPage()),
-      );
-    } catch (e) {
-      setState(() => _errorMessage = e.toString());
-    } finally {
-      setState(() => _isLoading = false);
-    }
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
@@ -28,8 +29,8 @@ class _AccountMainPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    _fioController = TextEditingController(text: 'Петров Иван Натанович');
-    _emailController = TextEditingController(text: 'ivan.petrov@email.com');
+    _fioController = TextEditingController(text: 'Pavel');
+    _emailController = TextEditingController(text: 'test@example.com');
   }
 
   @override
@@ -43,66 +44,47 @@ class _AccountMainPageState extends State<AccountPage> {
       extendBody: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          color: Colors.white,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            toolbarHeight: appBarHeight,
-            centerTitle: false,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: lightArrowBackIcon
+        child: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          automaticallyImplyLeading: false,
+          toolbarHeight: appBarHeight,
+          centerTitle: false,
+          systemOverlayStyle: SystemUiOverlayStyle.dark, // ← важная строка
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: lightArrowBackIcon,
+              ),
+              Text(
+                'Аккаунт',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 32,
+                  fontFamily: 'Playfair',
+                  color: purpleBlue,
                 ),
-
-                Text(
-                  'Аккаунт',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 32,
-                    fontFamily: 'Playfair',
-                    color: purpleBlue,
-                  ),
-                ),
-
-                IconButton(
-                  onPressed: () async {
-                    try {
-                      // 1. Получаем экземпляр ApiService
-                      final apiService = Provider.of<ApiService>(context, listen: false);
-
-                      // 2. Очищаем токен
-                      await apiService.clearToken();
-
-                      // 3. Переходим на стартовую страницу
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => StartPage()),
-                            (Route<dynamic> route) => false, // Удаляем все предыдущие маршруты
-                      );
-
-                      // 4. Показываем уведомление
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Вы успешно вышли из аккаунта')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Ошибка при выходе: $e')),
-                      );
-                    }
-                  },
-                  icon: logOutIcon,
-                  tooltip: 'Выйти из аккаунта', // Всплывающая подсказка
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                onPressed: () async {
+                  final apiService = Provider.of<ApiService>(context, listen: false);
+                  await apiService.clearToken();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => StartPage()),
+                        (Route<dynamic> route) => false,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Вы успешно вышли из аккаунта')),
+                  );
+                },
+                icon: logOutIcon,
+                tooltip: 'Выйти из аккаунта',
+              ),
+            ],
           ),
         ),
       ),
@@ -149,7 +131,7 @@ class _AccountMainPageState extends State<AccountPage> {
                 ],
               ),
               child: Column(children: [
-                _buildTextField(label: 'ФИО', controller: _fioController, onPressed: () {}),
+                _buildTextField(label: 'Имя пользователя', controller: _fioController, onPressed: () {}),
                 SizedBox(height: 30,),
                 _buildTextField(label: 'Почта', controller: _emailController, onPressed: () {}),
               ]),
