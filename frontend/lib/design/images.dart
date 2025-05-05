@@ -162,3 +162,11 @@ final SvgPicture warningIcon = SvgPicture.asset(
 final SvgPicture cancelIcon2 = SvgPicture.asset(
   'assets/images/cancel_icon_2.svg',
 );
+
+final SvgPicture pen = SvgPicture.asset(
+  'assets/images/pen.svg',
+);
+
+final SvgPicture circle = SvgPicture.asset(
+  'assets/images/circle.svg',
+);

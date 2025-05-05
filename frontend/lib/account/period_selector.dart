@@ -21,6 +21,13 @@ class _PeriodSelectorState extends State<PeriodSelector> {
   DateTime currentDate = DateTime.now();
   PeriodMode periodMode = PeriodMode.week;
 
+  // Маппинг для отображения русских названий периодов
+  final Map<PeriodMode, String> periodLabels = {
+    PeriodMode.day: 'День',
+    PeriodMode.week: 'Неделя',
+    PeriodMode.month: 'Месяц',
+  };
+
   void _previousPeriod() {
     setState(() {
       currentDate = _getNewDate(-1);
@@ -95,7 +102,7 @@ class _PeriodSelectorState extends State<PeriodSelector> {
                 });
               },
               child: Text(
-                mode.name.toUpperCase(),
+                periodLabels[mode]!, // Используем русские названия
                 style: TextStyle(
                   color: periodMode == mode ? timeColor : Colors.grey,
                   fontWeight: periodMode == mode ? FontWeight.bold : FontWeight.normal,
@@ -114,7 +121,12 @@ class _PeriodSelectorState extends State<PeriodSelector> {
             ),
             Text(
               _getPeriodLabel(),
-              style: TextStyle(fontFamily: 'NotoSans', fontSize: 16, color: timeColor, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                  fontFamily: 'NotoSans',
+                  fontSize: 16,
+                  color: timeColor,
+                  fontWeight: FontWeight.w800
+              ),
             ),
             IconButton(
               icon: timeArrowForward,

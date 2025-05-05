@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/pages/resumes_page.dart';
 import 'package:vkatun/windows/window_fix_mistakes.dart';
 
+import '../api_service.dart';
 import '../design/colors.dart';
 
 import 'package:vkatun/windows_edit_resume/about_me_page.dart';
@@ -16,11 +18,19 @@ import 'package:vkatun/windows_edit_resume/full_name_page.dart';
 import 'package:vkatun/windows_edit_resume/key_skills_page.dart';
 import 'package:vkatun/windows_edit_resume/work_experience_page.dart';
 
+import '../dialogs/warning_dialog.dart';
 
 class ResumeViewPage extends StatefulWidget {
   final Map<String, dynamic> resume;
+  final bool isLoadResume;
+  final VoidCallback onDelete;
 
-  const ResumeViewPage({super.key, required this.resume});
+  const ResumeViewPage({
+    super.key,
+    required this.resume,
+    required this.onDelete,
+    this.isLoadResume = false,
+  });
 
   @override
   State<StatefulWidget> createState() => _ResumeViewPageState();
@@ -157,12 +167,27 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ResumesPage()),
-                );
-              },
+              onPressed:
+                  widget.isLoadResume
+                      ? () async {
+                        try {
+                          final apiService = Provider.of<ApiService>(
+                            context,
+                            listen: false,
+                          );
+                          await apiService.deleteResume(
+                            widget.resume['id'] as int,
+                          );
+                          widget.onDelete();
+
+                          Navigator.pop(context);
+                        } catch (e) {
+                          _showWarningDialog(context);
+                        }
+                      }
+                      : () {
+                        Navigator.pop(context);
+                      },
               icon: backIconWBg,
             ),
 
@@ -184,67 +209,44 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // ФИО
+            // ФИО с улучшенным отображением
             _buildSection(
               title: 'ФИО',
-              content: widget.resume['title'] ?? 'Не указано',
+              content: widget.resume['title']?.trim() ?? 'Не указано',
               hasCheck: true,
               targetPage: FullNamePage(
-                  data: widget.resume['title'] == null || widget.resume['title'] == ''
-                  ? ['', '', ''] : widget.resume['title'].split(' ')),
+                data: widget.resume['title'] == null || widget.resume['title'].isEmpty
+                    ? ['', '', '']
+                    : widget.resume['title'].split(' '),
+              ),
             ),
 
-            // Желаемая должность
+            // Желаемая должность с улучшенным форматированием
             _buildSection(
               title: 'Желаемая должность',
-              content: widget.resume['job']?.isNotEmpty == true
-                  ? widget.resume['job']
+              content: (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
+                  ? widget.resume['job']!.trim()
                   : 'Не указано',
               hasCheck: true,
               targetPage: DesiredPositionPage(
-                data: widget.resume['job']?.isNotEmpty == true
-                    ? [widget.resume['job']!.trim()]
-                    : [''],
+                data: [widget.resume['job']?.trim() ?? ''],
               ),
             ),
 
-            // Контактные данные
+            // Контактные данные с красивым форматированием
             _buildSection(
               title: 'Контактные данные',
-              content: widget.resume['contacts']?.isNotEmpty == true
-                  ? widget.resume['contacts']!
-                  : 'Не указано',
+              content: _formatContacts(widget.resume['contacts']),
               hasCheck: true,
               targetPage: ContactInfoPage(
-                data: widget.resume['contacts']?.isNotEmpty == true
-                    ? _parseContacts(widget.resume['contacts']!)
-                    : ['', ''],
+                data: _parseContacts(widget.resume['contacts'] ?? ''),
               ),
             ),
 
-            // Опыт работы
-            _buildSection(
-              title: 'Опыт работы',
-              content: widget.resume['experience'] == null || widget.resume['experience'].isEmpty
-                  ? 'Не указано'
-                  : _parseExperienceShort(widget.resume['experience']),
-              hasCheck: true,
-              targetPage: WorkExperiencePage(
-                data: _parseExperienceData(widget.resume['experience']),
-              ),
-            ),
+            // Опыт работы с улучшенным отображением
+            _buildExperienceSection(),
 
-            // Кнопка добавления опыта
-            if (widget.resume['experience'] == null || widget.resume['experience'].isEmpty)
-              TextButton(
-                onPressed: () {
-                  // Добавление опыта работы
-                },
-                child: const Text('Добавить опыт работы'),
-              ),
-
-            // Образование
+            // Образование с лучшей структурой
             _buildSection(
               title: 'Образование',
               content: _formatEducation(widget.resume['education']),
@@ -254,23 +256,20 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ),
             ),
 
-
-            // Ключевые навыки
+            // Ключевые навыки с лучшим форматированием
             _buildSection(
               title: 'Ключевые навыки',
-              content: (widget.resume['skills'] == null || widget.resume['skills'].trim().isEmpty)
-                  ? 'Не указано'
-                  : widget.resume['skills'].replaceAll('\n', ', '),
+              content: _formatSkills(widget.resume['skills']),
               hasCheck: true,
               targetPage: KeySkillsPage(
-                data: (widget.resume['skills'] ?? '').replaceAll('\n', ', '),
+                data: widget.resume['skills'] ?? '',
               ),
             ),
 
-            // О себе
+            // О себе с улучшенным отображением
             _buildSection(
               title: 'О себе',
-              content: (widget.resume['about'] ?? 'Не указано').replaceAll('\n', ', '),
+              content: _formatAboutMe(widget.resume['about']),
               hasCheck: true,
               targetPage: AboutMePage(
                 data: widget.resume['about'] ?? '',
@@ -280,16 +279,25 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         ),
       ),
 
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: bottom35),
-        child: IconButton(
-          icon: magicIcon,
-          onPressed: () {
-            _openDialog();
-          },
-          iconSize: 36, // Можно настроить размер иконки
-        ),
-      ),
+      floatingActionButton:
+          widget.isLoadResume
+              ? Padding(
+                padding: EdgeInsets.only(bottom: bottom35),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  icon: doneIcon,
+                ),
+              )
+              : Padding(
+                padding: EdgeInsets.only(bottom: bottom35),
+                child: IconButton(
+                  icon: magicIcon,
+                  onPressed: _openDialog,
+                  iconSize: 36,
+                ),
+              ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -339,14 +347,15 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: targetPage != null
-                    ? () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => targetPage),
-                  );
-                }
-                    : null, // если targetPage не задан — кнопка будет неактивной
+                onPressed:
+                    targetPage != null
+                        ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => targetPage),
+                          );
+                        }
+                        : null, // если targetPage не задан — кнопка будет неактивной
                 icon: forwardIconWBg,
               ),
             ),
@@ -357,6 +366,77 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       ],
     );
   }
+
+  void _showWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => WarningDialog(), // Ваш кастомный диалог
+      barrierDismissible: true,
+    );
+  }
+
+  Widget _buildExperienceSection() {
+    final hasExperience = widget.resume['experience']?.isNotEmpty == true;
+    final experienceContent = hasExperience
+        ? _parseExperienceShort(widget.resume['experience'])
+        : 'Не указано';
+
+    return Column(
+      children: [
+        _buildSection(
+          title: 'Опыт работы',
+          content: experienceContent,
+          hasCheck: true,
+          targetPage: WorkExperiencePage(
+            data: _parseExperienceData(widget.resume['experience']),
+          ),
+        ),
+        if (!hasExperience)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 8),
+            child: Text(
+              'Добавить опыт работы',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                fontFamily: 'PlayFair',
+                color: Colors.blue,
+                height: 1.0,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _formatContacts(String? contacts) {
+    if (contacts == null || contacts.trim().isEmpty) return 'Не указано';
+
+    final parsed = _parseContacts(contacts);
+    final phone = parsed[0];
+    final email = parsed[1];
+
+    return [if (phone.isNotEmpty) phone, if (email.isNotEmpty) email].join('\n');
+  }
+
+  String _formatSkills(String? skills) {
+    if (skills == null || skills.trim().isEmpty) return 'Не указано';
+
+    return skills
+        .split('\n')
+        .where((s) => s.trim().isNotEmpty)
+        .map((s) => '• ${s.trim()}')
+        .join('\n');
+  }
+
+  String _formatAboutMe(String? about) {
+    if (about == null || about.trim().isEmpty) return 'Не указано';
+
+    return about
+        .split('\n')
+        .where((s) => s.trim().isNotEmpty)
+        .join('\n\n');
+  }
 }
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
@@ -364,7 +444,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 List<String> _parseExperienceData(String? raw) {
   if (raw == null || raw.trim().isEmpty) return ['', '', '', '', '', 'false'];
 
-  final lines = raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  final lines =
+      raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
   String start = lines.isNotEmpty && _isDate(lines[0]) ? lines[0] : '';
   String end = lines.length > 1 && _isDate(lines[1]) ? lines[1] : '';
@@ -392,14 +473,14 @@ bool _isDate(String str) {
   return regex.hasMatch(str);
 }
 
-
-
 List<String> _parseContacts(String contacts) {
   String phone = '';
   String email = '';
 
   // Парсим "сырой" телефон (только цифры)
-  final phoneRegex = RegExp(r'(\+7|7|8)[\s\-]?[\(\s\-]?\d{3}[\)\s\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}');
+  final phoneRegex = RegExp(
+    r'(\+7|7|8)[\s\-]?[\(\s\-]?\d{3}[\)\s\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}',
+  );
   final phoneMatch = phoneRegex.firstMatch(contacts);
   if (phoneMatch != null) {
     String rawPhone = phoneMatch.group(0)!.replaceAll(RegExp(r'[^\d]'), '');
@@ -434,16 +515,20 @@ String _formatPhone(String rawPhone) {
 
 String _formatEducation(String? raw) {
   if (raw == null || raw.trim().isEmpty) return 'Не указано';
-  final lines = raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
+  final lines =
+      raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
 
   String institution = lines.isNotEmpty ? lines[0] : '';
   String specialization = lines.length > 2 ? lines[2] : '';
   String degree = lines.length > 3 ? lines[3] : '';
   String year = lines.length > 4 ? _extractYear(lines[4]) : '';
 
-  return [institution, specialization, degree, year]
-      .where((s) => s.trim().isNotEmpty)
-      .join(', ');
+  return [
+    institution,
+    specialization,
+    degree,
+    year,
+  ].where((s) => s.trim().isNotEmpty).join(', ');
 }
 
 List<String> _parseEducation(String? raw) {

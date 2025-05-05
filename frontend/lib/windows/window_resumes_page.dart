@@ -7,6 +7,7 @@ import 'package:vkatun/design/dimensions.dart';
 
 import '../api_service.dart';
 import '../design/images.dart';
+import '../dialogs/warning_dialog.dart';
 import '../pages/resume_view_page.dart';
 
 class WindowResumesPage extends StatelessWidget {
@@ -40,14 +41,22 @@ class WindowResumesPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Диалоговое окно, которое будет анимироваться
           Center(
             child: Dialog(
               insetPadding: const EdgeInsets.all(30),
               child: Container(
                 padding: const EdgeInsets.all(padding),
                 decoration: BoxDecoration(
-                  color: windowColor,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      upColorGradient, // Верхний цвет (#E2E5FF)
+                      downColorGradient.withOpacity(
+                        0.6,
+                      ), // Нижний цвет (#B2B1FF99 с 60% прозрачностью)
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(borderRadius),
                   border: Border.all(
                     color: darkViolet.withOpacity(0.64),
@@ -59,25 +68,27 @@ class WindowResumesPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: padding / 2,
-                        horizontal: padding,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        'Резюме',
-                        style: textStyle.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: padding / 2,
+                          horizontal: padding,
                         ),
-                        textAlign: TextAlign.center,
-                      )
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          'Резюме',
+                          style: textStyle.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
                     ),
                     const SizedBox(height: 30),
-                    ElevatedButton(
+                    _buildButton(
+                      icon: miniPenIcon,
+                      text: 'Редактировать резюме',
                       onPressed: () {
                         onClose();
                         Navigator.of(
@@ -85,80 +96,38 @@ class WindowResumesPage extends StatelessWidget {
                           rootNavigator: true,
                         ).pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder:
-                                (context) => ResumeViewPage(
-                                  resume: resume,
-                                ),
+                            builder: (context) => ResumeViewPage(resume: resume, onDelete: onDelete,),
                           ),
-                          (Route<dynamic> route) =>
-                              false, // удаляет всё из стека
+                              (Route<dynamic> route) => false,
                         );
                       },
-                      style: _buttonStyle(borderWindowColor),
-                      child: Row(
-                        children: [
-                          miniPenIcon,
-                          Text(
-                            'Редактировать резюме',
-                            style: textStyle.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      )
+                      textStyle: textStyle,
+                      borderColor: borderWindowColor,
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton(
+                    _buildButton(
+                      icon: miniDownloadIcon,
+                      text: 'Экспорт резюме',
                       onPressed: () {},
-                      style: _buttonStyle(borderWindowColor),
-                      child: Row(
-                        children: [
-                          miniDownloadIcon,
-                          Text(
-                            'Экспорт резюме',
-                            style: textStyle.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      )
+                      textStyle: textStyle,
+                      borderColor: borderWindowColor,
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            final apiService = Provider.of<ApiService>(context, listen: false);
-                            await apiService.deleteResume(resume['id'] as int);
-
-                            // Уведомление об успехе
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Резюме удалено')),
-                            );
-
-                            onDelete();
-                            // Закрываем окно или обновляем интерфейс
-                            onClose();
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Ошибка: $e')),
-                            );
-                          }
-                        },
-                      style: _buttonStyle(borderWindowColor),
-                      child: Row(
-                        children: [
-                          miniDeleteIcon,
-                          Text(
-                            'Удалить резюме',
-                            style: textStyle.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      )
+                    _buildButton(
+                      icon: miniDeleteIcon,
+                      text: 'Удалить резюме',
+                      onPressed: () async {
+                        try {
+                          final apiService = Provider.of<ApiService>(context, listen: false);
+                          await apiService.deleteResume(resume['id'] as int);
+                          onDelete();
+                          onClose();
+                        } catch (e) {
+                          _showWarningDialog(context);
+                        }
+                      },
+                      textStyle: textStyle,
+                      borderColor: borderWindowColor,
                     ),
                   ],
                 ),
@@ -170,14 +139,50 @@ class WindowResumesPage extends StatelessWidget {
     );
   }
 
-  ButtonStyle _buttonStyle(Color borderColor) {
-    return ElevatedButton.styleFrom(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
+  void _showWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => WarningDialog(), // Ваш кастомный диалог
+      barrierDismissible: true,
+    );
+  }
+
+  Widget _buildButton({
+    required Widget icon,
+    required String text,
+    required VoidCallback onPressed,
+    required TextStyle textStyle,
+    required Color borderColor,
+  }) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        minimumSize: const Size(double.infinity, 60),
+        elevation: 0,
       ),
-      minimumSize: const Size(double.infinity, 60),
-      elevation: 0,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: icon,
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              text,
+              style: textStyle.copyWith(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

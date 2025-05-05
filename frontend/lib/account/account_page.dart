@@ -139,6 +139,16 @@ class _AccountMainPageState extends State<AccountPage> {
           ),
         ],
       ),
+
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: bottom35),
+        child: IconButton(
+          icon: circleWithPenIcon,
+          onPressed: () {},
+          iconSize: 36, // Можно настроить размер иконки
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 

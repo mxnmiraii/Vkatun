@@ -35,37 +35,39 @@ class _AccountMainPageState extends State<AccountMainPage> {
       extendBody: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          color: Colors.white,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            toolbarHeight: appBarHeight,
-            centerTitle: false,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: lightArrowBackIcon
-                ),
-
-                Text(
-                  'Администратор',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 32,
-                    fontFamily: 'Playfair',
-                    color: purpleBlue,
+        child: SafeArea(
+          child: Container(
+            color: Colors.white,
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              automaticallyImplyLeading: false,
+              toolbarHeight: appBarHeight,
+              centerTitle: false,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: lightArrowBackIcon
                   ),
-                ),
 
-                Opacity(opacity: 0, child: lightArrowBackIcon),
-              ],
+                  Text(
+                    'Администратор',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 32,
+                      fontFamily: 'Playfair',
+                      color: purpleBlue,
+                    ),
+                  ),
+
+                  Opacity(opacity: 0, child: lightArrowBackIcon),
+                ],
+              ),
             ),
           ),
         ),
@@ -115,8 +117,8 @@ class _AccountMainPageState extends State<AccountMainPage> {
               child: Column(children: [
                 _buildTextField(label: 'Данные об аккаунте', onPressed: () {
                   Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AccountPage())
+                      context,
+                      MaterialPageRoute(builder: (context) => AccountPage())
                   );
                 }),
                 SizedBox(height: 30,),
@@ -155,8 +157,8 @@ class _AccountMainPageState extends State<AccountMainPage> {
             ),
 
             IconButton(
-                onPressed: onPressed,
-                icon: lightArrowForwardIcon,
+              onPressed: onPressed,
+              icon: lightArrowForwardIcon,
             )
           ],
         ),

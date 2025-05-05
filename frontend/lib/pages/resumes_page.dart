@@ -8,12 +8,15 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/design/dimensions.dart';
+import 'package:vkatun/dialogs/error_dialog.dart';
 import 'package:vkatun/pages/resume_view_page.dart';
 import 'package:vkatun/windows/window_resumes_page.dart';
 import 'package:vkatun/api_service.dart';
 
 import '../account/account_main_page.dart';
 import '../design/colors.dart';
+import '../dialogs/warning_dialog.dart';
+import '../windows/scan_windows/indicator.dart';
 
 class ResumesPage extends StatefulWidget {
   const ResumesPage({super.key});
@@ -212,50 +215,65 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
         PlatformFile file = result.files.first;
 
         if (file.extension?.toLowerCase() == 'pdf') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('PDF файл выбран: ${file.name}')),
-          );
-
-          // Загружаем файл
           await _uploadResume(File(file.path!));
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ошибка: выбранный файл не является PDF')),
-          );
+          _showWarningDialog(context);
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка при выборе файла: ${e.toString()}')),
-      );
+      _showWarningDialog(context);
     }
   }
 
   Future<void> _uploadResume(File file) async {
+    // Показываем ваш кастомный индикатор загрузки
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: GradientCircularProgressIndicator(
+          // Ваши параметры индикатора
+          size: 70,
+          strokeWidth: 5,
+        ),
+      ),
+    );
+
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-
-      // 1. Загружаем на сервер и получаем ответ
       final serverResponse = await apiService.uploadResume(file);
+      final resumeId = serverResponse['resume_id'];
+      final resume = await _getResumeById(resumeId);
 
-      // 2. Создаем полноценный объект резюме из ответа сервера
-      // final newResume = await _getResumeById(serverResponse['id']);
+      // Закрываем индикатор
+      Navigator.of(context).pop();
 
-      // 3. Обновляем состояние
-      // setState(() {
-      //   _resumes.insert(0, newResume);
-      // });
+      // Обновляем список и переходим к просмотру
+      setState(() => _resumes.insert(0, resume));
 
-      // 4. Показываем уведомление
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Резюме успешно сохранено')),
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResumeViewPage(
+            resume: resume,
+            onDelete: () => setState(() => _resumes.removeWhere((r) => r['id'] == resume['id'])),
+            isLoadResume: true,
+          ),
+        ),
       );
 
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: ${e.toString()}')),
-      );
+      // Закрываем индикатор
+      _showWarningDialog(context);
     }
+  }
+
+  void _showWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => WarningDialog(), // Ваш кастомный диалог
+      barrierDismissible: true,
+    );
   }
 
   @override
@@ -374,7 +392,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ResumeViewPage(resume: loadedResume),
+                      builder: (context) => ResumeViewPage(resume: loadedResume, onDelete: () {},),
                     ),
                   );
                 } catch (e) {
