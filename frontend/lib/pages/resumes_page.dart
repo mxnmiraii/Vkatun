@@ -35,6 +35,8 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     lavenderMist,
     veryPalePink,
   ];
+  OverlayEntry? _sortOverlayEntry;
+  final GlobalKey _parametersIconKey = GlobalKey();
 
   Color _getColorByResumeId(int id) {
     return resumeCardColors[id % resumeCardColors.length];
@@ -276,6 +278,144 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     );
   }
 
+  // Добавьте этот метод в класс _ResumesPageState
+  void _showSortMenu() {
+    final renderBox = _parametersIconKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final offset = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+
+    _sortOverlayEntry = OverlayEntry(
+      builder: (context) => GestureDetector(
+        onTap: () {
+          _sortOverlayEntry?.remove();
+          _sortOverlayEntry = null;
+        },
+        behavior: HitTestBehavior.translucent,
+        child: Material(
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(color: Colors.transparent),
+              ),
+              Positioned(
+                right: 16,
+                top: offset.dy + size.height + 8,
+                child: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Заголовок "Показать сначала" с закругленными углами со всех сторон
+                        Container(
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF7369FB),
+                            borderRadius: BorderRadius.circular(10), // Закругление всех углов
+                          ),
+                          child: Text(
+                            'Показать сначала',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              fontFamily: 'Playfair',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+
+                        // Пункт "Новые" без закругленных угров
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _resumes.sort((a, b) => (b['created_at'] ?? '').compareTo(a['created_at'] ?? ''));
+                            });
+                            _sortOverlayEntry?.remove();
+                            _sortOverlayEntry = null;
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade200,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              'Новые',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16,
+                                fontFamily: 'Playfair',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+
+                        // Пункт "Старые" без закругленных углов
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _resumes.sort((a, b) => (a['created_at'] ?? '').compareTo(b['created_at'] ?? ''));
+                            });
+                            _sortOverlayEntry?.remove();
+                            _sortOverlayEntry = null;
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            child: Text(
+                              'Старые',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16,
+                                fontFamily: 'Playfair',
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(_parametersIconKey.currentContext!).insert(_sortOverlayEntry!);
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    _sortOverlayEntry?.remove();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -309,10 +449,18 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(right: 15), // Отступ справа 30
+                  padding: const EdgeInsets.only(right: 15),
                   child: IconButton(
+                    key: _parametersIconKey, // Добавьте ключ здесь
                     icon: parametersIcon,
-                    onPressed: () {},
+                    onPressed: () {
+                      if (_sortOverlayEntry != null) {
+                        _sortOverlayEntry?.remove();
+                        _sortOverlayEntry = null;
+                      } else {
+                        _showSortMenu();
+                      }
+                    },
                   ),
                 ),
               ],
@@ -397,9 +545,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                   );
                 } catch (e) {
                   Navigator.pop(context); // Закрываем индикатор
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Ошибка загрузки резюме: $e')),
-                  );
+                  _showWarningDialog(context);
                 }
               },
               onLongPress: () {
@@ -429,6 +575,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Заголовок "Резюме" (без изменений)
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -452,12 +599,14 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                           ),
                         ),
                       ),
+
+                      // Название резюме (первая строка)
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                        padding: const EdgeInsets.only(bottom: 2), // Уменьшил отступ
                         child: Text(
-                          resume['title'],
+                          resume['title'] ?? '',
                           textAlign: TextAlign.center,
-                          maxLines: 3,
+                          maxLines: 1, // Одна строка с троеточием
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontFamily: 'Playfair',
@@ -467,9 +616,28 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                           ),
                         ),
                       ),
+
+                      // Желаемая должность (вторая строка)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2), // Уменьшил отступ
+                        child: Text(
+                          resume['experince']?.isNotEmpty == true ? resume['experince']! : 'Опыт не указан',
+                          textAlign: TextAlign.center,
+                          maxLines: 1, // Одна строка с троеточием
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Playfair',
+                            fontWeight: FontWeight.w400, // Чуть менее жирный
+                            fontSize: 14, // Чуть меньше размер
+                            color: royalPurple.withOpacity(0.8), // Чуть прозрачнее
+                          ),
+                        ),
+                      ),
+
+                      // Иконка облака (без изменений)
                       if (resume['is_modified'] == true || resume['is_local'] == true)
                         Padding(
-                          padding: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.only(top: 2), // Уменьшил отступ
                           child: Icon(
                             Icons.cloud_off,
                             size: 16,

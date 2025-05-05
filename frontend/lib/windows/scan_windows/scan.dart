@@ -45,11 +45,10 @@ class Scan extends StatelessWidget {
         : Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Stack(
+              alignment: Alignment.center,
               children: [
-                IconButton(onPressed: onBackPressed, icon: backCircleIcon),
-
+                // Контейнер с текстом по центру
                 Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: padding / 2 * 1.5,
@@ -63,21 +62,23 @@ class Scan extends StatelessWidget {
                       width: widthBorderRadius,
                     ),
                   ),
-                  child: Center(
-                    child: Text(
-                      title,
-                      style: textStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
+                  child: Text(
+                    title,
+                    style: textStyle.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
 
-                IconButton(
-                  onPressed: () {},
-                  icon: Opacity(opacity: 0, child: backCircleIcon),
+                // Иконка слева (выровнена по началу строки)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: onBackPressed,
+                    icon: backCircleIcon,
+                  ),
                 ),
               ],
             ),

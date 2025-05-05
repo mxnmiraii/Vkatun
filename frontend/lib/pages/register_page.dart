@@ -179,49 +179,51 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 Expanded(
                   flex: 4,
-                  child: Padding(
-                    padding: buttonPadding,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextField(
-                          controller: _loginController,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Имя пользователя',
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: buttonPadding,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextField(
+                            controller: _loginController,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Имя пользователя',
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        TextField(
-                          controller: _emailNumberController,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Адрес электронной почты',
+                          TextField(
+                            controller: _emailNumberController,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Адрес электронной почты',
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Пароль',
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Пароль',
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        TextField(
-                          controller: _passwordRepeatController,
-                          obscureText: true,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Подтверждение пароля',
+                          TextField(
+                            controller: _passwordRepeatController,
+                            obscureText: true,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Подтверждение пароля',
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  )
                 ),
 
                 SizedBox(height: 40),

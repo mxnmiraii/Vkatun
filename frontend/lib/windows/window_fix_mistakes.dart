@@ -702,7 +702,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         SizedBox(height: space / 2),
         Expanded(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             children:
                 index == 0
                     ? [
@@ -856,27 +856,32 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   }
 
   Widget _buildButton(String text, onPressed) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        side: BorderSide(color: midnightPurple, width: widthBorderRadius),
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(borderRadius),
+    return Column(
+      children: [
+        ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            side: BorderSide(color: midnightPurple, width: widthBorderRadius),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            minimumSize: const Size(double.infinity, 50),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            elevation: 0,
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: midnightPurple,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
-        minimumSize: const Size(double.infinity, 50),
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        elevation: 0,
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: midnightPurple,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-        textAlign: TextAlign.center,
-      ),
+        SizedBox(height: 25),
+      ],
     );
   }
 }
