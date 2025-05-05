@@ -47,7 +47,8 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/resume/{id}/edit", api.editResume).Methods(http.MethodPost)
 	api.router.HandleFunc("/resume/{id}/edit/{section}", api.editResumeSection).Methods(http.MethodPost)
 	api.router.HandleFunc("/resume/{id}/check/grammar", api.checkGrammar).Methods(http.MethodPost)
-	api.router.HandleFunc("/resume/{id}/check/structure", api.checkStructure).Methods(http.MethodPost)
+	api.router.HandleFunc("/resume/{id}/check/about", api.checkAbout).Methods(http.MethodPost)
+	api.router.HandleFunc("/resume/{id}/check/experience", api.checkExperience).Methods(http.MethodPost)
 	api.router.HandleFunc("/resume/{id}/check/skills", api.checkSkills).Methods(http.MethodPost)
 	api.router.HandleFunc("/resume/{id}/delete", api.deleteResume).Methods(http.MethodDelete)
 	api.router.HandleFunc("/resumes", api.listResumes).Methods(http.MethodGet)
@@ -55,4 +56,8 @@ func (api *API) endpoints() {
 	// Metrics
 	api.router.HandleFunc("/metrics", api.getMetrics).Methods(http.MethodGet)
 	api.router.HandleFunc("/metrics/update", api.updateMetrics).Methods(http.MethodPost)
+
+	// Guest
+	api.router.HandleFunc("/guest/upload", api.uploadResumeGuest).Methods(http.MethodPost)
+	api.router.HandleFunc("/guest/check/grammar", api.checkGrammarGuest).Methods(http.MethodPost)
 }

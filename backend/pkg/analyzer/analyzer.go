@@ -3,7 +3,6 @@ package analyzer
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -14,60 +13,113 @@ import (
 	"vkatun/pkg/utils"
 )
 
-type issue struct {
+type issueGrammar struct {
 	Text       string `json:"text"`
 	Suggestion string `json:"suggestion"`
 	Type       string `json:"type"`
 }
 
-func GrammarCheck(text string) ([]issue, error) {
-	grammar := config.Grammar
-	return requestIssuesFromAI(grammar, text)
+type Issue struct {
+	Text   string `json:"text"`
+	Reason string `json:"reason"`
 }
 
-func StructureCheck(text string) ([]string, error) {
-	structure := config.Structure
-	resp, err := requestRawFromAI(structure, text)
+type ValidationResult struct {
+	IsValid bool `json:"isValid"`
+}
+
+type Recommendation struct {
+	Comment string `json:"comment"`
+}
+
+func GrammarCheck(text string) ([]issueGrammar, error) {
+	resp, err := requestRawFromAI(config.Grammar, text)
 	if err != nil {
 		return nil, err
 	}
-	var out []string
-	if err := json.Unmarshal([]byte(resp), &out); err != nil {
-		return nil, fmt.Errorf("ошибка парсинга ответа: %v", err)
-	}
-	return out, nil
-}
-
-func SkillsCheck(resume models.Resume) ([]string, error) {
-	skills := config.Skills
-	if len(skills) == 0 {
-		return nil, errors.New("конфигурация skills пуста — ни одного навыка не загружено")
+	if strings.HasPrefix(resp, "```json") || strings.HasPrefix(resp, "```") {
+		resp = utils.StripMarkdownCodeBlock(resp)
 	}
 
-	combined := resume.Skills + " " + resume.About + " " + resume.Experience
-	if strings.TrimSpace(combined) == "" {
-		return nil, errors.New("резюме не содержит текст в секциях skills, about или experience")
-	}
-
-	var found []string
-	for _, skill := range skills {
-		if containsIgnoreCase(combined, skill) {
-			found = append(found, skill)
-		}
-	}
-	return found, nil
-}
-
-func requestIssuesFromAI(prompt, text string) ([]issue, error) {
-	resp, err := requestRawFromAI(prompt, text)
-	if err != nil {
-		return nil, err
-	}
-
-	var issues []issue
+	var issues []issueGrammar
 	if err := json.Unmarshal([]byte(resp), &issues); err != nil {
 		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
 	}
+	return issues, nil
+}
+
+func AboutCheck(text string) (Recommendation, error) {
+	resp, err := requestRawFromAI(config.About, text)
+	if err != nil {
+		return Recommendation{}, err
+	}
+	if strings.HasPrefix(resp, "```json") || strings.HasPrefix(resp, "```") {
+		resp = utils.StripMarkdownCodeBlock(resp)
+	}
+
+	var result ValidationResult
+	if err := json.Unmarshal([]byte(resp), &result); err != nil {
+		return Recommendation{}, fmt.Errorf("ошибка парсинга JSON: %v", err)
+	}
+
+	if !result.IsValid {
+		return Recommendation{
+			Comment: "Добавьте контактные данные, такие как номер телефона, электронную почту или ссылку на Telegram.",
+		}, nil
+	}
+
+	return Recommendation{
+		Comment: "Контактные данные указаны корректно: будущий работодатель может с вами связаться.",
+	}, nil
+}
+
+func ExperienceCheck(text string) (Recommendation, error) {
+	resp, err := requestRawFromAI(config.Experience, text)
+	if err != nil {
+		return Recommendation{}, err
+	}
+	if strings.HasPrefix(resp, "```json") || strings.HasPrefix(resp, "```") {
+		resp = utils.StripMarkdownCodeBlock(resp)
+	}
+
+	var result ValidationResult
+	if err := json.Unmarshal([]byte(resp), &result); err != nil {
+		return Recommendation{}, fmt.Errorf("ошибка парсинга JSON: %v", err)
+	}
+
+	if !result.IsValid {
+		return Recommendation{
+			Comment: "Расширье описание вашего опыта. Укажите ключевые обязанности, достижения и конкретные примеры проектов.",
+		}, nil
+	}
+
+	return Recommendation{
+		Comment: "Раздел «Опыт работы» выглядит хорошо.",
+	}, nil
+}
+
+func SkillsCheck(text string) ([]Issue, error) {
+	resp, err := requestRawFromAI(config.Skills, text)
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(resp, "```json") || strings.HasPrefix(resp, "```") {
+		resp = utils.StripMarkdownCodeBlock(resp)
+	}
+
+	var rawSkills []string
+	if err := json.Unmarshal([]byte(resp), &rawSkills); err != nil {
+		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
+	}
+
+	issues := make([]Issue, 0, len(rawSkills))
+	for _, skill := range rawSkills {
+		issues = append(issues, Issue{
+			Text:   skill,
+			Reason: "Указанный навык не является релевантным и может создать впечатление несоответствия вакансии.",
+		})
+	}
+
 	return issues, nil
 }
 
@@ -124,8 +176,4 @@ func requestRawFromAI(systemPrompt, userText string) (string, error) {
 	}
 
 	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
-}
-
-func containsIgnoreCase(text, substr string) bool {
-	return bytes.Contains(bytes.ToLower([]byte(text)), bytes.ToLower([]byte(substr)))
 }

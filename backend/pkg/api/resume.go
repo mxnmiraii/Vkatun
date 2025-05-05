@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"vkatun/pkg/analyzer"
 	"vkatun/pkg/models"
 )
@@ -51,6 +52,36 @@ func (api *API) uploadResume(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message":   "Resume uploaded successfully",
 		"resume_id": resumeID,
+	})
+}
+
+func (api *API) uploadResumeGuest(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(10 << 20) // 10MB max
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		api.logger.Error("failed to read uploaded file", zap.Error(err))
+		http.Error(w, "Failed to read file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		api.logger.Error("failed to read file content", zap.Error(err))
+		http.Error(w, "Failed to read file content", http.StatusInternalServerError)
+		return
+	}
+
+	_, str, err := analyzer.ParseResumeFromPDF(content)
+	if err != nil {
+		api.logger.Error("failed to parse resume", zap.Error(err))
+		http.Error(w, "Failed to parse resume", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Resume uploaded successfully",
+		"text":    str,
 	})
 }
 
@@ -154,7 +185,35 @@ func (api *API) checkGrammar(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (api *API) checkStructure(w http.ResponseWriter, r *http.Request) {
+func (api *API) checkGrammarGuest(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Resume string `json:"resume"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		api.logger.Warn("invalid request body", zap.Error(err))
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if strings.TrimSpace(req.Resume) == "" {
+		http.Error(w, "Resume text is required", http.StatusBadRequest)
+		return
+	}
+
+	issues, err := analyzer.GrammarCheck(req.Resume)
+	if err != nil {
+		api.logger.Error("failed to analyze grammar", zap.Error(err))
+		http.Error(w, "Failed to analyze grammar: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"issues": issues,
+	})
+}
+
+func (api *API) checkAbout(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 	id, err := strconv.Atoi(idStr)
@@ -171,19 +230,41 @@ func (api *API) checkStructure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	text := "title:" + resume.Title + "\n" + "contacts:" + resume.Contacts + "\n" + "job:" + resume.Job + "\n" + "experience:" +
-		resume.Experience + "\n" + "education:" + resume.Education + "\n" + "skills:" + resume.Skills + "\n" + "about:" + resume.About
-
-	missingSections, err := analyzer.StructureCheck(text)
+	rec, err := analyzer.AboutCheck(resume.About)
 	if err != nil {
-		api.logger.Error("failed to check structure", zap.Error(err))
-		http.Error(w, "Failed to check structure: "+err.Error(), http.StatusInternalServerError)
+		api.logger.Error("failed to check about", zap.Error(err))
+		http.Error(w, "Failed to check about: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"missing_sections": missingSections,
-	})
+	json.NewEncoder(w).Encode(rec)
+}
+
+func (api *API) checkExperience(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		api.logger.Warn("invalid resume id", zap.String("id", idStr))
+		http.Error(w, "Invalid resume ID", http.StatusBadRequest)
+		return
+	}
+
+	resume, err := api.db.GetResumeByID(r.Context(), id)
+	if err != nil {
+		api.logger.Error("resume not found", zap.Int("resume_id", id), zap.Error(err))
+		http.Error(w, "Resume not found", http.StatusNotFound)
+		return
+	}
+
+	rec, err := analyzer.ExperienceCheck(resume.Experience)
+	if err != nil {
+		api.logger.Error("failed to check experience", zap.Error(err))
+		http.Error(w, "Failed to check experience: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(rec)
 }
 
 func (api *API) checkSkills(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +284,7 @@ func (api *API) checkSkills(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	trashSkills, err := analyzer.SkillsCheck(*resume)
+	issues, err := analyzer.SkillsCheck(resume.Skills)
 	if err != nil {
 		api.logger.Error("failed to check skills", zap.Error(err))
 		http.Error(w, "Failed to check skills: "+err.Error(), http.StatusInternalServerError)
@@ -211,7 +292,7 @@ func (api *API) checkSkills(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"skills": trashSkills,
+		"issues": issues,
 	})
 }
 

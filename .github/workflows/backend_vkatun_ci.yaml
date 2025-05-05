@@ -103,7 +103,8 @@ jobs:
             echo "ROLE_USER=${{ secrets.ROLE_USER }}" >> .env
             echo "EXTRACT=${{ secrets.EXTRACT }}" >> .env
             echo "GRAMMAR=${{ secrets.GRAMMAR }}" >> .env
-            echo "STRUCTURE=${{ secrets.STRUCTURE }}" >> .env
+            echo "ABOUT=${{ secrets.ABOUT }}" >> .env
+            echo "EXPERIENCE=${{ secrets.EXPERIENCE }}" >> .env
             echo "SKILLS=${{ secrets.SKILLS }}" >> .env
             echo "POSTGRES_STR=${{ secrets.POSTGRES_STR }}" >> .env
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env

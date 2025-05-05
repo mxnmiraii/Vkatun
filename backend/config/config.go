@@ -18,8 +18,9 @@ var (
 	RoleUser       string
 	Extract        string
 	Grammar        string
-	Structure      string
-	Skills         []string
+	About          string
+	Experience     string
+	Skills         string
 	Postgres       string
 )
 
@@ -52,7 +53,8 @@ func InitConfig() {
 	RoleUser = viper.GetString("ROLE_USER")
 	Extract = viper.GetString("EXTRACT")
 	Grammar = viper.GetString("GRAMMAR")
-	Structure = viper.GetString("STRUCTURE")
-	Skills = utils.Trim(strings.Split(viper.GetString("SKILLS"), ","))
+	About = viper.GetString("ABOUT")
+	Experience = viper.GetString("EXPERIENCE")
+	Skills = viper.GetString("SKILLS")
 	Postgres = viper.GetString("POSTGRES_STR")
 }
