@@ -42,7 +42,7 @@
 #### Текущий статус проекта (2 этап)
 - Презентация (Текущий статус проекта) [(PPTX)](Презентация/presentation_сurrent_status_2_milestone.pptx) [(PDF)](Презентация/presentation_сurrent_status_2_milestone.pdf)
 - Видеопрезентация (Текущий статус проекта) [(RUTUBE)](https://rutube.ru/video/5585456d0addcc794fc80c5556a2448d/) [(Yandex Disk)](https://disk.yandex.ru/i/Ql-HMEgtCRt99A)
-
+- Демонстрация работы ключевых сценариев приложения Vkatun [(RUTUBE)](https://rutube.ru/video/5d0440362f0346ec00c9997639fd6d86/) [(Yandex Disk)](https://disk.yandex.ru/i/oo3H5rzVZuOixw)
 ### 🎨 Дизайн
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
 - [UI-kit](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=254-73&p=f&t=XRd87ECZqD4rgfUQ-0)
@@ -97,7 +97,7 @@
 - [9 группа 5 команда](https://github.com/kotovro/TP-9-5?tab=readme-ov-file)
 
 ### ✅ Контроль качества (2 этап)
-- [Чек-лист проверки команд](Межкомандная%20проверка/)
+- [Чек-лист проверки команд](Межкомандная%20проверка/checklist2_8_1.pdf)
 #### 🕵️‍♂️ Кто нас оценивал?
 - [1 группа 4 команда](https://github.com/Dodger0072/Programming-technologies-project/tree/main)
 - [8 группа 2 команда](https://github.com/Lime228/TPProject/tree/main)
