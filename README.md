@@ -71,7 +71,7 @@
 - Отчет о тестировании Vkatun API [(DOCX)](Документация/отчёт-о-тестировании-Vkatun-API.docx) [(PDF)](Документация/отчёт-о-тестировании-Vkatun-API.pdf)
 - Отчет о юнит-тестировании Vkatun [(DOCX)](Документация/отчёт-о-юнит-тестировании-Vkatun-API.docx) [(PDF)](Документация/отчёт-о-юнит-тестировании-Vkatun-API.pdf)
 - Курсовая работа (0.3) [(DOCX)](Документация/course_work_(0.3).docx)
-- [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/a82db827a9f13c178523c9c5f3389c52/raw/e3b8ee893bb0ecc3438a6378aa72d33921410fe1/swagger-v1.0.1.yaml)
+- [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/acd1fb041eeca2b18576a12c3fd7ce95/raw/26f420d01beea1c83ea586bf63222f5048ddca59/swagger-v1.0.2.yaml)
 > **Важно!**  
 > Если схема API не загружается автоматически через ссылку (в некоторых браузерах это происходит из-за ограничений CORS):
 >
@@ -80,7 +80,7 @@
 > 3. Вставьте туда следующую ссылку:
 >
 > ```
-> https://gist.githubusercontent.com/mxnmiraii/a82db827a9f13c178523c9c5f3389c52/raw/e3b8ee893bb0ecc3438a6378aa72d33921410fe1/swagger-v1.0.1.yaml
+> https://gist.githubusercontent.com/mxnmiraii/acd1fb041eeca2b18576a12c3fd7ce95/raw/26f420d01beea1c83ea586bf63222f5048ddca59/swagger-v1.0.2.yaml
 > ```
 
 ### 📌 Дополительная документация
