@@ -98,7 +98,7 @@ class Scan extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              accessIcon,
+                              accessVioletIcon,
                               SizedBox(height: 16),
                               Text(
                                 'Ошибок не обнаружено',

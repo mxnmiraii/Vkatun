@@ -170,3 +170,7 @@ final SvgPicture pen = SvgPicture.asset(
 final SvgPicture circle = SvgPicture.asset(
   'assets/images/circle.svg',
 );
+
+final SvgPicture accessVioletIcon = SvgPicture.asset(
+  'assets/images/access_violet_icon.svg',
+);

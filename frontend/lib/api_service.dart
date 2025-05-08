@@ -326,6 +326,44 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> analyzeResumeAbout(int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/resume/$id/check/about'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic>.from(json.decode(response.body)).forEach((key, value) => print('$key - $value'));
+        return json.decode(response.body);
+      } else {
+        throw Exception('Ошибка анализа пункта "Обо мне": ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Ошибка анализа: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> analyzeResumeExperience(int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/resume/$id/check/experience'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic>.from(json.decode(response.body)).forEach((key, value) => print('$key - $value'));
+        return json.decode(response.body);
+      } else {
+        throw Exception('Ошибка анализа опыта работы: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Ошибка анализа опыта работы: $e');
+      rethrow;
+    }
+  }
+
 // Удаление резюме
   Future<void> deleteResume(int id) async {
     try {

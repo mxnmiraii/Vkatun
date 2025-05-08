@@ -59,33 +59,76 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   final Color activeColor = Colors.white; // основной бэкграунд
   final Color inactiveColor = Colors.transparent;
 
-  Future<List<Issue>> _analyzeResumeSkills(int id) async {
+  Future<List<Issue>> _analyzeResumeSkills(int id, String nameIssue) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.analyzeResumeSkills(16);
+      final response = await apiService.analyzeResumeSkills(id);
 
-      // Преобразуем ответ в List<Issue>
-      final skills = response['skills'] as List<dynamic>? ?? [];
+      final issues = response['issues'] as List<dynamic>? ?? [];
 
-      return skills
+      return issues
           .map(
-            (skill) => Issue(
-              errorText: skill.toString(), // Сам навык как текст ошибки
-              suggestion: '', // Пустое предложение (нет исправления)
+            (issue) => Issue(
+              errorText: issue['text'].toString(),
+              suggestion: '',
+              description: issue['reason'].toString(),
+            ),
+          )
+          .toList();
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return [];
+    }
+  }
+
+  Future<List<Issue>> _analyzeResumeAboutMe(int id, String nameIssue) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.analyzeResumeAbout(id);
+
+      final issues = response['comment'] as List<dynamic>? ?? [];
+
+      return issues
+          .map(
+            (issue) => Issue(
+              errorText: issue.toString(),
+              suggestion: '',
               description: 'Недостающий навык',
             ),
           )
           .toList();
     } catch (e) {
-      print('Ошибка при анализе навыков: $e');
-      return []; // Возвращаем пустой список при ошибке
+      print('Ошибка при анализе $e');
+      return [];
+    }
+  }
+
+  Future<List<Issue>> _analyzeResumeExoerience(int id, String nameIssue) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.analyzeResumeExperience(id);
+
+      final issues = response['experience'] as List<dynamic>? ?? [];
+
+      return issues
+          .map(
+            (issue) => Issue(
+              errorText: issue.toString(),
+              suggestion: '',
+              description: 'Недостающий навык',
+            ),
+          )
+          .toList();
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return [];
     }
   }
 
   Future<List<Issue>> _analyzeResumeStructure(int id) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.checkResumeStructure(16);
+      final response = await apiService.checkResumeStructure(id);
 
       // Преобразуем ответ в List<Issue>
       final structure = response['missing_sections'] as List<dynamic>? ?? [];
@@ -415,7 +458,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               resume: widget.resume,
               title: 'Структура',
               issues: structureIssues,
-              isLoading: false,
+              isLoading: isLoading,
             )
             : _buildPage(index, 'Структура', [
               _buildText(
@@ -447,6 +490,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   resume: widget.resume,
                   title: 'Навыки',
                   issues: skillsIssues,
+                  isLoading: isLoading,
                 )
                 : isScanningAboutMe
                 ? Scan(
@@ -459,22 +503,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   resume: widget.resume,
                   title: 'О себе',
                   isLoading: isLoading,
-                  issues: [
-                    Issue(
-                      errorText: "Cлишком общее и не подкреплено примерами",
-                      suggestion: "",
-                      description:
-                          "Фразы вроде «умею быстро вливаться в команду» и «думаю о продукте» — клише",
-                    ),
-
-                    Issue(
-                      errorText:
-                          "Разнородность по теме: от командной работы до Telegram-ботов.",
-                      suggestion: "",
-                      description:
-                          "Неясно, при чём тут боты — это часть текущей работы или хобби?",
-                    ),
-                  ],
+                  issues: aboutMeIssues,
                 )
                 : isScanningExperience
                 ? Scan(
@@ -486,21 +515,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   onClose: widget.onClose,
                   resume: widget.resume,
                   title: 'Опыт работы',
-                  issues: [
-                    Issue(
-                      errorText:
-                          "Нечёткое разделение обязанностей и достижений",
-                      suggestion: "",
-                      description: "Сейчас просто список задач, без результата",
-                    ),
-
-                    Issue(
-                      errorText: "Недостаточная конкретика",
-                      suggestion: "",
-                      description:
-                          "Например, «разработка CRM-системы» — не указано, какую роль выполнял, каких результатов добился.",
-                    ),
-                  ],
+                  issues: experienceIssues,
+                  isLoading: isLoading,
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [
@@ -771,8 +787,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             'grammar',
                           );
                           setState(() {
-                            isLoading = false;
                             grammarIssues = issues;
+                            isLoading = false;
                           });
                         } catch (e) {
                           setState(() {
@@ -797,8 +813,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             'style',
                           );
                           setState(() {
-                            isLoading = false;
                             styleIssues = issues;
+                            isLoading = false;
                           });
                         } catch (e) {
                           setState(() {
@@ -822,10 +838,11 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                         try {
                           final issues = await _analyzeResumeSkills(
                             widget.resume['id'],
+                            'skills',
                           );
                           setState(() {
-                            isLoading = false;
                             skillsIssues = issues;
+                            isLoading = false;
                           });
                         } catch (e) {
                           setState(() {
@@ -837,15 +854,57 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                           ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
-                      _buildButton('О себе', () {
+                      _buildButton('О себе', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningAboutMe = true;
+                          aboutMeIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeAboutMe(
+                            widget.resume['id'],
+                            'about',
+                          );
+                          setState(() {
+                            aboutMeIssues = issues;
+                            isLoading = false;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                            isScanningAboutMe = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
-                      _buildButton('Опыт работы', () {
+                      _buildButton('Опыт работы', () async {
                         setState(() {
+                          isLoading = true;
                           isScanningExperience = true;
+                          experienceIssues = [];
                         });
+
+                        try {
+                          final issues = await _analyzeResumeExoerience(
+                            widget.resume['id'],
+                            'experience',
+                          );
+                          setState(() {
+                            isLoading = false;
+                            experienceIssues = issues;
+                          });
+                        } catch (e) {
+                          setState(() {
+                            isLoading = false;
+                            isScanningExperience = false;
+                          });
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+                        }
                       }),
                     ],
           ),

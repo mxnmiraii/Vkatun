@@ -6,26 +6,27 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 import '../api_service.dart';
+import '../dialogs/warning_dialog.dart';
 import '../pages/start_page.dart';
-import 'account_main_page.dart';
-import 'account_settings.dart';
 
-class AccountPage extends StatefulWidget {
+class AccountSettingsPage extends StatefulWidget {
   final Map<String, dynamic> profileData;
-  const AccountPage({super.key, required this.profileData});
+  const AccountSettingsPage({super.key, required this.profileData});
 
   @override
-  State<AccountPage> createState() => _AccountMainPageState();
+  State<AccountSettingsPage> createState() => _AccountSettingsPageState();
 }
 
-class _AccountMainPageState extends State<AccountPage> {
+class _AccountSettingsPageState extends State<AccountSettingsPage> {
   late TextEditingController _usernameController = TextEditingController();
-  late TextEditingController _emailController = TextEditingController();
+  late TextEditingController _oldPassController = TextEditingController();
+  late TextEditingController _newPassController = TextEditingController();
 
   @override
   void dispose() {
     _usernameController.dispose();
-    _emailController.dispose();
+    _oldPassController.dispose();
+    _newPassController.dispose();
     super.dispose();
   }
 
@@ -33,7 +34,38 @@ class _AccountMainPageState extends State<AccountPage> {
   void initState() {
     super.initState();
     _usernameController = TextEditingController(text: widget.profileData['username']);
-    _emailController = TextEditingController(text: widget.profileData['email']);
+    _oldPassController = TextEditingController(text: '');
+    _newPassController = TextEditingController(text: '');
+  }
+
+  Future<void> _setUsername(String newUsername) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.updateProfileName(newUsername);
+
+      return response;
+    } catch (e) {
+      print('Ошибка $e');
+    }
+  }
+
+  Future<void> _setPassword(String oldPass, String newPass) async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.updatePassword(currentPassword: oldPass, newPassword: newPass);
+
+      return response;
+    } catch (e) {
+      print('Ошибка  $e');
+    }
+  }
+
+  void _showWarningDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => WarningDialog(), // Ваш кастомный диалог
+      barrierDismissible: true,
+    );
   }
 
   @override
@@ -136,7 +168,9 @@ class _AccountMainPageState extends State<AccountPage> {
               child: Column(children: [
                 _buildTextField(label: 'Имя пользователя', controller: _usernameController, onPressed: () {}),
                 SizedBox(height: 30,),
-                _buildTextField(label: 'Почта', controller: _emailController, onPressed: () {}),
+                _buildTextField(label: 'Старый пароль', controller: _oldPassController, onPressed: () {}),
+                SizedBox(height: 30,),
+                _buildTextField(label: 'Новый пароль', controller: _newPassController, onPressed: () {}),
               ]),
             ),
           ),
@@ -146,12 +180,20 @@ class _AccountMainPageState extends State<AccountPage> {
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
-          icon: circleWithPenIcon,
+          icon: doneIcon,
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AccountSettingsPage(profileData: widget.profileData,))
-            );
+            if (widget.profileData['username'] != _usernameController.text) {
+              print(_usernameController.text);
+              _setUsername(_usernameController.text);
+            }
+
+            if (_oldPassController.text.contains(_newPassController.text)) {
+              // как то обработать ошибку
+            } else {
+              _setPassword(_oldPassController.text, _newPassController.text);
+            }
+
+            Navigator.pop(context);
           },
           iconSize: 36, // Можно настроить размер иконки
         ),

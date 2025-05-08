@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/account/account_page.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
+import '../api_service.dart';
+import '../windows/scan_windows/indicator.dart';
 import 'metrics_page.dart';
 
 class AccountMainPage extends StatefulWidget {
@@ -22,6 +25,18 @@ class _AccountMainPageState extends State<AccountMainPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<Map<String, dynamic>> _getProfileData() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.getProfile();
+
+      return response;
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return {"id": null, "email": null};
+    }
   }
 
   @override
@@ -115,12 +130,29 @@ class _AccountMainPageState extends State<AccountMainPage> {
                 ],
               ),
               child: Column(children: [
-                _buildTextField(label: 'Данные об аккаунте', onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AccountPage())
-                  );
-                }),
+                _buildTextField(
+                  label: 'Данные об аккаунте',
+                  onPressed: () async {
+                    try {
+                      // Ждем загрузки данных
+                      final profileData = await _getProfileData();
+                      // Переходим только после успешной загрузки
+                      if (mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AccountPage(profileData: profileData),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      print('Ошибка загрузки данных: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Не удалось загрузить данные')),
+                      );
+                    }
+                  },
+                ),
                 SizedBox(height: 30,),
                 _buildTextField(label: 'Метрики', onPressed: () {
                   Navigator.push(
