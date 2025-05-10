@@ -522,7 +522,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           itemCount: _resumes.length,
           itemBuilder: (context, index) {
             // Определяем порядок отображения (зигзаг)
-            final itemIndex = _getZigzagIndex(index, _resumes.length);
+            final itemIndex = _getLinearIndex(index, _resumes.length);
             final resume = _resumes[itemIndex];
 
             return GestureDetector(
@@ -673,14 +673,17 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     );
   }
 
-  int _getZigzagIndex(int displayIndex, int totalItems) {
-    final row = displayIndex ~/ 2;
-    if (row % 2 == 0) {
-      return displayIndex;
-    } else {
-      final start = row * 2;
-      final end = math.min(start + 1, totalItems - 1);
-      return end - (displayIndex - start);
-    }
+  // int _getZigzagIndex(int displayIndex, int totalItems) {
+  //   final row = displayIndex ~/ 2;
+  //   if (row % 2 == 0) {
+  //     return displayIndex;
+  //   } else {
+  //     final start = row * 2;
+  //     final end = math.min(start + 1, totalItems - 1);
+  //     return end - (displayIndex - start);
+  //   }
+  // }
+  int _getLinearIndex(int displayIndex, int totalItems) {
+    return displayIndex < totalItems ? displayIndex : -1;
   }
 }
