@@ -67,50 +67,52 @@ class _EducationPageState extends State<EducationPage> {
       extendBody: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          color: Colors.white,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            toolbarHeight: appBarHeight,
-            centerTitle: false,
-            title: Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      SizedBox(width: space),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: lightArrowBackIcon,
-                      ),
-                    ],
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    'Образование',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 24,
-                      fontFamily: 'Playfair',
-                      color: purpleBlue,
+        child: SafeArea(
+          bottom: false,
+          child: Container(
+            color: Colors.white,
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              automaticallyImplyLeading: false,
+              toolbarHeight: appBarHeight,
+              centerTitle: false,
+              title: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
+                        SizedBox(width: space),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: lightArrowBackIcon,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Center(
+                    child: Text(
+                      'Образование',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 24,
+                        fontFamily: 'Playfair',
+                        color: purpleBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
       body: Stack(
         children: [
+          // Градиент на фоне
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -144,7 +146,7 @@ class _EducationPageState extends State<EducationPage> {
                     color: Colors.black.withOpacity(0.30),
                     blurRadius: 2,
                     spreadRadius: 0.2,
-                    offset: Offset(0, 1),
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
