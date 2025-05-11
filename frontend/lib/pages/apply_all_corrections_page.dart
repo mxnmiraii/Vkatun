@@ -371,7 +371,7 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
-          icon: doneIcon,
+          icon: doneBlueIcon,
           onPressed: () {
 
           },

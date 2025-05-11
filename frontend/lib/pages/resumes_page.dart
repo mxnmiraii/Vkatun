@@ -32,6 +32,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   List<Map<String, dynamic>> _resumes = [];
   List<Map<String, dynamic>> _displayedResumes = [];
   bool _isSorting = false;
+  bool _sortNewestFirst = true;
   final List<Color> resumeCardColors = [
     babyBlue,
     lightLavender,
@@ -68,6 +69,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       setState(() {
         _resumes = resumes;
         _resumes.sort((a, b) => (b['updated_at'] ?? b['created_at']).compareTo(a['updated_at'] ?? a['created_at']));
+        _sortNewestFirst = true;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -358,8 +360,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   }
 
   void _sortResumesNewestFirst() {
-    if (_isSorting) return;
+    if (_isSorting || _sortNewestFirst) return;
     _isSorting = true;
+    _sortNewestFirst = true;
 
     setState(() {
       _displayedResumes.clear();
@@ -373,8 +376,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   }
 
   void _sortResumesOldestFirst() {
-    if (_isSorting) return;
+    if (_isSorting || !_sortNewestFirst) return;
     _isSorting = true;
+    _sortNewestFirst = false;
 
     setState(() {
       _displayedResumes.clear();
@@ -450,12 +454,11 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
             minHeight: 0,
           ),
           padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 8,
+            horizontal: 16,
+            vertical: 12,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 width: double.infinity,
@@ -526,117 +529,118 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     );
   }
 
-  @override
-  void dispose() {
-    _rotationController.dispose();
-    _sortAnimationController.dispose();
-    _sortOverlayEntry?.remove();
-    super.dispose();
+  String _getDateGroup(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(Duration(days: 1));
+    final weekAgo = today.subtract(Duration(days: 7));
+    final monthAgo = today.subtract(Duration(days: 30));
+
+    final resumeDate = DateTime(date.year, date.month, date.day);
+
+    if (resumeDate == today) {
+      return 'Сегодня';
+    } else if (resumeDate == yesterday) {
+      return 'Вчера';
+    } else if (resumeDate.isAfter(weekAgo)) {
+      return 'На этой неделе';
+    } else if (resumeDate.isAfter(monthAgo)) {
+      return 'В этом месяце';
+    } else {
+      return 'Более 30 дней назад';
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final appBarHeight = screenHeight * 0.15;
+  List<Widget> _buildGroupedResumes() {
+    if (_resumes.isEmpty) return [const Center(child: CircularProgressIndicator())];
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        toolbarHeight: appBarHeight,
-        title: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 15),
-                  child: IconButton(
-                    icon: accountIcon,
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AccountMainPage())
-                      );
-                    },
+    // Группируем резюме по датам
+    final groups = <String, List<Map<String, dynamic>>>{};
+    for (final resume in _resumes) {
+      final dateStr = resume['created_at'] ?? '';
+      if (dateStr.isEmpty) continue;
+
+      try {
+        final date = DateTime.parse(dateStr);
+        final group = _getDateGroup(date);
+        groups.putIfAbsent(group, () => []).add(resume);
+      } catch (e) {
+        continue;
+      }
+    }
+
+    // Сортируем группы в нужном порядке
+    final groupOrder = _sortNewestFirst
+        ? ['Сегодня', 'Вчера', 'На этой неделе', 'В этом месяце', 'Более 30 дней назад']
+        : ['Более 30 дней назад', 'В этом месяце', 'На этой неделе', 'Вчера', 'Сегодня'];
+
+    final widgets = <Widget>[];
+
+    bool isFirstGroup = true;
+
+    for (final groupName in groupOrder) {
+      final resumes = groups[groupName];
+      if (resumes == null || resumes.isEmpty) continue;
+
+      if (!isFirstGroup) {
+        widgets.add(const SizedBox(height: 24));
+      }
+      isFirstGroup = false;
+
+      widgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.05,
+                child: Divider(
+                  thickness: 3,
+                  color: lightLavender.withOpacity(0.5),
+                  height: 1,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  groupName,
+                  style: TextStyle(
+                    color: royalBlue,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Playfair',
+                    fontSize: 20,
                   ),
                 ),
-                Flexible(
-                  child: Transform.translate(
-                    offset: Offset(0, -appBarHeight * 0.09),
-                    child: logoFullIcon,
-                  ),
+              ),
+              Expanded(
+                child: Divider(
+                  thickness: 3,
+                  color: lightLavender.withOpacity(0.5),
+                  height: 1,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 15),
-                  child: IconButton(
-                    key: _parametersIconKey,
-                    icon: parametersIcon,
-                    onPressed: () {
-                      if (_sortOverlayEntry != null) {
-                        _sortOverlayEntry?.remove();
-                        _sortOverlayEntry = null;
-                      } else {
-                        _showSortMenu();
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.05,
-                  child: Divider(
-                    thickness: 3,
-                    color: lightLavender.withOpacity(0.5),
-                    height: 1,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Text(
-                    'Сегодня',
-                    style: TextStyle(
-                      color: royalBlue,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'Playfair',
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Divider(
-                    thickness: 3,
-                    color: lightLavender.withOpacity(0.5),
-                    height: 1,
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: _resumes.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.builder(
+      );
+
+      widgets.add(
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 32,
             childAspectRatio: 1.4,
           ),
-          itemCount: _resumes.length,
+          itemCount: resumes.length,
           itemBuilder: (context, index) {
+            final resume = resumes[index];
+
             if (_isSorting && _displayedResumes.isNotEmpty) {
-              final resume = _resumes[index];
               final oldIndex = _displayedResumes.indexWhere((r) => r['id'] == resume['id']);
 
               return AnimatedBuilder(
@@ -664,10 +668,86 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
                 },
               );
             } else {
-              final resume = _resumes[_getLinearIndex(index, _resumes.length)];
               return _buildResumeCard(resume);
             }
           },
+        ),
+      );
+    }
+
+    return widgets;
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    _sortAnimationController.dispose();
+    _sortOverlayEntry?.remove();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final appBarHeight = screenHeight * 0.1;
+
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        toolbarHeight: appBarHeight,
+        title: Transform.translate(
+          offset: Offset(0, appBarHeight / 5),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15),
+                    child: IconButton(
+                      icon: accountIcon,
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AccountMainPage())
+                        );
+                      },
+                    ),
+                  ),
+                  Flexible(
+                    child: Transform.translate(
+                      offset: Offset(0, -appBarHeight * 0.09),
+                      child: logoFullIcon,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 15),
+                    child: IconButton(
+                      key: _parametersIconKey,
+                      icon: parametersIcon,
+                      onPressed: () {
+                        if (_sortOverlayEntry != null) {
+                          _sortOverlayEntry?.remove();
+                          _sortOverlayEntry = null;
+                        } else {
+                          _showSortMenu();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+      ),
+
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: _buildGroupedResumes(),
         ),
       ),
       floatingActionButton: Padding(
@@ -688,9 +768,5 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-
-  int _getLinearIndex(int displayIndex, int totalItems) {
-    return displayIndex < totalItems ? displayIndex : -1;
   }
 }
