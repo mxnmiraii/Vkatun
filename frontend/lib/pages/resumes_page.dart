@@ -25,10 +25,13 @@ class ResumesPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ResumesPageState();
 }
 
-class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStateMixin {
+class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin {
   late AnimationController _rotationController;
+  late AnimationController _sortAnimationController;
   bool _isDialogOpen = false;
   List<Map<String, dynamic>> _resumes = [];
+  List<Map<String, dynamic>> _displayedResumes = [];
+  bool _isSorting = false;
   final List<Color> resumeCardColors = [
     babyBlue,
     lightLavender,
@@ -49,6 +52,10 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
       vsync: this,
       duration: const Duration(milliseconds: timeShowAnimation),
       upperBound: 0.125,
+    );
+    _sortAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
     );
     _loadResumes();
   }
@@ -146,9 +153,6 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
               _resumes.removeWhere((r) => r['id'] == resume['id']);
             });
           },
-          // onSave: (updatedResume) async {
-          //   await _updateResume(updatedResume);
-          // },
         );
       },
     ).then((_) {
@@ -159,39 +163,6 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
         _closeDialog();
       }
     });
-  }
-
-  Future<void> _updateResume(Map<String, dynamic> updatedResume) async {
-    try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final prefs = await SharedPreferences.getInstance();
-
-      // Обновляем локально сразу
-      final index = _resumes.indexWhere((r) => r['id'] == updatedResume['id']);
-      if (index != -1) {
-        setState(() {
-          _resumes[index] = {
-            ..._resumes[index],
-            ...updatedResume,
-            'updated_at': DateTime.now().toIso8601String(),
-            'is_modified': true,
-          };
-        });
-
-        // Сохраняем локально
-        await prefs.setString('local_resumes', json.encode(_resumes));
-
-        // Пытаемся синхронизировать с сервером
-        if (apiService.authToken != 'guest_token') {
-          await apiService.editResume(updatedResume['id'], updatedResume);
-          // Если успешно, снимаем флаг изменения
-          _resumes[index].remove('is_modified');
-          await prefs.setString('local_resumes', json.encode(_resumes));
-        }
-      }
-    } catch (e) {
-      print('Ошибка при обновлении резюме: $e');
-    }
   }
 
   void _closeDialog() {
@@ -228,13 +199,11 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
   }
 
   Future<void> _uploadResume(File file) async {
-    // Показываем ваш кастомный индикатор загрузки
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => Center(
         child: GradientCircularProgressIndicator(
-          // Ваши параметры индикатора
           size: 70,
           strokeWidth: 5,
         ),
@@ -247,10 +216,8 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
       final resumeId = serverResponse['resume_id'];
       final resume = await _getResumeById(resumeId);
 
-      // Закрываем индикатор
       Navigator.of(context).pop();
 
-      // Обновляем список и переходим к просмотру
       setState(() => _resumes.insert(0, resume));
 
       await Navigator.push(
@@ -265,7 +232,6 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
       );
 
     } catch (e) {
-      // Закрываем индикатор
       _showWarningDialog(context);
     }
   }
@@ -273,12 +239,11 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
   void _showWarningDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => WarningDialog(), // Ваш кастомный диалог
+      builder: (context) => WarningDialog(),
       barrierDismissible: true,
     );
   }
 
-  // Добавьте этот метод в класс _ResumesPageState
   void _showSortMenu() {
     final renderBox = _parametersIconKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
@@ -321,12 +286,11 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Заголовок "Показать сначала" с закругленными углами со всех сторон
                         Container(
                           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                           decoration: BoxDecoration(
                             color: Color(0xFF7369FB),
-                            borderRadius: BorderRadius.circular(10), // Закругление всех углов
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             'Показать сначала',
@@ -339,16 +303,8 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                             textAlign: TextAlign.center,
                           ),
                         ),
-
-                        // Пункт "Новые" без закругленных угров
                         InkWell(
-                          onTap: () {
-                            setState(() {
-                              _resumes.sort((a, b) => (b['created_at'] ?? '').compareTo(a['created_at'] ?? ''));
-                            });
-                            _sortOverlayEntry?.remove();
-                            _sortOverlayEntry = null;
-                          },
+                          onTap: _sortResumesNewestFirst,
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                             decoration: BoxDecoration(
@@ -371,16 +327,8 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                             ),
                           ),
                         ),
-
-                        // Пункт "Старые" без закругленных углов
                         InkWell(
-                          onTap: () {
-                            setState(() {
-                              _resumes.sort((a, b) => (a['created_at'] ?? '').compareTo(b['created_at'] ?? ''));
-                            });
-                            _sortOverlayEntry?.remove();
-                            _sortOverlayEntry = null;
-                          },
+                          onTap: _sortResumesOldestFirst,
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                             child: Text(
@@ -409,9 +357,179 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     Overlay.of(_parametersIconKey.currentContext!).insert(_sortOverlayEntry!);
   }
 
+  void _sortResumesNewestFirst() {
+    if (_isSorting) return;
+    _isSorting = true;
+
+    setState(() {
+      _displayedResumes.clear();
+      _displayedResumes.addAll(_resumes);
+      _resumes.sort((a, b) => (b['created_at'] ?? '').compareTo(a['created_at'] ?? ''));
+    });
+
+    _sortOverlayEntry?.remove();
+    _sortOverlayEntry = null;
+    _animateSort();
+  }
+
+  void _sortResumesOldestFirst() {
+    if (_isSorting) return;
+    _isSorting = true;
+
+    setState(() {
+      _displayedResumes.clear();
+      _displayedResumes.addAll(_resumes);
+      _resumes.sort((a, b) => (a['created_at'] ?? '').compareTo(b['created_at'] ?? ''));
+    });
+
+    _sortOverlayEntry?.remove();
+    _sortOverlayEntry = null;
+    _animateSort();
+  }
+
+  void _animateSort() {
+    _sortAnimationController.reset();
+    _sortAnimationController.forward().then((_) {
+      _isSorting = false;
+      setState(() {
+        _displayedResumes.clear();
+      });
+    });
+  }
+
+  Offset _calculatePosition(int index) {
+    final crossAxisCount = 2;
+    final row = index ~/ crossAxisCount;
+    final column = index % crossAxisCount;
+
+    return Offset(
+      column * (MediaQuery.of(context).size.width / crossAxisCount),
+      row * (MediaQuery.of(context).size.width / crossAxisCount / 1.4),
+    );
+  }
+
+  Widget _buildResumeCard(Map<String, dynamic> resume) {
+    return GestureDetector(
+      onTap: () async {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(child: CircularProgressIndicator()),
+        );
+
+        try {
+          final loadedResume = await _getResumeById(resume['id']);
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResumeViewPage(resume: loadedResume, onDelete: () {}),
+            ),
+          );
+        } catch (e) {
+          Navigator.pop(context);
+          _showWarningDialog(context);
+        }
+      },
+      onLongPress: () {
+        _openDialog(resume['id']);
+      },
+      child: Card(
+        color: _getColorByResumeId(resume['id']),
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+          side: BorderSide(
+            color: royalPurple,
+            width: widthBorderRadius,
+          ),
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: 0,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: royalPurple,
+                    width: widthBorderRadius,
+                  ),
+                  color: Colors.white,
+                ),
+                child: Text(
+                  'Резюме',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Playfair',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    color: royalPurple,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(
+                  resume['title'] ?? '',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Playfair',
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                    color: royalPurple,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(
+                  resume['experince']?.isNotEmpty == true ? resume['experince']! : 'Опыт не указан',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Playfair',
+                    fontWeight: FontWeight.w400,
+                    fontSize: 14,
+                    color: royalPurple.withOpacity(0.8),
+                  ),
+                ),
+              ),
+              if (resume['is_modified'] == true || resume['is_local'] == true)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.cloud_off,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _rotationController.dispose();
+    _sortAnimationController.dispose();
     _sortOverlayEntry?.remove();
     super.dispose();
   }
@@ -431,7 +549,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 15), // Отступ слева 30
+                  padding: const EdgeInsets.only(left: 15),
                   child: IconButton(
                     icon: accountIcon,
                     onPressed: () {
@@ -451,7 +569,7 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                 Padding(
                   padding: const EdgeInsets.only(right: 15),
                   child: IconButton(
-                    key: _parametersIconKey, // Добавьте ключ здесь
+                    key: _parametersIconKey,
                     icon: parametersIcon,
                     onPressed: () {
                       if (_sortOverlayEntry != null) {
@@ -465,14 +583,12 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                 ),
               ],
             ),
-
-            SizedBox(height: 8,),
-
+            SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Центрируем всю строку
-              crossAxisAlignment: CrossAxisAlignment.center, // Выравниваем по вертикали
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox( // Левая линия (занимает всё доступное пространство слева)
+                SizedBox(
                   width: MediaQuery.of(context).size.width * 0.05,
                   child: Divider(
                     thickness: 3,
@@ -480,19 +596,19 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
                     height: 1,
                   ),
                 ),
-                Padding( // Текст "Сегодня" с отступами
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Text(
                     'Сегодня',
                     style: TextStyle(
-                      color: royalBlue, // Можно настроить цвет текста
+                      color: royalBlue,
                       fontWeight: FontWeight.w500,
                       fontFamily: 'Playfair',
-                      fontSize: 20,// Жирность
+                      fontSize: 20,
                     ),
                   ),
                 ),
-                Expanded( // Правая линия (занимает всё доступное пространство справа)
+                Expanded(
                   child: Divider(
                     thickness: 3,
                     color: lightLavender.withOpacity(0.5),
@@ -503,11 +619,9 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
             ),
           ],
         ),
-
         centerTitle: true,
         elevation: 0,
       ),
-
       body: _resumes.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -521,138 +635,41 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
           ),
           itemCount: _resumes.length,
           itemBuilder: (context, index) {
-            // Определяем порядок отображения (зигзаг)
-            final itemIndex = _getLinearIndex(index, _resumes.length);
-            final resume = _resumes[itemIndex];
+            if (_isSorting && _displayedResumes.isNotEmpty) {
+              final resume = _resumes[index];
+              final oldIndex = _displayedResumes.indexWhere((r) => r['id'] == resume['id']);
 
-            return GestureDetector(
-              onTap: () async {
-                // Показываем индикатор загрузки
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => Center(child: CircularProgressIndicator()),
-                );
+              return AnimatedBuilder(
+                animation: _sortAnimationController,
+                builder: (context, child) {
+                  final animationValue = Curves.easeInOut.transform(_sortAnimationController.value);
 
-                try {
-                  final loadedResume = await _getResumeById(resume['id']);
-                  Navigator.pop(context); // Закрываем индикатор
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ResumeViewPage(resume: loadedResume, onDelete: () {},),
+                  double xOffset = 0;
+                  double yOffset = 0;
+
+                  if (oldIndex != -1) {
+                    final oldPosition = _calculatePosition(oldIndex);
+                    final newPosition = _calculatePosition(index);
+                    xOffset = (oldPosition.dx - newPosition.dx) * (1 - animationValue);
+                    yOffset = (oldPosition.dy - newPosition.dy) * (1 - animationValue);
+                  }
+
+                  return Transform.translate(
+                    offset: Offset(xOffset, yOffset),
+                    child: Opacity(
+                      opacity: _isSorting ? 0.5 + 0.5 * animationValue : 1.0,
+                      child: _buildResumeCard(resume),
                     ),
                   );
-                } catch (e) {
-                  Navigator.pop(context); // Закрываем индикатор
-                  _showWarningDialog(context);
-                }
-              },
-              onLongPress: () {
-                // Долгое нажатие - открываем диалог как раньше
-                _openDialog(resume['id']);
-              },
-              child: Card(
-                color: _getColorByResumeId(resume['id']),
-                elevation: 0,
-                margin: EdgeInsets.zero, // Убираем внешние отступы карточки
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                  side: BorderSide(
-                    color: royalPurple,
-                    width: widthBorderRadius,
-                  ),
-                ),
-                child: Container(
-                  constraints: BoxConstraints(
-                    minHeight: 0, // Убираем минимальную высоту
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8, // Минимальные внутренние отступы
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Заголовок "Резюме" (без изменений)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                            color: royalPurple,
-                            width: widthBorderRadius,
-                          ),
-                          color: Colors.white,
-                        ),
-                        child: Text(
-                          'Резюме',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Playfair',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 20,
-                            color: royalPurple,
-                          ),
-                        ),
-                      ),
-
-                      // Название резюме (первая строка)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 2), // Уменьшил отступ
-                        child: Text(
-                          resume['title'] ?? '',
-                          textAlign: TextAlign.center,
-                          maxLines: 1, // Одна строка с троеточием
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Playfair',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                            color: royalPurple,
-                          ),
-                        ),
-                      ),
-
-                      // Желаемая должность (вторая строка)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 2), // Уменьшил отступ
-                        child: Text(
-                          resume['experince']?.isNotEmpty == true ? resume['experince']! : 'Опыт не указан',
-                          textAlign: TextAlign.center,
-                          maxLines: 1, // Одна строка с троеточием
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Playfair',
-                            fontWeight: FontWeight.w400, // Чуть менее жирный
-                            fontSize: 14, // Чуть меньше размер
-                            color: royalPurple.withOpacity(0.8), // Чуть прозрачнее
-                          ),
-                        ),
-                      ),
-
-                      // Иконка облака (без изменений)
-                      if (resume['is_modified'] == true || resume['is_local'] == true)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2), // Уменьшил отступ
-                          child: Icon(
-                            Icons.cloud_off,
-                            size: 16,
-                            color: Colors.grey,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            );
+                },
+              );
+            } else {
+              final resume = _resumes[_getLinearIndex(index, _resumes.length)];
+              return _buildResumeCard(resume);
+            }
           },
         ),
       ),
-
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: AnimatedBuilder(
@@ -673,16 +690,6 @@ class _ResumesPageState extends State<ResumesPage> with SingleTickerProviderStat
     );
   }
 
-  // int _getZigzagIndex(int displayIndex, int totalItems) {
-  //   final row = displayIndex ~/ 2;
-  //   if (row % 2 == 0) {
-  //     return displayIndex;
-  //   } else {
-  //     final start = row * 2;
-  //     final end = math.min(start + 1, totalItems - 1);
-  //     return end - (displayIndex - start);
-  //   }
-  // }
   int _getLinearIndex(int displayIndex, int totalItems) {
     return displayIndex < totalItems ? displayIndex : -1;
   }
