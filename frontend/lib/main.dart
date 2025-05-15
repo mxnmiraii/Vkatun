@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -12,18 +13,19 @@ import 'pages/resumes_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // AppMetrica
+  AppMetrica.activate(AppMetricaConfig("ea65dfe6-942b-4380-a06d-adb48f3a7b20"));
+  AppMetrica.reportEvent('app_start');
+
   final prefs = await SharedPreferences.getInstance();
-
-  // Гостевой токен или токен пользователя
   final authToken = prefs.getString('user_token') ?? 'guest_token';
-
-  // Настройка HTTP-клиента
   HttpOverrides.global = HttpOverridesForTesting();
 
   runApp(
     Provider(
       create: (_) => ApiService(authToken: authToken, prefs: prefs),
-      child: MyApp(authToken: authToken), // Используем MyApp с параметром
+      child: MyApp(authToken: authToken),
     ),
   );
 }
