@@ -62,7 +62,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   Future<List<Issue>> _analyzeResumeSkills(int id, String nameIssue) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.analyzeResumeSkills(id);
+      final response = await apiService.analyzeSkills(id);
 
       final issues = response['issues'] as List<dynamic>? ?? [];
 
@@ -84,7 +84,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   Future<List<Issue>> _analyzeResumeAboutMe(int id, String nameIssue) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.analyzeResumeAbout(id);
+      final response = await apiService.analyzeAbout(id);
 
       final issues = response['comment'] as List<dynamic>? ?? [];
 
@@ -106,7 +106,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   Future<List<Issue>> _analyzeResumeExoerience(int id, String nameIssue) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.analyzeResumeExperience(id);
+      final response = await apiService.analyzeExperience(id);
 
       final issues = response['experience'] as List<dynamic>? ?? [];
 
@@ -128,7 +128,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   Future<List<Issue>> _analyzeResumeStructure(int id) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.checkResumeStructure(id);
+      final response = await apiService.checkStructure(id);
 
       // Преобразуем ответ в List<Issue>
       final structure = response['missing_sections'] as List<dynamic>? ?? [];
@@ -151,7 +151,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
   Future<List<Issue>> _analyzeResumeGrammar(int id, String requiredType) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.checkResumeGrammar(id);
+      final response = await apiService.checkGrammar(id);
 
       // Проверяем наличие данных
       if (response['issues'] == null) return [];

@@ -33,6 +33,10 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   List<Map<String, dynamic>> _displayedResumes = [];
   bool _isSorting = false;
   bool _sortNewestFirst = true;
+
+  bool _isLoading = false;
+  bool _reachedLimit = false;
+
   final List<Color> resumeCardColors = [
     babyBlue,
     lightLavender,
@@ -62,20 +66,31 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   }
 
   Future<void> _loadResumes() async {
+    setState(() => _isLoading = true);
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final resumes = await apiService.getResumes();
 
       setState(() {
         _resumes = resumes;
-        _resumes.sort((a, b) => (b['updated_at'] ?? b['created_at']).compareTo(a['updated_at'] ?? a['created_at']));
-        _sortNewestFirst = true;
+        _resumes.sort((a, b) => (b['updated_at'] ?? b['created_at'])
+            .compareTo(a['updated_at'] ?? a['created_at']));
+        _reachedLimit = apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка загрузки резюме: $e')),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _checkResumeLimit(ApiService apiService) {
+    final isGuest = apiService.authToken == 'guest_token';
+    setState(() {
+      _reachedLimit = isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
+    });
   }
 
   Future<Map<String, dynamic>> _getResumeById(int id) async {
@@ -153,6 +168,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
           onDelete: () {
             setState(() {
               _resumes.removeWhere((r) => r['id'] == resume['id']);
+              _reachedLimit = false;
             });
           },
         );
@@ -180,6 +196,14 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   }
 
   Future<void> _pickPdfFile(BuildContext context) async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    _checkResumeLimit(apiService);
+
+    if (_reachedLimit) {
+      _showLimitReachedDialog(context);
+      return;
+    }
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -200,6 +224,37 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     }
   }
 
+  void _showLimitReachedDialog(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final isGuest = apiService.authToken == 'guest_token';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isGuest ? 'Лимит резюме' : 'Достигнут максимум'),
+        content: Text(isGuest
+            ? 'Гостевой пользователь может хранить только 1 резюме. Авторизуйтесь для добавления большего количества.'
+            : 'Вы можете хранить не более 15 резюме. Удалите одно из существующих, чтобы добавить новое.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+          if (isGuest) TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AccountMainPage()),
+              );
+            },
+            child: Text('Войти'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _uploadResume(File file) async {
     showDialog(
       context: context,
@@ -214,26 +269,31 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
 
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final serverResponse = await apiService.uploadResume(file);
-      final resumeId = serverResponse['resume_id'];
-      final resume = await _getResumeById(resumeId);
+      final resume = await apiService.uploadResume(file);
 
-      Navigator.of(context).pop();
-
-      setState(() => _resumes.insert(0, resume));
+      Navigator.pop(context);
+      setState(() {
+        _resumes.insert(0, resume);
+        _reachedLimit = apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
+      });
 
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ResumeViewPage(
             resume: resume,
-            onDelete: () => setState(() => _resumes.removeWhere((r) => r['id'] == resume['id'])),
+            onDelete: () {
+              setState(() {
+                _resumes.removeWhere((r) => r['id'] == resume['id']);
+                _reachedLimit = false;
+              });
+            },
             isLoadResume: true,
           ),
         ),
       );
-
     } catch (e) {
+      Navigator.pop(context);
       _showWarningDialog(context);
     }
   }
@@ -244,6 +304,15 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       builder: (context) => WarningDialog(),
       barrierDismissible: true,
     );
+  }
+
+  void _updateLimitStatus() {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    setState(() {
+      _reachedLimit = apiService.authToken == 'guest_token'
+          ? _resumes.length >= 1
+          : _resumes.length >= 15;
+    });
   }
 
   void _showSortMenu() {
@@ -552,7 +621,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   }
 
   List<Widget> _buildGroupedResumes() {
-    if (_resumes.isEmpty) return [const Center(child: CircularProgressIndicator())];
+    if (_resumes.isEmpty) return [];
 
     // Группируем резюме по датам
     final groups = <String, List<Map<String, dynamic>>>{};
@@ -632,7 +701,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 16,
+            crossAxisSpacing: 8, // 16 before
             mainAxisSpacing: 32,
             childAspectRatio: 1.4,
           ),
@@ -690,6 +759,8 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final isGuest = apiService.authToken == 'guest_token';
 
     return Scaffold(
       appBar: AppBar(
@@ -742,14 +813,105 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
         ),
         centerTitle: true,
         elevation: 0,
+        scrolledUnderElevation: 0,
       ),
 
-      body: SingleChildScrollView(
+      body: _isLoading
+          ? Center(child: Container(),)
+          : SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
         child: Column(
-          children: _buildGroupedResumes(),
+          children: [
+            if (_reachedLimit)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.orange,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isGuest
+                              ? 'Вы можете хранить только 1 резюме в гостевом режиме'
+                              : 'Достигнут лимит в 15 резюме',
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      if (isGuest)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AccountMainPage(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            'Войти',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ..._buildGroupedResumes(),
+            if (_resumes.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 100),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.description_outlined,
+                        size: 64,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'У вас пока нет резюме',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        isGuest
+                            ? 'Добавьте свое первое резюме'
+                            : 'Нажмите "+" чтобы добавить резюме',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+          ],
         ),
       ),
+
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: AnimatedBuilder(
@@ -759,8 +921,11 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
               angle: _rotationController.value * 2 * math.pi,
               child: IconButton(
                 icon: addIcon,
-                onPressed: _onAddIconPressed,
+                onPressed: _reachedLimit
+                    ? () => _showLimitReachedDialog(context)
+                    : _onAddIconPressed,
                 iconSize: 36,
+                color: _reachedLimit ? Colors.grey[400] : null,
               ),
             );
           },

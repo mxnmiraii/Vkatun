@@ -54,7 +54,7 @@ class MyApp extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        home: authToken != 'guest_token' ? const ResumesPage() : const StartPage(),
+        home: authToken != 'guest_token' ? const ResumesPage() : const ResumesPage(),
         routes: {
           '/login': (_) => const EntryPage(),
           '/register': (_) => const RegisterPage(),
