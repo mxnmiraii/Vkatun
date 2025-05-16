@@ -68,22 +68,22 @@ class WindowResumesPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: padding / 2,
-                          horizontal: padding,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: padding / 2,
+                        horizontal: padding,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(
+                        'Резюме',
+                        style: textStyle.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Text(
-                          'Резюме',
-                          style: textStyle.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 20,
-                          ),
-                          textAlign: TextAlign.center,
-                        )
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     const SizedBox(height: 30),
                     _buildButton(
@@ -91,14 +91,15 @@ class WindowResumesPage extends StatelessWidget {
                       text: 'Редактировать резюме',
                       onPressed: () {
                         onClose();
-                        Navigator.of(
+                        Navigator.push(
                           context,
-                          rootNavigator: true,
-                        ).pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder: (context) => ResumeViewPage(resume: resume, onDelete: onDelete,),
+                            builder:
+                                (context) => ResumeViewPage(
+                                  resume: resume,
+                                  onDelete: onDelete,
+                                ),
                           ),
-                              (Route<dynamic> route) => false,
                         );
                       },
                       textStyle: textStyle,
@@ -118,7 +119,10 @@ class WindowResumesPage extends StatelessWidget {
                       text: 'Удалить резюме',
                       onPressed: () async {
                         try {
-                          final apiService = Provider.of<ApiService>(context, listen: false);
+                          final apiService = Provider.of<ApiService>(
+                            context,
+                            listen: false,
+                          );
                           await apiService.deleteResume(resume['id'] as int);
                           onDelete();
                           onClose();
@@ -167,10 +171,7 @@ class WindowResumesPage extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: icon,
-          ),
+          Align(alignment: Alignment.centerLeft, child: icon),
           Align(
             alignment: Alignment.center,
             child: Text(
