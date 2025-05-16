@@ -582,15 +582,6 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
                   ),
                 ),
               ),
-              if (resume['is_modified'] == true || resume['is_local'] == true)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    Icons.cloud_off,
-                    size: 16,
-                    color: Colors.grey,
-                  ),
-                ),
             ],
           ),
         ),
@@ -701,7 +692,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 8, // 16 before
+            crossAxisSpacing: 16,
             mainAxisSpacing: 32,
             childAspectRatio: 1.4,
           ),
