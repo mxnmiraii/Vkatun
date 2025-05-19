@@ -1,3 +1,4 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/pages/resumes_page.dart';
@@ -49,6 +50,10 @@ class _RegisterPageState extends State<RegisterPage> {
           username: login,
           emailOrPhone: emailNumber,
           password: password,
+        );
+
+        await AppMetrica.reportEvent(
+          'registration_success',
         );
 
         // Успешная регистрация

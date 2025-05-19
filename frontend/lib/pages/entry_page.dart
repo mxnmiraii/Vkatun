@@ -1,3 +1,4 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/api_service.dart';
@@ -50,6 +51,10 @@ class _EntryPageState extends State<EntryPage> {
       await apiService.login(
         emailOrPhone: emailNumber,
         password: password,
+      );
+
+      await AppMetrica.reportEvent(
+        'login_success',
       );
 
       Navigator.pushReplacement(

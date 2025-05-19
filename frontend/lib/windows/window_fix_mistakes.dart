@@ -1,3 +1,4 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
@@ -626,25 +627,27 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: ElevatedButton(
-                onPressed: () {
-                  switch (index) {
-                    case 0:
-                      setState(() {
-                        isScanningFix = true;
-                        // print(widget.resume['id']);
-                        // print(_analyzeResumeSkills(widget.resume['id']));
-                        // print(_analyzeResumeStructure(widget.resume['id']));
-                        // print(_analyzeResumeGrammar(18, 'style'));
-                      });
-                      break;
-                    case 1:
-                      scanningStructureState();
-                      break;
-                    case 2:
-                      setState(() {
-                        isScanningContent = true;
-                      });
-                      break;
+                onPressed: () async {  // Добавьте async здесь
+                  try {
+                    await AppMetrica.reportEvent('scanning_resume');
+
+                    switch (index) {
+                      case 0:
+                        setState(() {
+                          isScanningFix = true;
+                        });
+                        break;
+                      case 1:
+                        scanningStructureState();
+                        break;
+                      case 2:
+                        setState(() {
+                          isScanningContent = true;
+                        });
+                        break;
+                    }
+                  } catch (e) {
+                    debugPrint('Ошибка отправки события: $e');
                   }
                 },
                 style: ElevatedButton.styleFrom(

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
@@ -124,6 +125,9 @@ class WindowResumesPage extends StatelessWidget {
                             listen: false,
                           );
                           await apiService.deleteResume(resume['id'] as int);
+                          await AppMetrica.reportEvent(
+                            'delete_resume',
+                          );
                           onDelete();
                           onClose();
                         } catch (e) {
