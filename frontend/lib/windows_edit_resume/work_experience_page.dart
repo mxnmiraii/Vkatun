@@ -115,14 +115,9 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Row(
-                      children: [
-                        SizedBox(width: space),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: lightArrowBackIcon,
-                        ),
-                      ],
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: lightArrowBackIcon,
                     ),
                   ),
                   Center(

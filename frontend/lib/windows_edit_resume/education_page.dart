@@ -83,14 +83,9 @@ class _EducationPageState extends State<EducationPage> {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Row(
-                      children: [
-                        SizedBox(width: space),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: lightArrowBackIcon,
-                        ),
-                      ],
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: lightArrowBackIcon,
                     ),
                   ),
                   Center(
