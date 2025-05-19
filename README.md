@@ -70,7 +70,7 @@
 - Отчет о текущем статусе проекта Vkatun (Этап 2 - Отчет PM) [(DOCX)](Документация/current_status_of_project_report.docx) [(PDF)](Документация/current_status_of_project_report.pdf)
 - Отчет о тестировании Vkatun API [(DOCX)](Документация/отчёт-о-тестировании-Vkatun-API.docx) [(PDF)](Документация/отчёт-о-тестировании-Vkatun-API.pdf)
 - Отчет о юнит-тестировании Vkatun [(DOCX)](Документация/отчёт-о-юнит-тестировании-Vkatun-API.docx) [(PDF)](Документация/отчёт-о-юнит-тестировании-Vkatun-API.pdf)
-- Курсовая работа (0.5) [(DOCX)](Документация/course_work_(0.5).docx)
+- Курсовая работа (0.6) [(DOCX)](Документация/course_work_(0.6).docx)
 - [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/acd1fb041eeca2b18576a12c3fd7ce95/raw/26f420d01beea1c83ea586bf63222f5048ddca59/swagger-v1.0.2.yaml)
 > **Важно!**  
 > Если схема API не загружается автоматически через ссылку (в некоторых браузерах это происходит из-за ограничений CORS):
