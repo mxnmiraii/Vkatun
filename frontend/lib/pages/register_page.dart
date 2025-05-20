@@ -10,7 +10,6 @@ import '../design/dimensions.dart';
 import '../design/images.dart';
 import 'entry_page.dart';
 
-import '../pages/register_page_error_dialog/field_error_dialog.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -27,6 +26,28 @@ class _RegisterPageState extends State<RegisterPage> {
       TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
+
+  final Map<String, String> _fieldErrors = {};
+  final Map<String, bool> _fieldErrorStates = {
+    'login': false,
+    'email': false,
+    'password': false,
+    'passwordRepeat': false,
+  };
+
+  void _showFieldError(String field, String message) {
+    setState(() {
+      _fieldErrors[field] = message;
+      _fieldErrorStates[field] = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _fieldErrors.remove(field);
+        _fieldErrorStates[field] = false;
+      });
+    });
+  }
 
   @override
   void dispose() {
@@ -97,54 +118,29 @@ class _RegisterPageState extends State<RegisterPage> {
       final password = _passwordController.text;
       final passwordRepeat = _passwordRepeatController.text;
 
-      // Проверка на пустые поля
-      if (login.isEmpty || emailNumber.isEmpty || password.isEmpty || passwordRepeat.isEmpty) {
-        showDialog(
-          context: context,
-          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.emptyFields),
-        );
+      if (login.isEmpty || login.length < 3 || login.length > 30) {
+        _showFieldError('login', 'Имя: 3–30 символов');
         return;
       }
 
-      // Проверка длины имени пользователя
-      if (login.length < 3 || login.length > 30) {
-        showDialog(
-          context: context,
-          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.invalidUsername),
-        );
+      if (emailNumber.isEmpty || emailNumber.length < 3 || emailNumber.length > 100) {
+        _showFieldError('email', 'Email: 3–100 символов');
         return;
       }
 
-      // Проверка длины email/номера
-      if (emailNumber.length < 3 || emailNumber.length > 100) {
-        showDialog(
-          context: context,
-          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.invalidEmail),
-        );
+      if (password.isEmpty || !_isValidPassword(password)) {
+        _showFieldError('password', 'Пароль слабый: 8–25 символов, цифра и спецсимвол');
         return;
       }
 
-      // Проверка совпадения паролей
       if (password != passwordRepeat) {
-        showDialog(
-          context: context,
-          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.passwordsDoNotMatch),
-        );
+        _showFieldError('passwordRepeat', 'Пароли не совпадают');
         return;
       }
 
-      // Проверка валидности пароля
-      if (!_isValidPassword(password)) {
-        showDialog(
-          context: context,
-          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.invalidPassword),
-        );
-        return;
-      }
-
-      // Всё в порядке — регистрация
       _performRegistration(login, emailNumber, password);
     }
+
 
 
     final _textStyle = TextStyle(
@@ -239,6 +235,21 @@ class _RegisterPageState extends State<RegisterPage> {
                             controller: _loginController,
                             decoration: _inputDecoration.copyWith(
                               labelText: 'Имя пользователя',
+                              errorText: _fieldErrorStates['login']! ? _fieldErrors['login'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
                             ),
                           ),
 
@@ -248,8 +259,24 @@ class _RegisterPageState extends State<RegisterPage> {
                             controller: _emailNumberController,
                             decoration: _inputDecoration.copyWith(
                               labelText: 'Адрес электронной почты',
+                              errorText: _fieldErrorStates['email']! ? _fieldErrors['email'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['email']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['email']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
                             ),
                           ),
+
 
                           const SizedBox(height: 10),
 
@@ -258,8 +285,24 @@ class _RegisterPageState extends State<RegisterPage> {
                             obscureText: true,
                             decoration: _inputDecoration.copyWith(
                               labelText: 'Пароль',
+                              errorText: _fieldErrorStates['password']! ? _fieldErrors['password'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
                             ),
                           ),
+
 
                           const SizedBox(height: 10),
 
@@ -268,6 +311,21 @@ class _RegisterPageState extends State<RegisterPage> {
                             obscureText: true,
                             decoration: _inputDecoration.copyWith(
                               labelText: 'Подтверждение пароля',
+                              errorText: _fieldErrorStates['passwordRepeat']! ? _fieldErrors['passwordRepeat'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['passwordRepeat']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['passwordRepeat']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -370,3 +428,5 @@ class BottomCurveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
+
