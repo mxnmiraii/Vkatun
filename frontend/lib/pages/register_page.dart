@@ -10,6 +10,8 @@ import '../design/dimensions.dart';
 import '../design/images.dart';
 import 'entry_page.dart';
 
+import '../pages/register_page_error_dialog/field_error_dialog.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -82,25 +84,68 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     }
 
+    bool _isValidPassword(String password) {
+      final lengthValid = password.length >= 8 && password.length <= 25;
+      final hasDigit = password.contains(RegExp(r'\d'));
+      final hasSpecialChar = password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'));
+      return lengthValid && hasDigit && hasSpecialChar;
+    }
+
     void _handleRegister() {
-      final login = _loginController.text;
-      final emailNumber = _emailNumberController.text;
+      final login = _loginController.text.trim();
+      final emailNumber = _emailNumberController.text.trim();
       final password = _passwordController.text;
       final passwordRepeat = _passwordRepeatController.text;
 
-      // Валидация
+      // Проверка на пустые поля
+      if (login.isEmpty || emailNumber.isEmpty || password.isEmpty || passwordRepeat.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.emptyFields),
+        );
+        return;
+      }
+
+      // Проверка длины имени пользователя
+      if (login.length < 3 || login.length > 30) {
+        showDialog(
+          context: context,
+          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.invalidUsername),
+        );
+        return;
+      }
+
+      // Проверка длины email/номера
+      if (emailNumber.length < 3 || emailNumber.length > 100) {
+        showDialog(
+          context: context,
+          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.invalidEmail),
+        );
+        return;
+      }
+
+      // Проверка совпадения паролей
       if (password != passwordRepeat) {
-        setState(() => _errorMessage = 'Пароли не совпадают');
+        showDialog(
+          context: context,
+          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.passwordsDoNotMatch),
+        );
         return;
       }
 
-      if (login.isEmpty || emailNumber.isEmpty || password.isEmpty) {
-        setState(() => _errorMessage = 'Заполните все поля');
+      // Проверка валидности пароля
+      if (!_isValidPassword(password)) {
+        showDialog(
+          context: context,
+          builder: (_) => const FieldErrorDialog(errorType: FieldErrorType.invalidPassword),
+        );
         return;
       }
 
+      // Всё в порядке — регистрация
       _performRegistration(login, emailNumber, password);
     }
+
 
     final _textStyle = TextStyle(
       color: midnightPurple,
