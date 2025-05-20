@@ -21,7 +21,7 @@ class ApiService {
   // Получение списка резюме
   Future<List<Map<String, dynamic>>> getResumes() async {
     if (isGuest) {
-      return _getLocalResumes();
+      return getLocalResumes();
     }
 
     try {
@@ -38,7 +38,7 @@ class ApiService {
     } catch (e) {
       print('Оффлайн режим: $e');
     }
-    return _getLocalResumes();
+    return getLocalResumes();
   }
 
   // Загрузка резюме
@@ -80,13 +80,13 @@ class ApiService {
             'file_path': file.path,
           };
 
-          final resumes = _getLocalResumes()..insert(0, newResume);
+          final resumes = getLocalResumes()..insert(0, newResume);
           await _saveLocalResumes(resumes);
           return newResume;
         } else {
           // Для авторизованных получаем полное резюме по ID
           final fullResume = await getResumeById(result['resume_id']);
-          final resumes = _getLocalResumes()..insert(0, fullResume);
+          final resumes = getLocalResumes()..insert(0, fullResume);
           await _saveLocalResumes(resumes);
           return fullResume;
         }
@@ -105,7 +105,7 @@ class ApiService {
   // Проверка грамматики
   Future<Map<String, dynamic>> checkGrammar(int resumeId) async {
     if (isGuest) {
-      final resume = _getLocalResumes().firstWhere(
+      final resume = getLocalResumes().firstWhere(
               (r) => r['id'] == resumeId,
           orElse: () => throw Exception('Резюме не найдено')
       );
@@ -130,7 +130,7 @@ class ApiService {
   // Проверка структуры
   Future<Map<String, dynamic>> checkStructure(int resumeId) async {
     if (isGuest) {
-      final resume = _getLocalResumes().firstWhere(
+      final resume = getLocalResumes().firstWhere(
               (r) => r['id'] == resumeId,
           orElse: () => throw Exception('Резюме не найдено')
       );
@@ -215,7 +215,7 @@ class ApiService {
   };
 
   // Получение локальных резюме
-  List<Map<String, dynamic>> _getLocalResumes() {
+  List<Map<String, dynamic>> getLocalResumes() {
     final key = isGuest ? guestResumeKey : '$userResumesKey${prefs.getString('user_id')}';
     final data = prefs.getString(key);
     return data != null ? List<Map<String, dynamic>>.from(json.decode(data)) : [];
@@ -399,7 +399,7 @@ class ApiService {
     try {
       // Для гостя всегда берем из локального хранилища
       if (isGuest) {
-        final localResumes = _getLocalResumes();
+        final localResumes = getLocalResumes();
         return localResumes.firstWhere(
                 (r) => r['id'] == id,
             orElse: () => throw Exception('Резюме не найдено')
@@ -418,7 +418,7 @@ class ApiService {
       throw Exception('Ошибка сервера: ${response.statusCode}');
     } catch (e) {
       // Если ошибка, пробуем найти локально
-      final localResumes = _getLocalResumes();
+      final localResumes = getLocalResumes();
       final localResume = localResumes.firstWhere(
               (r) => r['id'] == id,
           orElse: () => throw Exception('Не удалось загрузить резюме: $e')
@@ -428,7 +428,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> editResume(int id, Map<String, dynamic> data) async {
-    final resumes = _getLocalResumes();
+    final resumes = getLocalResumes();
     final index = resumes.indexWhere((r) => r['id'] == id);
 
     if (index == -1) throw Exception('Резюме не найдено');
@@ -461,7 +461,7 @@ class ApiService {
   }
 
   Future<void> deleteResume(int id) async {
-    final resumes = _getLocalResumes()..removeWhere((r) => r['id'] == id);
+    final resumes = getLocalResumes()..removeWhere((r) => r['id'] == id);
     await _saveLocalResumes(resumes);
 
     if (!isGuest) {
