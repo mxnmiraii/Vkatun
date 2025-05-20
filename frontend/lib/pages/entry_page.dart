@@ -19,7 +19,12 @@ class _EntryPageState extends State<EntryPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
-  String _errorMessage = '';
+
+  final Map<String, String> _fieldErrors = {};
+  final Map<String, bool> _fieldErrorStates = {
+    'login': false,
+    'password': false,
+  };
 
   @override
   void dispose() {
@@ -28,12 +33,31 @@ class _EntryPageState extends State<EntryPage> {
     super.dispose();
   }
 
+  void _showFieldError(String field, String message) {
+    setState(() {
+      _fieldErrors[field] = message;
+      _fieldErrorStates[field] = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _fieldErrors.remove(field);
+        _fieldErrorStates[field] = false;
+      });
+    });
+  }
+
   void _handleLogin() {
-    final emailNumber = _loginController.text;
+    final emailNumber = _loginController.text.trim();
     final password = _passwordController.text;
 
-    if (emailNumber.isEmpty || password.isEmpty) {
-      setState(() => _errorMessage = 'Заполните все поля');
+    if (emailNumber.isEmpty) {
+      _showFieldError('login', 'Введите email');
+      return;
+    }
+
+    if (password.isEmpty) {
+      _showFieldError('password', 'Введите пароль');
       return;
     }
 
@@ -43,7 +67,6 @@ class _EntryPageState extends State<EntryPage> {
   Future<void> _performLogin(String emailNumber, String password) async {
     setState(() {
       _isLoading = true;
-      _errorMessage = '';
     });
 
     try {
@@ -53,18 +76,18 @@ class _EntryPageState extends State<EntryPage> {
         password: password,
       );
 
-      await AppMetrica.reportEvent(
-        'login_success',
-      );
+      await AppMetrica.reportEvent('login_success');
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => ResumesPage()),
       );
     } catch (e) {
-      setState(() => _errorMessage = 'Ошибка входа: ${e.toString()}');
+      _showFieldError('password', 'Неверный логин или пароль');
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -80,17 +103,9 @@ class _EntryPageState extends State<EntryPage> {
       filled: true,
       fillColor: Colors.white,
       labelStyle: TextStyle(color: lightGrayText),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
-      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
+        borderSide: const BorderSide(width: 2),
       ),
     );
 
@@ -109,7 +124,6 @@ class _EntryPageState extends State<EntryPage> {
               color: backgroundColorWater,
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -142,7 +156,6 @@ class _EntryPageState extends State<EntryPage> {
                     ),
                   ),
                 ),
-
                 Expanded(
                   flex: 3,
                   child: Padding(
@@ -154,6 +167,21 @@ class _EntryPageState extends State<EntryPage> {
                           controller: _loginController,
                           decoration: _inputDecoration.copyWith(
                             labelText: 'Email',
+                            errorText: _fieldErrorStates['login']! ? _fieldErrors['login'] : null,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -162,30 +190,33 @@ class _EntryPageState extends State<EntryPage> {
                           obscureText: true,
                           decoration: _inputDecoration.copyWith(
                             labelText: 'Пароль',
-                          ),
-                        ),
-                        if (_errorMessage.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 10),
-                            child: Text(
-                              _errorMessage,
-                              style: const TextStyle(color: Colors.red),
+                            errorText: _fieldErrorStates['password']! ? _fieldErrors['password'] : null,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
                 Expanded(
                   flex: 4,
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: buttonPaddingHorizontal,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: buttonPaddingHorizontal),
                       child: Column(
                         children: [
                           ElevatedButton(
@@ -209,16 +240,15 @@ class _EntryPageState extends State<EntryPage> {
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 10),
-
                           ElevatedButton(
                             onPressed: _isLoading
                                 ? null
                                 : () {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (context) => RegisterPage()),
+                                MaterialPageRoute(
+                                    builder: (context) => const RegisterPage()),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -258,8 +288,10 @@ class BottomCurveClipper extends CustomClipper<Path> {
     final path = Path();
     path.lineTo(0, size.height - 250);
     path.quadraticBezierTo(
-      size.width * 0.6, size.height,
-      size.width, size.height - 70,
+      size.width * 0.6,
+      size.height,
+      size.width,
+      size.height - 70,
     );
     path.lineTo(size.width, 0);
     path.close();
