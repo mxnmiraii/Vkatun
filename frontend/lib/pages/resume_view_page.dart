@@ -19,17 +19,26 @@ import 'package:vkatun/windows_edit_resume/key_skills_page.dart';
 import 'package:vkatun/windows_edit_resume/work_experience_page.dart';
 
 import '../dialogs/warning_dialog.dart';
+import 'onboarding_content.dart';
 
 class ResumeViewPage extends StatefulWidget {
   final Map<String, dynamic> resume;
   final bool isLoadResume;
   final VoidCallback onDelete;
+  final bool isSecondBigStep;
+  final bool showOnboarding;
+  final VoidCallback? onCloseOnboarding;
+  final GlobalKey? iconKey;
 
   const ResumeViewPage({
     super.key,
     required this.resume,
     required this.onDelete,
     this.isLoadResume = false,
+    this.isSecondBigStep = false,
+    this.showOnboarding = false,
+    this.onCloseOnboarding,
+    this.iconKey,
   });
 
   @override
@@ -40,6 +49,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _rotationController;
   bool _isDialogOpen = false;
+  final GlobalKey magicIconKey = GlobalKey();
+
+  bool _isSecondStep = true;
+  bool _isFourthStep = false;
 
   @override
   void initState() {
@@ -49,6 +62,18 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       duration: const Duration(milliseconds: timeShowAnimation),
       upperBound: 0.125, // 45 градусов (0.125 * 2 * pi)
     );
+    widget.showOnboarding
+        ? WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showFullScreenOnboarding(false, _isSecondStep, _isFourthStep);
+        })
+        : null;
+  }
+
+  void _switchOnboardingSteps() {
+    setState(() {
+      _isSecondStep = !_isSecondStep;
+      _isFourthStep = !_isFourthStep;
+    });
   }
 
   @override
@@ -144,6 +169,26 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     //
   }
 
+  void _showFullScreenOnboarding(bool isFirst, bool isSecond, bool isFourth) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.82),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
+      pageBuilder: (context, _, __) {
+        return OnboardingContent(
+          hideOnboarding: () {
+            Navigator.pop(context);
+          },
+          iconKey: widget.iconKey ?? GlobalKey(),
+          isFirstBigStep: isFirst,
+          isSecondBigStep: isSecond,
+          isFourthBigStep: isFourth,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final _textStyle = TextStyle(
@@ -168,7 +213,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           children: [
             IconButton(
               onPressed:
-                  widget.isLoadResume
+                  widget.showOnboarding
+                      ? null
+                      : widget.isLoadResume
                       ? () async {
                         try {
                           final apiService = Provider.of<ApiService>(
@@ -215,18 +262,36 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               content: widget.resume['title']?.trim() ?? 'Не указано',
               hasCheck: true,
               targetPage: FullNamePage(
-                data: widget.resume['title'] == null || widget.resume['title'].isEmpty
-                    ? ['', '', '']
-                    : widget.resume['title'].split(' '),
+                data:
+                    widget.resume['title'] == null ||
+                            widget.resume['title'].isEmpty
+                        ? ['', '', '']
+                        : widget.resume['title'].split(' '),
+                showOnboarding: widget.showOnboarding,
+                doneIconKey: widget.iconKey,
+                onReturnFromOnboarding:
+                    widget.showOnboarding
+                        ? () {
+                          _switchOnboardingSteps();
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _showFullScreenOnboarding(
+                              false,
+                              _isSecondStep,
+                              _isFourthStep,
+                            );
+                          });
+                        }
+                        : null,
               ),
             ),
 
             // Желаемая должность с улучшенным форматированием
             _buildSection(
               title: 'Желаемая должность',
-              content: (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
-                  ? widget.resume['job']!.trim()
-                  : 'Не указано',
+              content:
+                  (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
+                      ? widget.resume['job']!.trim()
+                      : 'Не указано',
               hasCheck: true,
               targetPage: DesiredPositionPage(
                 data: [widget.resume['job']?.trim() ?? ''],
@@ -261,9 +326,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'Ключевые навыки',
               content: _formatSkills(widget.resume['skills']),
               hasCheck: true,
-              targetPage: KeySkillsPage(
-                data: widget.resume['skills'] ?? '',
-              ),
+              targetPage: KeySkillsPage(data: widget.resume['skills'] ?? ''),
             ),
 
             // О себе с улучшенным отображением
@@ -271,9 +334,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'О себе',
               content: _formatAboutMe(widget.resume['about']),
               hasCheck: true,
-              targetPage: AboutMePage(
-                data: widget.resume['about'] ?? '',
-              ),
+              targetPage: AboutMePage(data: widget.resume['about'] ?? ''),
             ),
           ],
         ),
@@ -284,15 +345,23 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ? Padding(
                 padding: EdgeInsets.only(bottom: bottom35),
                 child: IconButton(
-                  onPressed: () {
-                    Navigator.pop(context, true);
-                  },
+                  onPressed:
+                      widget.showOnboarding
+                          ? _isFourthStep
+                              ? () {
+                                Navigator.pop(context, true);
+                              }
+                              : null
+                          : () {
+                            Navigator.pop(context, true);
+                          },
                   icon: doneIcon,
                 ),
               )
               : Padding(
                 padding: EdgeInsets.only(bottom: bottom35),
                 child: IconButton(
+                  key: magicIconKey,
                   icon: magicIcon,
                   onPressed: _openDialog,
                   iconSize: 36,
@@ -348,7 +417,20 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               flex: 1,
               child: IconButton(
                 onPressed:
-                    targetPage != null
+                    widget.showOnboarding
+                        ? title.contains('ФИО') && targetPage != null
+                            ? _isSecondStep
+                                ? () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => targetPage,
+                                    ),
+                                  );
+                                }
+                                : null
+                            : null
+                        : targetPage != null
                         ? () {
                           Navigator.push(
                             context,
@@ -377,9 +459,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
   Widget _buildExperienceSection() {
     final hasExperience = widget.resume['experience']?.isNotEmpty == true;
-    final experienceContent = hasExperience
-        ? _parseExperienceShort(widget.resume['experience'])
-        : 'Не указано';
+    final experienceContent =
+        hasExperience
+            ? _parseExperienceShort(widget.resume['experience'])
+            : 'Не указано';
 
     return Column(
       children: [
@@ -416,7 +499,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     final phone = parsed[0];
     final email = parsed[1];
 
-    return [if (phone.isNotEmpty) phone, if (email.isNotEmpty) email].join('\n');
+    return [
+      if (phone.isNotEmpty) phone,
+      if (email.isNotEmpty) email,
+    ].join('\n');
   }
 
   String _formatSkills(String? skills) {
@@ -432,10 +518,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   String _formatAboutMe(String? about) {
     if (about == null || about.trim().isEmpty) return 'Не указано';
 
-    return about
-        .split('\n')
-        .where((s) => s.trim().isNotEmpty)
-        .join('\n\n');
+    return about.split('\n').where((s) => s.trim().isNotEmpty).join('\n\n');
   }
 }
 
@@ -552,5 +635,3 @@ String _extractYear(String input) {
   final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);
   return match?.group(0) ?? '';
 }
-
-

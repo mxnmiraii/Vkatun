@@ -76,7 +76,7 @@ class _ResumesPageState extends State<ResumesPage>
       duration: const Duration(milliseconds: 500),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding(); // Показываем после построения экрана
+      _showFullScreenOnboarding();
     });
     _loadResumes();
   }
@@ -93,7 +93,10 @@ class _ResumesPageState extends State<ResumesPage>
             Navigator.pop(context); // Закрываем диалог
             _closeOnboarding(); // Обновляем состояние
           },
-          addIconKey: addIconKey,
+          hideOnboarding: () {
+            Navigator.pop(context);
+          },
+          iconKey: addIconKey,
         );
       },
     );
@@ -339,6 +342,9 @@ class _ResumesPageState extends State<ResumesPage>
                   });
                 },
                 isLoadResume: true,
+                isSecondBigStep: _showOnboarding ? true : false,
+                showOnboarding: _showOnboarding,
+                iconKey: addIconKey,
               ),
         ),
       );
@@ -849,14 +855,16 @@ class _ResumesPageState extends State<ResumesPage>
                     padding: const EdgeInsets.only(left: 15),
                     child: IconButton(
                       icon: accountIcon,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AccountMainPage(),
-                          ),
-                        );
-                      },
+                        onPressed: _showOnboarding
+                            ? null
+                            : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AccountMainPage(),
+                            ),
+                          );
+                        },
                     ),
                   ),
                   Flexible(
@@ -870,7 +878,9 @@ class _ResumesPageState extends State<ResumesPage>
                     child: IconButton(
                       key: _parametersIconKey,
                       icon: parametersIcon,
-                      onPressed: () {
+                      onPressed: _showOnboarding
+                      ? null
+                      : () {
                         if (_sortOverlayEntry != null) {
                           _sortOverlayEntry?.remove();
                           _sortOverlayEntry = null;

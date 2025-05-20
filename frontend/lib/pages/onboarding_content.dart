@@ -4,12 +4,23 @@ import 'package:vkatun/design/images.dart';
 import '../design/colors.dart';
 
 class OnboardingContent extends StatefulWidget {
-  final VoidCallback closeOnboarding;
-  final GlobalKey addIconKey;
+  final VoidCallback? closeOnboarding;
+  final VoidCallback hideOnboarding;
+  final GlobalKey iconKey;
+  final bool isFirstBigStep;
+  final bool isSecondBigStep;
+  final bool isThirdBigStep;
+  final bool isFourthBigStep;
 
   const OnboardingContent({
-    required this.closeOnboarding,
-    required this.addIconKey,
+    super.key,
+    this.closeOnboarding,
+    required this.hideOnboarding,
+    required this.iconKey,
+    this.isFirstBigStep = true,
+    this.isSecondBigStep = false,
+    this.isThirdBigStep = false,
+    this.isFourthBigStep = false,
   });
 
   @override
@@ -34,9 +45,7 @@ class _OnboardingContentState extends State<OnboardingContent> {
       fontWeight: FontWeight.w800,
       fontSize: 15,
     ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   );
 
   static final _violetButtonStyle = OutlinedButton.styleFrom(
@@ -49,17 +58,17 @@ class _OnboardingContentState extends State<OnboardingContent> {
       fontWeight: FontWeight.w800,
       fontSize: 15,
     ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   );
 
   bool _isFirstStep = true;
+  bool _isThirdStep = true;
 
-  String get _currentText => _isFirstStep
-      ? 'Привет! Здесь начинается наш путь знакомства. '
-      'Я расскажу тебе, как пользоваться нашим приложением. Хорошо?'
-      : 'Давай загрузим твое первое резюме!';
+  String get _currentText =>
+      _isFirstStep
+          ? 'Привет! Здесь начинается наш путь знакомства. '
+              'Я расскажу тебе, как пользоваться нашим приложением. Хорошо?'
+          : 'Давай загрузим твое первое резюме!';
 
   String get _mainButtonText => _isFirstStep ? 'Да, конечно' : 'Хорошо!';
 
@@ -67,77 +76,260 @@ class _OnboardingContentState extends State<OnboardingContent> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // Фон с эффектом подсветки
-          if (!_isFirstStep) _buildSpotlightEffect(),
+      body:
+          widget.isFirstBigStep
+              ? Stack(
+                children: [
+                  if (!_isFirstStep) _buildSpotlightEffect(addIcon),
 
-          // Основной контент онбординга
-          Positioned(
-            bottom: bottom35 * 2 + 80,
-            left: bottom35,
-            right: bottom35,
-            child: Material(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(_currentText, style: _textStyle),
-                    const SizedBox(height: 16),
-                    _isFirstStep
-                        ? Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: widget.closeOnboarding,
-                            style: _violetButtonStyle,
-                            child: const Text('Нет, я сам'),
-                          ),
+                  // Основной контент онбординга
+                  Positioned(
+                    bottom: bottom35 * 2 + 80,
+                    left: bottom35,
+                    right: bottom35,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(19),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_currentText, style: _textStyle),
+                            const SizedBox(height: 16),
+                            _isFirstStep
+                                ? Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton(
+                                        onPressed: widget.closeOnboarding,
+                                        style: _violetButtonStyle,
+                                        child: const Text('Нет, я сам'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed:
+                                            () => setState(
+                                              () => _isFirstStep = false,
+                                            ),
+                                        style: _blueButtonStyle,
+                                        child: Text(
+                                          _mainButtonText,
+                                          style: _textStyle.copyWith(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                                : SizedBox(
+                                  child: Row(
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: widget.hideOnboarding,
+                                        style: _blueButtonStyle,
+                                        child: Text(
+                                          _mainButtonText,
+                                          style: _textStyle.copyWith(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                    ],
+                                  ),
+                                ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => setState(() => _isFirstStep = false),
-                            style: _blueButtonStyle,
-                            child: Text(
-                              _mainButtonText,
-                              style: _textStyle.copyWith(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                        : SizedBox(
-                      child: Row(
-                        children: [
-                          ElevatedButton(
-                            onPressed: widget.closeOnboarding,
-                            style: _blueButtonStyle,
-                            child: Text(
-                              _mainButtonText,
-                              style: _textStyle.copyWith(color: Colors.white),
-                            ),
-                          ),
-                          const Spacer(),
-                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+                  ),
+                ],
+              )
+              : widget.isSecondBigStep
+              ? Stack(
+                children: [
+                  // if (!_isFirstStep) _buildSpotlightEffect(),
+                  _isThirdStep
+                      ? Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: bottom35),
+                          child: Material(
+                            borderRadius: BorderRadius.circular(19),
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Здесь можно проверить свое резюме и отредактировать, если нужно!',
+                                    style: _textStyle,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed:
+                                            () => setState(
+                                              () => _isThirdStep = false,
+                                            ),
+                                        style: _blueButtonStyle,
+                                        child: Text(
+                                          'Отлично!',
+                                          style: _textStyle.copyWith(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      Spacer(),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      : Positioned(
+                        left: bottom35,
+                        right: bottom35,
+                        top: MediaQuery.of(context).size.height * 0.2 + 80,
+                        child: Material(
+                          borderRadius: BorderRadius.circular(19),
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Данные можно отредактировать нажав на стрелку. Попробуй!',
+                                  style: _textStyle,
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: widget.hideOnboarding,
+                                      style: _blueButtonStyle,
+                                      child: Text(
+                                        'Давай!',
+                                        style: _textStyle.copyWith(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    Spacer(),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                ],
+              )
+              : widget.isThirdBigStep
+              ? Stack(
+                children: [
+                  _buildSpotlightEffect(doneIcon),
+                  Positioned(
+                    left: bottom35,
+                    right: bottom35,
+                    bottom: bottom35 * 2 + 80,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(19),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'После просмотра или редактирования резюме не забудь сохранить! '
+                              'Для этого нажми на эту кнопку здесь и на предыдущем экране!',
+                              style: _textStyle,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: widget.hideOnboarding,
+                                  style: _blueButtonStyle,
+                                  child: Text(
+                                    'Хорошо!',
+                                    style: _textStyle.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : widget.isFourthBigStep
+              ? Stack(
+                children: [
+                  _buildSpotlightEffect(doneIcon),
+                  Positioned(
+                    left: bottom35,
+                    right: bottom35,
+                    bottom: bottom35 * 2 + 80,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(19),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'После просмотра или редактирования резюме не забудь сохранить! '
+                              'Для этого нажми на эту кнопку здесь!',
+                              style: _textStyle,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: widget.hideOnboarding,
+                                  style: _blueButtonStyle,
+                                  child: Text(
+                                    'Хорошо!',
+                                    style: _textStyle.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : Stack(),
     );
   }
 
-  Widget _buildSpotlightEffect() {
-    final renderBox = widget.addIconKey.currentContext?.findRenderObject() as RenderBox?;
+  Widget _buildSpotlightEffect(icon) {
+    final renderBox =
+        widget.iconKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return const SizedBox();
 
     final targetPosition = renderBox.localToGlobal(Offset.zero);
@@ -151,23 +343,22 @@ class _OnboardingContentState extends State<OnboardingContent> {
 
     return Stack(
       children: [
-        // Затемнение фона с "дыркой"
         Positioned.fill(
           child: CustomPaint(
             painter: _SpotlightPainter(
-              targetKey: widget.addIconKey,
+              targetKey: widget.iconKey,
               context: context,
             ),
           ),
         ),
 
         Positioned(
-          left: center.dx - targetSize.width / 2,
-          top: center.dy - targetSize.height / 2,
+          left: center.dx - 36,
+          top: center.dy - 36,
           child: SizedBox(
-            width: targetSize.width,
-            height: targetSize.height,
-            child: addIcon
+            width: 72,
+            height: 72,
+            child: FittedBox(fit: BoxFit.contain, child: icon),
           ),
         ),
       ],
@@ -179,40 +370,37 @@ class _SpotlightPainter extends CustomPainter {
   final GlobalKey targetKey;
   final BuildContext context;
 
-  _SpotlightPainter({
-    required this.targetKey,
-    required this.context,
-  });
+  _SpotlightPainter({required this.targetKey, required this.context});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final renderBox = targetKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox =
+        targetKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final targetSize = renderBox.size;
     final targetPosition = renderBox.localToGlobal(Offset.zero);
 
-    // Центр кнопки
     final center = Offset(
       targetPosition.dx + targetSize.width / 2,
       targetPosition.dy + targetSize.height / 2,
     );
 
-    // Радиус круга - на 10% больше размера кнопки
     final radius = (targetSize.width + targetSize.height) / 2 * 0.6;
 
-    // Сначала рисуем полупрозрачный черный фон (теперь это будет цвет кнопки)
-    final backgroundPaint = Paint()
-      ..color = backgroundOnboarding.withOpacity(0) // Бывший цвет кнопки теперь для фона
-      ..style = PaintingStyle.fill;
+    final backgroundPaint =
+        Paint()
+          ..color = backgroundOnboarding.withOpacity(0)
+          ..style = PaintingStyle.fill;
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), backgroundPaint);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      backgroundPaint,
+    );
 
-    // Затем "вырезаем" круг, используя Path.combine
-    final path = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final circlePath = Path()
-      ..addOval(Rect.fromCircle(center: center, radius: radius));
+    final path = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final circlePath =
+        Path()..addOval(Rect.fromCircle(center: center, radius: radius));
 
     final combinedPath = Path.combine(
       PathOperation.difference,
@@ -220,21 +408,19 @@ class _SpotlightPainter extends CustomPainter {
       circlePath,
     );
 
-    // Теперь круг (кнопка) будет с цветом, который был у фона
-    final paint = Paint()
-      ..color = backgroundOnboarding.withOpacity(0) // Бывший цвет фона теперь для кнопки
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = backgroundOnboarding.withOpacity(0)
+          ..style = PaintingStyle.fill;
 
     canvas.drawPath(combinedPath, paint);
 
-    // Дополнительно рисуем сам круг (кнопку) нужным цветом
-    final buttonPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
+    final buttonPaint =
+        Paint()
+          ..color = Colors.white.withOpacity(0.75)
+          ..style = PaintingStyle.fill;
 
     canvas.drawCircle(center, radius, buttonPaint);
-
-
   }
 
   @override

@@ -3,9 +3,23 @@ import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
+import '../pages/onboarding_content.dart';
+
 class FullNamePage extends StatefulWidget {
   final List<String> data;
-  const FullNamePage({super.key, required this.data});
+  final bool showOnboarding;
+  final VoidCallback? hideOnboarding;
+  final GlobalKey? doneIconKey;
+  final VoidCallback? onReturnFromOnboarding;
+
+  const FullNamePage({
+    super.key,
+    required this.data,
+    this.showOnboarding = false,
+    this.hideOnboarding,
+    this.doneIconKey,
+    this.onReturnFromOnboarding,
+  });
 
   @override
   State<FullNamePage> createState() => _FullNamePageState();
@@ -37,6 +51,31 @@ class _FullNamePageState extends State<FullNamePage> {
     _patronymicController = TextEditingController(
       text: widget.data.length > 2 ? widget.data[2] : '',
     );
+
+    widget.showOnboarding
+        ? WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showFullScreenOnboarding();
+    })
+        : null;
+  }
+
+  void _showFullScreenOnboarding() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.82),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
+      pageBuilder: (context, _, __) {
+        return OnboardingContent(
+          hideOnboarding: () {
+            Navigator.pop(context);
+          },
+          iconKey: widget.doneIconKey ?? GlobalKey(),
+          isFirstBigStep: false,
+          isThirdBigStep: true,
+        );
+      },
+    );
   }
 
   @override
@@ -66,7 +105,7 @@ class _FullNamePageState extends State<FullNamePage> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      onPressed: () {
+                      onPressed: widget.showOnboarding ? null : () {
                         Navigator.pop(context);
                       },
                       icon: lightArrowBackIcon,
@@ -163,16 +202,17 @@ class _FullNamePageState extends State<FullNamePage> {
         ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: bottom35),
-        child: SizedBox(
-          child: IconButton(
-            icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            padding: EdgeInsets.zero,
-            splashRadius: 36,
-          ),
+        padding: EdgeInsets.only(bottom: bottom35),
+        child: IconButton(
+          icon: darkerBiggerDoneIcon,
+          onPressed: widget.showOnboarding ? () {
+            widget.onReturnFromOnboarding!();
+            widget.hideOnboarding;
+            Navigator.pop(context);
+          } : () {
+            Navigator.pop(context);
+          },
+          iconSize: 36,
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
