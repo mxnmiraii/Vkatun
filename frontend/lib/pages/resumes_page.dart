@@ -18,6 +18,7 @@ import '../account/account_main_page.dart';
 import '../design/colors.dart';
 import '../dialogs/warning_dialog.dart';
 import '../windows/scan_windows/indicator.dart';
+import 'onboarding_content.dart';
 
 class ResumesPage extends StatefulWidget {
   const ResumesPage({super.key});
@@ -26,7 +27,8 @@ class ResumesPage extends StatefulWidget {
   State<StatefulWidget> createState() => _ResumesPageState();
 }
 
-class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin {
+class _ResumesPageState extends State<ResumesPage>
+    with TickerProviderStateMixin {
   late AnimationController _rotationController;
   late AnimationController _sortAnimationController;
   bool _isDialogOpen = false;
@@ -38,6 +40,15 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   bool _isLoading = false;
   bool _reachedLimit = false;
 
+  bool _showOnboarding = true;
+  final _onboardingKey = GlobalKey();
+
+  void _closeOnboarding() {
+    setState(() {
+      _showOnboarding = false;
+    });
+  }
+
   final List<Color> resumeCardColors = [
     babyBlue,
     lightLavender,
@@ -46,6 +57,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   ];
   OverlayEntry? _sortOverlayEntry;
   final GlobalKey _parametersIconKey = GlobalKey();
+  final GlobalKey addIconKey = GlobalKey();
 
   Color _getColorByResumeId(int id) {
     return resumeCardColors[id % resumeCardColors.length];
@@ -63,7 +75,28 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showFullScreenOnboarding(); // Показываем после построения экрана
+    });
     _loadResumes();
+  }
+
+  void _showFullScreenOnboarding() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.82),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
+      pageBuilder: (context, _, __) {
+        return OnboardingContent(
+          closeOnboarding: () {
+            Navigator.pop(context); // Закрываем диалог
+            _closeOnboarding(); // Обновляем состояние
+          },
+          addIconKey: addIconKey,
+        );
+      },
+    );
   }
 
   Future<void> _loadResumes() async {
@@ -74,14 +107,18 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
 
       setState(() {
         _resumes = resumes;
-        _resumes.sort((a, b) => (b['updated_at'] ?? b['created_at'])
-            .compareTo(a['updated_at'] ?? a['created_at']));
-        _reachedLimit = apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
+        _resumes.sort(
+          (a, b) => (b['updated_at'] ?? b['created_at']).compareTo(
+            a['updated_at'] ?? a['created_at'],
+          ),
+        );
+        _reachedLimit =
+            apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка загрузки резюме: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Ошибка загрузки резюме: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -99,9 +136,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       final apiService = Provider.of<ApiService>(context, listen: false);
       return await apiService.getResumeById(id);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка загрузки резюме: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Ошибка загрузки резюме: $e')));
       return {};
     }
   }
@@ -117,32 +154,33 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     late OverlayEntry buttonOverlayEntry;
 
     buttonOverlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        bottom: bottom35,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: Material(
-            color: Colors.transparent,
-            child: AnimatedBuilder(
-              animation: _rotationController,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: _rotationController.value * 2 * math.pi,
-                  child: IconButton(
-                    icon: addIcon,
-                    onPressed: () {
-                      buttonOverlayEntry.remove();
-                      _closeDialog();
-                    },
-                    iconSize: 36,
-                  ),
-                );
-              },
+      builder:
+          (context) => Positioned(
+            bottom: bottom35,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: AnimatedBuilder(
+                  animation: _rotationController,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: _rotationController.value * 2 * math.pi,
+                      child: IconButton(
+                        icon: addIcon,
+                        onPressed: () {
+                          buttonOverlayEntry.remove();
+                          _closeDialog();
+                        },
+                        iconSize: 36,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
     );
 
     Overlay.of(context).insert(buttonOverlayEntry);
@@ -155,7 +193,10 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       transitionDuration: const Duration(milliseconds: timeShowAnimation),
       transitionBuilder: (ctx, anim1, anim2, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(0, -1), end: const Offset(0, 0)).animate(anim1),
+          position: Tween(
+            begin: const Offset(0, -1),
+            end: const Offset(0, 0),
+          ).animate(anim1),
           child: child,
         );
       },
@@ -217,9 +258,7 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
         if (file.extension?.toLowerCase() == 'pdf') {
           await _uploadResume(File(file.path!));
 
-          await AppMetrica.reportEvent(
-            'load_resume_success',
-          );
+          await AppMetrica.reportEvent('load_resume_success');
         } else {
           _showWarningDialog(context);
         }
@@ -235,28 +274,34 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isGuest ? 'Лимит резюме' : 'Достигнут максимум'),
-        content: Text(isGuest
-            ? 'Гостевой пользователь может хранить только 1 резюме. Авторизуйтесь для добавления большего количества.'
-            : 'Вы можете хранить не более 15 резюме. Удалите одно из существующих, чтобы добавить новое.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            title: Text(isGuest ? 'Лимит резюме' : 'Достигнут максимум'),
+            content: Text(
+              isGuest
+                  ? 'Гостевой пользователь может хранить только 1 резюме. Авторизуйтесь для добавления большего количества.'
+                  : 'Вы можете хранить не более 15 резюме. Удалите одно из существующих, чтобы добавить новое.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+              if (isGuest)
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AccountMainPage(),
+                      ),
+                    );
+                  },
+                  child: Text('Войти'),
+                ),
+            ],
           ),
-          if (isGuest) TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AccountMainPage()),
-              );
-            },
-            child: Text('Войти'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -264,12 +309,10 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: GradientCircularProgressIndicator(
-          size: 70,
-          strokeWidth: 5,
-        ),
-      ),
+      builder:
+          (context) => Center(
+            child: GradientCircularProgressIndicator(size: 70, strokeWidth: 5),
+          ),
     );
 
     try {
@@ -279,22 +322,24 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
       Navigator.pop(context);
       setState(() {
         _resumes.insert(0, resume);
-        _reachedLimit = apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
+        _reachedLimit =
+            apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
       });
 
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ResumeViewPage(
-            resume: resume,
-            onDelete: () {
-              setState(() {
-                _resumes.removeWhere((r) => r['id'] == resume['id']);
-                _reachedLimit = false;
-              });
-            },
-            isLoadResume: true,
-          ),
+          builder:
+              (context) => ResumeViewPage(
+                resume: resume,
+                onDelete: () {
+                  setState(() {
+                    _resumes.removeWhere((r) => r['id'] == resume['id']);
+                    _reachedLimit = false;
+                  });
+                },
+                isLoadResume: true,
+              ),
         ),
       );
     } catch (e) {
@@ -314,120 +359,130 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
   void _updateLimitStatus() {
     final apiService = Provider.of<ApiService>(context, listen: false);
     setState(() {
-      _reachedLimit = apiService.authToken == 'guest_token'
-          ? _resumes.length >= 1
-          : _resumes.length >= 15;
+      _reachedLimit =
+          apiService.authToken == 'guest_token'
+              ? _resumes.length >= 1
+              : _resumes.length >= 15;
     });
   }
 
   void _showSortMenu() {
-    final renderBox = _parametersIconKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox =
+        _parametersIconKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
     _sortOverlayEntry = OverlayEntry(
-      builder: (context) => GestureDetector(
-        onTap: () {
-          _sortOverlayEntry?.remove();
-          _sortOverlayEntry = null;
-        },
-        behavior: HitTestBehavior.translucent,
-        child: Material(
-          color: Colors.transparent,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Container(color: Colors.transparent),
-              ),
-              Positioned(
-                right: 16,
-                top: offset.dy + size.height + 8,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    width: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF7369FB),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'Показать сначала',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              fontFamily: 'Playfair',
+      builder:
+          (context) => GestureDetector(
+            onTap: () {
+              _sortOverlayEntry?.remove();
+              _sortOverlayEntry = null;
+            },
+            behavior: HitTestBehavior.translucent,
+            child: Material(
+              color: Colors.transparent,
+              child: Stack(
+                children: [
+                  Positioned.fill(child: Container(color: Colors.transparent)),
+                  Positioned(
+                    right: 16,
+                    top: offset.dy + size.height + 8,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        width: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              spreadRadius: 2,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
+                          ],
                         ),
-                        InkWell(
-                          onTap: _sortResumesNewestFirst,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade200,
-                                  width: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 20,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color(0xFF7369FB),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'Показать сначала',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  fontFamily: 'Playfair',
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: _sortResumesNewestFirst,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 20,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Colors.grey.shade200,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Новые',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 16,
+                                    fontFamily: 'Playfair',
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
-                            child: Text(
-                              'Новые',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16,
-                                fontFamily: 'Playfair',
+                            InkWell(
+                              onTap: _sortResumesOldestFirst,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 20,
+                                ),
+                                child: Text(
+                                  'Старые',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 16,
+                                    fontFamily: 'Playfair',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                          ),
+                          ],
                         ),
-                        InkWell(
-                          onTap: _sortResumesOldestFirst,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                            child: Text(
-                              'Старые',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16,
-                                fontFamily: 'Playfair',
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
 
     Overlay.of(_parametersIconKey.currentContext!).insert(_sortOverlayEntry!);
@@ -441,7 +496,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     setState(() {
       _displayedResumes.clear();
       _displayedResumes.addAll(_resumes);
-      _resumes.sort((a, b) => (b['created_at'] ?? '').compareTo(a['created_at'] ?? ''));
+      _resumes.sort(
+        (a, b) => (b['created_at'] ?? '').compareTo(a['created_at'] ?? ''),
+      );
     });
 
     _sortOverlayEntry?.remove();
@@ -457,7 +514,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     setState(() {
       _displayedResumes.clear();
       _displayedResumes.addAll(_resumes);
-      _resumes.sort((a, b) => (a['created_at'] ?? '').compareTo(b['created_at'] ?? ''));
+      _resumes.sort(
+        (a, b) => (a['created_at'] ?? '').compareTo(b['created_at'] ?? ''),
+      );
     });
 
     _sortOverlayEntry?.remove();
@@ -501,7 +560,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ResumeViewPage(resume: loadedResume, onDelete: () {}),
+              builder:
+                  (context) =>
+                      ResumeViewPage(resume: loadedResume, onDelete: () {}),
             ),
           );
         } catch (e) {
@@ -518,19 +579,11 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(28),
-          side: BorderSide(
-            color: royalPurple,
-            width: widthBorderRadius,
-          ),
+          side: BorderSide(color: royalPurple, width: widthBorderRadius),
         ),
         child: Container(
-          constraints: BoxConstraints(
-            minHeight: 0,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+          constraints: BoxConstraints(minHeight: 0),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -575,7 +628,9 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
-                  resume['experince']?.isNotEmpty == true ? resume['experince']! : 'Опыт не указан',
+                  resume['experince']?.isNotEmpty == true
+                      ? resume['experince']!
+                      : 'Опыт не указан',
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -635,9 +690,22 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
     }
 
     // Сортируем группы в нужном порядке
-    final groupOrder = _sortNewestFirst
-        ? ['Сегодня', 'Вчера', 'На этой неделе', 'В этом месяце', 'Более 30 дней назад']
-        : ['Более 30 дней назад', 'В этом месяце', 'На этой неделе', 'Вчера', 'Сегодня'];
+    final groupOrder =
+        _sortNewestFirst
+            ? [
+              'Сегодня',
+              'Вчера',
+              'На этой неделе',
+              'В этом месяце',
+              'Более 30 дней назад',
+            ]
+            : [
+              'Более 30 дней назад',
+              'В этом месяце',
+              'На этой неделе',
+              'Вчера',
+              'Сегодня',
+            ];
 
     final widgets = <Widget>[];
 
@@ -706,12 +774,16 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
             final resume = resumes[index];
 
             if (_isSorting && _displayedResumes.isNotEmpty) {
-              final oldIndex = _displayedResumes.indexWhere((r) => r['id'] == resume['id']);
+              final oldIndex = _displayedResumes.indexWhere(
+                (r) => r['id'] == resume['id'],
+              );
 
               return AnimatedBuilder(
                 animation: _sortAnimationController,
                 builder: (context, child) {
-                  final animationValue = Curves.easeInOut.transform(_sortAnimationController.value);
+                  final animationValue = Curves.easeInOut.transform(
+                    _sortAnimationController.value,
+                  );
 
                   double xOffset = 0;
                   double yOffset = 0;
@@ -719,8 +791,12 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
                   if (oldIndex != -1) {
                     final oldPosition = _calculatePosition(oldIndex);
                     final newPosition = _calculatePosition(index);
-                    xOffset = (oldPosition.dx - newPosition.dx) * (1 - animationValue);
-                    yOffset = (oldPosition.dy - newPosition.dy) * (1 - animationValue);
+                    xOffset =
+                        (oldPosition.dx - newPosition.dx) *
+                        (1 - animationValue);
+                    yOffset =
+                        (oldPosition.dy - newPosition.dy) *
+                        (1 - animationValue);
                   }
 
                   return Transform.translate(
@@ -775,8 +851,10 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
                       icon: accountIcon,
                       onPressed: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => AccountMainPage())
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AccountMainPage(),
+                          ),
                         );
                       },
                     ),
@@ -812,101 +890,99 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
         scrolledUnderElevation: 0,
       ),
 
-      body: _isLoading
-          ? Center(child: Container(),)
-          : SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (_reachedLimit)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.orange,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.orange),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isGuest
-                              ? 'Вы можете хранить только 1 резюме в гостевом режиме'
-                              : 'Достигнут лимит в 15 резюме',
-                          style: TextStyle(
-                            color: Colors.orange,
-                            fontSize: 14,
+      body:
+          _isLoading
+              ? Center(child: Container())
+              : SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    if (_reachedLimit)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.orange, width: 1),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.orange),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  isGuest
+                                      ? 'Вы можете хранить только 1 резюме в гостевом режиме'
+                                      : 'Достигнут лимит в 15 резюме',
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                              if (isGuest)
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AccountMainPage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Войти',
+                                    style: TextStyle(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ),
-                      if (isGuest)
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AccountMainPage(),
+                    ..._buildGroupedResumes(),
+                    if (_resumes.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 100),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.description_outlined,
+                                size: 64,
+                                color: Colors.grey.withOpacity(0.5),
                               ),
-                            );
-                          },
-                          child: Text(
-                            'Войти',
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
-                            ),
+                              SizedBox(height: 16),
+                              Text(
+                                'У вас пока нет резюме',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                isGuest
+                                    ? 'Добавьте свое первое резюме'
+                                    : 'Нажмите "+" чтобы добавить резюме',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
-            ..._buildGroupedResumes(),
-            if (_resumes.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 100),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.description_outlined,
-                        size: 64,
-                        color: Colors.grey.withOpacity(0.5),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'У вас пока нет резюме',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        isGuest
-                            ? 'Добавьте свое первое резюме'
-                            : 'Нажмите "+" чтобы добавить резюме',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-          ],
-        ),
-      ),
 
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
@@ -916,10 +992,12 @@ class _ResumesPageState extends State<ResumesPage> with TickerProviderStateMixin
             return Transform.rotate(
               angle: _rotationController.value * 2 * math.pi,
               child: IconButton(
+                key: addIconKey,
                 icon: addIcon,
-                onPressed: _reachedLimit
-                    ? () => _showLimitReachedDialog(context)
-                    : _onAddIconPressed,
+                onPressed:
+                    _reachedLimit
+                        ? () => _showLimitReachedDialog(context)
+                        : _onAddIconPressed,
                 iconSize: 36,
                 color: _reachedLimit ? Colors.grey[400] : null,
               ),
