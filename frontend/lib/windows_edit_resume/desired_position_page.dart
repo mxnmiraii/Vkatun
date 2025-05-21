@@ -38,6 +38,7 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: SafeArea(

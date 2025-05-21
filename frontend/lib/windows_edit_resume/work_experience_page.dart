@@ -97,6 +97,7 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: SafeArea(

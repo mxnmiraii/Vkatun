@@ -50,6 +50,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: SafeArea(

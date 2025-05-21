@@ -65,6 +65,7 @@ class _EducationPageState extends State<EducationPage> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: SafeArea(

@@ -35,6 +35,7 @@ class _AboutMePageState extends State<AboutMePage> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: SafeArea(

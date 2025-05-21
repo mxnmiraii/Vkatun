@@ -97,6 +97,7 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: SafeArea(  // Добавлен SafeArea для AppBar
