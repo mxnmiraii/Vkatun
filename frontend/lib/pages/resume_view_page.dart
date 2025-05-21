@@ -272,7 +272,16 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               textAlign: TextAlign.center,
             ),
 
-            Opacity(opacity: 0, child: backIconWBg),
+            IgnorePointer(
+              ignoring: true,
+              child: Opacity(
+                opacity: 0,
+                child: IconButton(
+                  onPressed: () {},
+                  icon: backIconWBg,
+                ),
+              ),
+            ),
           ],
         ),
       ),
