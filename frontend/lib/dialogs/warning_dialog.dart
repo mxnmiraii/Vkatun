@@ -45,40 +45,42 @@ class WarningDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(child: warningIcon),
                       ),
-                      child: Center(child: warningIcon),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Ошибка загрузки',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: 'Playfair',
-                        color: vibrantViolet,
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Ошибка загрузки',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w900,
+                          fontFamily: 'Playfair',
+                          color: vibrantViolet,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Извините!\nЧто-то пошло не так:(',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        fontFamily: 'Playfair',
-                        color: electricLavender,
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Извините!\nЧто-то пошло не так:(',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          fontFamily: 'Playfair',
+                          color: electricLavender,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
