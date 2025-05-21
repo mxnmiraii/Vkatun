@@ -53,9 +53,19 @@ class _ResumesPageState extends State<ResumesPage>
     Tween(begin: 0.95, end: 1.05).chain(CurveTween(curve: Curves.easeInOut)),
   );
 
+  bool _isFirstBigStep = true;
+  bool _isFifthBigStep = false;
+
   void _closeOnboarding() {
     setState(() {
       _showOnboarding = false;
+    });
+  }
+
+  void _switchOnboardingSteps() {
+    setState(() {
+      _isFirstBigStep = !_isFirstBigStep;
+      _isFifthBigStep = !_isFifthBigStep;
     });
   }
 
@@ -86,12 +96,12 @@ class _ResumesPageState extends State<ResumesPage>
       duration: const Duration(milliseconds: 500),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding();
+      _showFullScreenOnboarding(_isFirstBigStep, _isFifthBigStep);
     });
     _loadResumes();
   }
 
-  void _showFullScreenOnboarding() {
+  void _showFullScreenOnboarding(isFirst, isFifth) {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
@@ -105,9 +115,13 @@ class _ResumesPageState extends State<ResumesPage>
           },
           hideOnboarding: () {
             Navigator.pop(context);
-            _pulseCtrl.repeat(reverse: true);
+            if (_isFirstBigStep) {
+              _pulseCtrl.repeat(reverse: true);
+            }
           },
           iconKey: addIconKey,
+          isFirstBigStep: isFirst,
+          isFifthBigStep: isFifth,
         );
       },
     );
@@ -350,6 +364,15 @@ class _ResumesPageState extends State<ResumesPage>
                 isSecondBigStep: _showOnboarding ? true : false,
                 showOnboarding: _showOnboarding,
                 iconKey: addIconKey,
+                onReturnFromOnboarding:
+                    _showOnboarding
+                        ? () {
+                          _switchOnboardingSteps();
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _showFullScreenOnboarding(false, _isFifthBigStep);
+                          });
+                        }
+                        : null,
               ),
         ),
       );
@@ -573,7 +596,18 @@ class _ResumesPageState extends State<ResumesPage>
             MaterialPageRoute(
               builder:
                   (context) =>
-                      ResumeViewPage(resume: loadedResume, onDelete: () {}),
+                      _showOnboarding
+                          ? ResumeViewPage(
+                            resume: loadedResume,
+                            onDelete: () {},
+                            showOnboarding: true,
+                            iconKey: addIconKey,
+                            isSixthBigStep: true,
+                          )
+                          : ResumeViewPage(
+                            resume: loadedResume,
+                            onDelete: () {},
+                          ),
             ),
           );
         } catch (e) {
@@ -582,7 +616,7 @@ class _ResumesPageState extends State<ResumesPage>
         }
       },
       onLongPress: () {
-        _openDialog(resume['id']);
+        _openDialog(resume['id']); // добавить
       },
       child: Card(
         color: _getColorByResumeId(resume['id']),
@@ -862,7 +896,7 @@ class _ResumesPageState extends State<ResumesPage>
                     child: IconButton(
                       icon: accountIcon,
                       onPressed:
-                          isGuest
+                          isGuest && !_showOnboarding
                               ? () {
                                 Navigator.push(
                                   context,
@@ -958,14 +992,18 @@ class _ResumesPageState extends State<ResumesPage>
                               ),
                               if (isGuest)
                                 TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => StartPage(),
-                                      ),
-                                    );
-                                  },
+                                  onPressed:
+                                      !_showOnboarding
+                                          ? () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (context) => StartPage(),
+                                              ),
+                                            );
+                                          }
+                                          : null,
                                   child: Text(
                                     'Войти',
                                     style: TextStyle(
@@ -1032,11 +1070,10 @@ class _ResumesPageState extends State<ResumesPage>
                   key: addIconKey,
                   icon: addIcon,
                   onPressed: () {
-                    // Останавливаем пульсацию при нажатии
                     _pulseCtrl.stop();
 
                     if (_reachedLimit) {
-                      _showLimitReachedDialog(context);
+                      null;
                     } else {
                       _onAddIconPressed();
                     }

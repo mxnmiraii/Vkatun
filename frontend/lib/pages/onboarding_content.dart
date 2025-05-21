@@ -11,6 +11,8 @@ class OnboardingContent extends StatefulWidget {
   final bool isSecondBigStep;
   final bool isThirdBigStep;
   final bool isFourthBigStep;
+  final bool isFifthBigStep;
+  final bool isSixthBigStep;
 
   const OnboardingContent({
     super.key,
@@ -21,6 +23,8 @@ class OnboardingContent extends StatefulWidget {
     this.isSecondBigStep = false,
     this.isThirdBigStep = false,
     this.isFourthBigStep = false,
+    this.isFifthBigStep = false,
+    this.isSixthBigStep = false,
   });
 
   @override
@@ -197,47 +201,47 @@ class _OnboardingContentState extends State<OnboardingContent> {
                         ),
                       )
                       : Stack(
-                    children: [
-                      _buildSpotlightEffect(forwardIconWBg),
-                      Positioned(
-                        left: bottom35,
-                        right: bottom35,
-                        top: MediaQuery.of(context).size.height * 0.2 + 80,
-                        child: Material(
-                          borderRadius: BorderRadius.circular(19),
-                          color: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Данные можно отредактировать нажав на стрелку. Попробуй!',
-                                  style: _textStyle,
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
+                        children: [
+                          _buildSpotlightEffect(forwardIconWBg),
+                          Positioned(
+                            left: bottom35,
+                            right: bottom35,
+                            top: MediaQuery.of(context).size.height * 0.2 + 80,
+                            child: Material(
+                              borderRadius: BorderRadius.circular(19),
+                              color: Colors.white,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    ElevatedButton(
-                                      onPressed: widget.hideOnboarding,
-                                      style: _blueButtonStyle,
-                                      child: Text(
-                                        'Давай!',
-                                        style: _textStyle.copyWith(
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                    Text(
+                                      'Данные можно отредактировать нажав на стрелку. Попробуй!',
+                                      style: _textStyle,
                                     ),
-                                    Spacer(),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        ElevatedButton(
+                                          onPressed: widget.hideOnboarding,
+                                          style: _blueButtonStyle,
+                                          child: Text(
+                                            'Давай!',
+                                            style: _textStyle.copyWith(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                      ],
+                                    ),
                                   ],
                                 ),
-                              ],
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  )
                 ],
               )
               : widget.isThirdBigStep
@@ -303,6 +307,88 @@ class _OnboardingContentState extends State<OnboardingContent> {
                             Text(
                               'После просмотра или редактирования резюме не забудь сохранить! '
                               'Для этого нажми на эту кнопку здесь!',
+                              style: _textStyle,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: widget.hideOnboarding,
+                                  style: _blueButtonStyle,
+                                  child: Text(
+                                    'Хорошо!',
+                                    style: _textStyle.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : widget.isFifthBigStep
+              ? Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: bottom35),
+                  child: Material(
+                    borderRadius: BorderRadius.circular(19),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Поздравляю! Ты загрузил свое первое резюме! Нажми на него, чтобы отредактировать.',
+                            style: _textStyle,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: widget.hideOnboarding,
+                                style: _blueButtonStyle,
+                                child: Text(
+                                  'Хорошо!',
+                                  style: _textStyle.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Spacer(),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              : widget.isSixthBigStep
+              ? Stack(
+                children: [
+                  _buildSpotlightEffect(magicIcon),
+                  Positioned(
+                    left: bottom35,
+                    right: bottom35,
+                    bottom: bottom35 * 2 + 80,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(19),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Отлично, теперь нажми на эту кнопку, чтобы посмотреть рекомендации '
+                              'для улучшения твоего резюме!',
                               style: _textStyle,
                             ),
                             const SizedBox(height: 16),

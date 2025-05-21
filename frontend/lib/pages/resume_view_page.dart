@@ -29,6 +29,8 @@ class ResumeViewPage extends StatefulWidget {
   final bool showOnboarding;
   final VoidCallback? onCloseOnboarding;
   final GlobalKey? iconKey;
+  final VoidCallback? onReturnFromOnboarding;
+  final bool isSixthBigStep;
 
   const ResumeViewPage({
     super.key,
@@ -39,6 +41,8 @@ class ResumeViewPage extends StatefulWidget {
     this.showOnboarding = false,
     this.onCloseOnboarding,
     this.iconKey,
+    this.onReturnFromOnboarding,
+    this.isSixthBigStep = false,
   });
 
   @override
@@ -196,20 +200,31 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       barrierColor: Colors.black.withOpacity(0.82),
       transitionDuration: const Duration(milliseconds: timeShowAnimation),
       pageBuilder: (context, _, __) {
-        return OnboardingContent(
-          hideOnboarding: () {
-            Navigator.pop(context);
-            if (_isSecondStep) {
-              _namePulseCtrl.repeat(reverse: true);
-            } else if (_isFourthStep) {
-              _pulseCtrl.repeat(reverse: true);
-            }
-          },
-          iconKey: isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
-          isFirstBigStep: isFirst,
-          isSecondBigStep: isSecond,
-          isFourthBigStep: isFourth,
-        );
+        return widget.isSixthBigStep
+            ? OnboardingContent(
+              hideOnboarding: () {
+                Navigator.pop(context);
+                _pulseCtrl.repeat(reverse: true);
+              },
+              iconKey: widget.iconKey ?? GlobalKey(),
+              isFirstBigStep: false,
+              isSixthBigStep: true,
+            )
+            : OnboardingContent(
+              hideOnboarding: () {
+                Navigator.pop(context);
+                if (_isSecondStep) {
+                  _namePulseCtrl.repeat(reverse: true);
+                } else if (_isFourthStep) {
+                  _pulseCtrl.repeat(reverse: true);
+                }
+              },
+              iconKey:
+                  isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
+              isFirstBigStep: isFirst,
+              isSecondBigStep: isSecond,
+              isFourthBigStep: isFourth,
+            );
       },
     );
   }
@@ -276,10 +291,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ignoring: true,
               child: Opacity(
                 opacity: 0,
-                child: IconButton(
-                  onPressed: () {},
-                  icon: backIconWBg,
-                ),
+                child: IconButton(onPressed: () {}, icon: backIconWBg),
               ),
             ),
           ],
@@ -374,43 +386,59 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         ),
       ),
 
-      floatingActionButton: widget.isLoadResume
-          ? Padding(
-        padding: EdgeInsets.only(bottom: bottom35),
-        child: widget.showOnboarding && _isFourthStep
-            ? ScaleTransition(
-          scale: _pulseAnim,
-          child: IconButton(
-            onPressed: () {
-              _pulseCtrl.stop();
-              Navigator.pop(context, true);
-            },
-            icon: doneIcon,
-          ),
-        )
-            : IconButton(
-          onPressed: widget.showOnboarding
-              ? _isFourthStep
-              ? () {
-            _pulseCtrl.stop();
-            Navigator.pop(context, true);
-          }
-              : null
-              : () {
-            Navigator.pop(context, true);
-          },
-          icon: doneIcon,
-        ),
-      )
-          : Padding(
-        padding: EdgeInsets.only(bottom: bottom35),
-        child: IconButton(
-          key: magicIconKey,
-          icon: magicIcon,
-          onPressed: _openDialog,
-          iconSize: 36,
-        ),
-      ),
+      floatingActionButton:
+          widget.isLoadResume
+              ? Padding(
+                padding: EdgeInsets.only(bottom: bottom35),
+                child:
+                    widget.showOnboarding && _isFourthStep
+                        ? ScaleTransition(
+                          scale: _pulseAnim,
+                          child: IconButton(
+                            onPressed: () {
+                              _pulseCtrl.stop();
+                              Navigator.pop(context, true);
+                              widget.onReturnFromOnboarding!();
+                            },
+                            icon: doneIcon,
+                          ),
+                        )
+                        : IconButton(
+                          onPressed:
+                              widget.showOnboarding
+                                  ? _isFourthStep
+                                      ? () {
+                                        _pulseCtrl.stop();
+                                        Navigator.pop(context, true);
+                                      }
+                                      : null
+                                  : () {
+                                    Navigator.pop(context, true);
+                                  },
+                          icon: doneIcon,
+                        ),
+              )
+              : Padding(
+                padding: EdgeInsets.only(bottom: bottom35),
+                child:
+                    widget.showOnboarding && widget.isSixthBigStep
+                        ? ScaleTransition(
+                          scale: _pulseAnim,
+                          child: IconButton(
+                            icon: magicIcon,
+                            onPressed: () {
+                              _pulseCtrl.stop();
+                              _openDialog();
+                            },
+                            iconSize: 36,
+                          ),
+                        )
+                        : IconButton(
+                          icon: magicIcon,
+                          onPressed: _openDialog,
+                          iconSize: 36,
+                        ),
+              ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -459,37 +487,44 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
             Expanded(
               flex: 1,
-              child: widget.showOnboarding && title.contains('ФИО') && _isSecondStep
-                  ? ScaleTransition(
-                scale: _namePulseAnim,
-                child: IconButton(
-                  key: forwardIconWBgKey,
-                  onPressed: () {
-                    _namePulseCtrl.stop();
-                    if (targetPage != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => targetPage),
-                      );
-                    }
-                  },
-                  icon: forwardIconWBg,
-                ),
-              )
-                  : IconButton(
-                onPressed: targetPage != null
-                    ? () {
-                  if (!widget.showOnboarding ||
-                      (title.contains('ФИО') && _isSecondStep)) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => targetPage),
-                    );
-                  }
-                }
-                    : null,
-                icon: forwardIconWBg,
-              ),
+              child:
+                  widget.showOnboarding &&
+                          title.contains('ФИО') &&
+                          _isSecondStep
+                      ? ScaleTransition(
+                        scale: _namePulseAnim,
+                        child: IconButton(
+                          key: forwardIconWBgKey,
+                          onPressed: () {
+                            _namePulseCtrl.stop();
+                            if (targetPage != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => targetPage),
+                              );
+                            }
+                          },
+                          icon: forwardIconWBg,
+                        ),
+                      )
+                      : IconButton(
+                        onPressed:
+                            targetPage != null
+                                ? () {
+                                  if (!widget.showOnboarding ||
+                                      (title.contains('ФИО') &&
+                                          _isSecondStep)) { // тут с условием хуйня с 6 шагом
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => targetPage,
+                                      ),
+                                    );
+                                  }
+                                }
+                                : null,
+                        icon: forwardIconWBg,
+                      ),
             ),
           ],
         ),
