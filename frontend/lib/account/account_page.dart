@@ -80,9 +80,6 @@ class _AccountMainPageState extends State<AccountPage> {
                     MaterialPageRoute(builder: (context) => StartPage()),
                         (Route<dynamic> route) => false,
                   );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Вы успешно вышли из аккаунта')),
-                  );
                 },
                 icon: logOutIcon,
                 tooltip: 'Выйти из аккаунта',

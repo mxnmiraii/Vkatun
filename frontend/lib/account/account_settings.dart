@@ -112,9 +112,6 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                     MaterialPageRoute(builder: (context) => StartPage()),
                         (Route<dynamic> route) => false,
                   );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Вы успешно вышли из аккаунта')),
-                  );
                 },
                 icon: logOutIcon,
                 tooltip: 'Выйти из аккаунта',

@@ -193,9 +193,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
       }
     }
   }
@@ -746,9 +743,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isScanningSpell = false;
                             isLoading = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                       _buildButton('Пунктуация', () async {
@@ -772,9 +766,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isScanningPunctuation = false;
                             isLoading = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                       _buildButton('Грамматика', () async {
@@ -798,9 +789,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isLoading = false;
                             isScanningGrammar = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                       _buildButton('Стилевые ошибки', () async {
@@ -824,9 +812,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isLoading = false;
                             isScanningStyle = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                     ]
@@ -852,9 +837,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isLoading = false;
                             isScanningSkills = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                       _buildButton('О себе', () async {
@@ -878,9 +860,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isLoading = false;
                             isScanningAboutMe = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                       _buildButton('Опыт работы', () async {
@@ -904,9 +883,6 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             isLoading = false;
                             isScanningExperience = false;
                           });
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
                         }
                       }),
                     ],

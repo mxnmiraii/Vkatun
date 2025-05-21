@@ -130,9 +130,6 @@ class _ResumesPageState extends State<ResumesPage>
             apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Ошибка загрузки резюме: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -150,9 +147,6 @@ class _ResumesPageState extends State<ResumesPage>
       final apiService = Provider.of<ApiService>(context, listen: false);
       return await apiService.getResumeById(id);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Ошибка загрузки резюме: $e')));
       return {};
     }
   }

@@ -147,9 +147,6 @@ class _AccountMainPageState extends State<AccountMainPage> {
                       }
                     } catch (e) {
                       print('Ошибка загрузки данных: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Не удалось загрузить данные')),
-                      );
                     }
                   },
                 ),

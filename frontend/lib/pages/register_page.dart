@@ -129,7 +129,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }
 
       if (password.isEmpty || !_isValidPassword(password)) {
-        _showFieldError('password', 'Пароль слабый: 8–25 символов, цифра и спецсимвол');
+        _showFieldError('password', 'Пароль: 8–25 символов, цифра и символ');
         return;
       }
 
