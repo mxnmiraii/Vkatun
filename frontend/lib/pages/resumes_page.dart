@@ -43,6 +43,9 @@ class _ResumesPageState extends State<ResumesPage>
   bool _showOnboarding = true;
   final _onboardingKey = GlobalKey();
 
+  late final _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+  late final _pulseAnim = _pulseCtrl.drive(Tween(begin: 0.95, end: 1.05).chain(CurveTween(curve: Curves.easeInOut)));
+
   void _closeOnboarding() {
     setState(() {
       _showOnboarding = false;
@@ -95,6 +98,7 @@ class _ResumesPageState extends State<ResumesPage>
           },
           hideOnboarding: () {
             Navigator.pop(context);
+            _pulseCtrl.repeat(reverse: true);
           },
           iconKey: addIconKey,
         );
@@ -831,6 +835,7 @@ class _ResumesPageState extends State<ResumesPage>
     _sortAnimationController.dispose();
     _sortOverlayEntry?.remove();
     super.dispose();
+    _pulseCtrl.dispose();
   }
 
   @override
@@ -997,19 +1002,28 @@ class _ResumesPageState extends State<ResumesPage>
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: AnimatedBuilder(
-          animation: _rotationController,
+          animation: Listenable.merge([_rotationController, _pulseCtrl]),
           builder: (context, child) {
             return Transform.rotate(
               angle: _rotationController.value * 2 * math.pi,
-              child: IconButton(
-                key: addIconKey,
-                icon: addIcon,
-                onPressed:
-                    _reachedLimit
-                        ? () => _showLimitReachedDialog(context)
-                        : _onAddIconPressed,
-                iconSize: 36,
-                color: _reachedLimit ? Colors.grey[400] : null,
+              child: Transform.scale(
+                scale: _showOnboarding ? _pulseAnim.value : 1.0,
+                child: IconButton(
+                  key: addIconKey,
+                  icon: addIcon,
+                  onPressed: () {
+                    // Останавливаем пульсацию при нажатии
+                    _pulseCtrl.stop();
+
+                    if (_reachedLimit) {
+                      _showLimitReachedDialog(context);
+                    } else {
+                      _onAddIconPressed();
+                    }
+                  },
+                  iconSize: 36,
+                  color: _reachedLimit ? Colors.grey[400] : null,
+                ),
               ),
             );
           },

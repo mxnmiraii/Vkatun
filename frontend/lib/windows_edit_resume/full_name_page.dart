@@ -25,16 +25,25 @@ class FullNamePage extends StatefulWidget {
   State<FullNamePage> createState() => _FullNamePageState();
 }
 
-class _FullNamePageState extends State<FullNamePage> {
+class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMixin {
   late TextEditingController _surnameController = TextEditingController();
   late TextEditingController _nameController = TextEditingController();
   late TextEditingController _patronymicController = TextEditingController();
+
+  late final _pulseCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+  late final _pulseAnim = _pulseCtrl.drive(
+    Tween(begin: 0.95, end: 1.05).chain(CurveTween(curve: Curves.easeInOut)),
+  );
 
   @override
   void dispose() {
     _surnameController.dispose();
     _nameController.dispose();
     _patronymicController.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
@@ -69,6 +78,7 @@ class _FullNamePageState extends State<FullNamePage> {
         return OnboardingContent(
           hideOnboarding: () {
             Navigator.pop(context);
+            _pulseCtrl.repeat(reverse: true);
           },
           iconKey: widget.doneIconKey ?? GlobalKey(),
           isFirstBigStep: false,
@@ -203,13 +213,23 @@ class _FullNamePageState extends State<FullNamePage> {
       ),
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
-        child: IconButton(
+        child: widget.showOnboarding
+            ? ScaleTransition(
+          scale: _pulseAnim,
+          child: IconButton(
+            icon: darkerBiggerDoneIcon,
+            onPressed: () {
+              _pulseCtrl.stop();
+              widget.onReturnFromOnboarding!();
+              widget.hideOnboarding;
+              Navigator.pop(context);
+            },
+            iconSize: 36,
+          ),
+        )
+            : IconButton(
           icon: darkerBiggerDoneIcon,
-          onPressed: widget.showOnboarding ? () {
-            widget.onReturnFromOnboarding!();
-            widget.hideOnboarding;
-            Navigator.pop(context);
-          } : () {
+          onPressed: () {
             Navigator.pop(context);
           },
           iconSize: 36,

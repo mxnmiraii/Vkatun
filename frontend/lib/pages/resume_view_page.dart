@@ -46,13 +46,29 @@ class ResumeViewPage extends StatefulWidget {
 }
 
 class _ResumeViewPageState extends State<ResumeViewPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _rotationController;
   bool _isDialogOpen = false;
   final GlobalKey magicIconKey = GlobalKey();
 
   bool _isSecondStep = true;
   bool _isFourthStep = false;
+
+  late final _pulseCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+  late final _pulseAnim = _pulseCtrl.drive(
+    Tween(begin: 0.95, end: 1.05).chain(CurveTween(curve: Curves.easeInOut)),
+  );
+
+  late final _namePulseCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+  late final _namePulseAnim = _namePulseCtrl.drive(
+    Tween(begin: 0.95, end: 1.2).chain(CurveTween(curve: Curves.easeInOut)),
+  );
 
   @override
   void initState() {
@@ -79,6 +95,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   @override
   void dispose() {
     _rotationController.dispose();
+    _namePulseCtrl.dispose();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
@@ -179,6 +197,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         return OnboardingContent(
           hideOnboarding: () {
             Navigator.pop(context);
+            if (_isSecondStep) {
+              _namePulseCtrl.repeat(reverse: true);
+            } else if (_isFourthStep) {
+              _pulseCtrl.repeat(reverse: true);
+            }
           },
           iconKey: widget.iconKey ?? GlobalKey(),
           isFirstBigStep: isFirst,
@@ -340,33 +363,43 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         ),
       ),
 
-      floatingActionButton:
-          widget.isLoadResume
-              ? Padding(
-                padding: EdgeInsets.only(bottom: bottom35),
-                child: IconButton(
-                  onPressed:
-                      widget.showOnboarding
-                          ? _isFourthStep
-                              ? () {
-                                Navigator.pop(context, true);
-                              }
-                              : null
-                          : () {
-                            Navigator.pop(context, true);
-                          },
-                  icon: doneIcon,
-                ),
-              )
-              : Padding(
-                padding: EdgeInsets.only(bottom: bottom35),
-                child: IconButton(
-                  key: magicIconKey,
-                  icon: magicIcon,
-                  onPressed: _openDialog,
-                  iconSize: 36,
-                ),
-              ),
+      floatingActionButton: widget.isLoadResume
+          ? Padding(
+        padding: EdgeInsets.only(bottom: bottom35),
+        child: widget.showOnboarding && _isFourthStep
+            ? ScaleTransition(
+          scale: _pulseAnim,
+          child: IconButton(
+            onPressed: () {
+              _pulseCtrl.stop();
+              Navigator.pop(context, true);
+            },
+            icon: doneIcon,
+          ),
+        )
+            : IconButton(
+          onPressed: widget.showOnboarding
+              ? _isFourthStep
+              ? () {
+            _pulseCtrl.stop();
+            Navigator.pop(context, true);
+          }
+              : null
+              : () {
+            Navigator.pop(context, true);
+          },
+          icon: doneIcon,
+        ),
+      )
+          : Padding(
+        padding: EdgeInsets.only(bottom: bottom35),
+        child: IconButton(
+          key: magicIconKey,
+          icon: magicIcon,
+          onPressed: _openDialog,
+          iconSize: 36,
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -415,29 +448,34 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
             Expanded(
               flex: 1,
-              child: IconButton(
-                onPressed:
-                    widget.showOnboarding
-                        ? title.contains('ФИО') && targetPage != null
-                            ? _isSecondStep
-                                ? () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => targetPage,
-                                    ),
-                                  );
-                                }
-                                : null
-                            : null
-                        : targetPage != null
-                        ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => targetPage),
-                          );
-                        }
-                        : null, // если targetPage не задан — кнопка будет неактивной
+              child: widget.showOnboarding && title.contains('ФИО') && _isSecondStep
+                  ? ScaleTransition(
+                scale: _namePulseAnim,
+                child: IconButton(
+                  onPressed: () {
+                    _namePulseCtrl.stop();
+                    if (targetPage != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => targetPage),
+                      );
+                    }
+                  },
+                  icon: forwardIconWBg,
+                ),
+              )
+                  : IconButton(
+                onPressed: targetPage != null
+                    ? () {
+                  if (!widget.showOnboarding ||
+                      (title.contains('ФИО') && _isSecondStep)) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => targetPage),
+                    );
+                  }
+                }
+                    : null,
                 icon: forwardIconWBg,
               ),
             ),
