@@ -6,7 +6,7 @@ import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 import '../api_service.dart';
-import '../dialogs/warning_dialog.dart';
+
 import '../pages/start_page.dart';
 
 class AccountSettingsPage extends StatefulWidget {
@@ -21,6 +21,18 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   late TextEditingController _usernameController = TextEditingController();
   late TextEditingController _oldPassController = TextEditingController();
   late TextEditingController _newPassController = TextEditingController();
+
+  bool _oldPassError = false;
+  bool _newPassError = false;
+  String? _errorMessage;
+
+  bool _isValidPassword(String password) {
+    final lengthValid = password.length >= 8 && password.length <= 25;
+    final hasDigit = password.contains(RegExp(r'\d'));
+    final hasSpecialChar = password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'));
+    return lengthValid && hasDigit && hasSpecialChar;
+  }
+
 
   @override
   void dispose() {
@@ -49,24 +61,32 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
     }
   }
 
-  Future<void> _setPassword(String oldPass, String newPass) async {
+  Future<bool> _setPassword(String oldPass, String newPass) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.updatePassword(currentPassword: oldPass, newPassword: newPass);
-
-      return response;
+      await apiService.updatePassword(
+        currentPassword: oldPass,
+        newPassword: newPass,
+      );
+      return true;
     } catch (e) {
-      print('Ошибка  $e');
+      print('Ошибка при смене пароля: $e');
+      return false;
     }
   }
 
-  void _showWarningDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => WarningDialog(), // Ваш кастомный диалог
-      barrierDismissible: true,
-    );
+  void _clearErrorAfterDelay() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _oldPassError = false;
+          _newPassError = false;
+          _errorMessage = null;
+        });
+      }
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -163,11 +183,30 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
                 ],
               ),
               child: Column(children: [
-                _buildTextField(label: 'Имя пользователя', controller: _usernameController, onPressed: () {}),
-                SizedBox(height: 30,),
-                _buildTextField(label: 'Старый пароль', controller: _oldPassController, onPressed: () {}),
-                SizedBox(height: 30,),
-                _buildTextField(label: 'Новый пароль', controller: _newPassController, onPressed: () {}),
+                _buildTextField(
+                  label: 'Имя пользователя',
+                  controller: _usernameController,
+                  isError: false,
+                ),
+
+                const SizedBox(height: 30),
+
+                _buildTextField(
+                  label: 'Старый пароль',
+                  controller: _oldPassController,
+                  isError: _oldPassError,
+                  errorText: _errorMessage,
+                ),
+
+                const SizedBox(height: 30),
+
+                _buildTextField(
+                  label: 'Новый пароль',
+                  controller: _newPassController,
+                  isError: _newPassError,
+                  errorText: _errorMessage,
+                ),
+
               ]),
             ),
           ),
@@ -178,19 +217,50 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
           icon: doneIcon,
-          onPressed: () {
-            if (widget.profileData['username'] != _usernameController.text) {
-              print(_usernameController.text);
-              _setUsername(_usernameController.text);
+          onPressed: () async {
+            final oldInput = _oldPassController.text.trim();
+            final newInput = _newPassController.text.trim();
+
+            setState(() {
+              _oldPassError = false;
+              _newPassError = false;
+              _errorMessage = null;
+            });
+
+            if (widget.profileData['username'] != _usernameController.text.trim()) {
+              await _setUsername(_usernameController.text.trim());
             }
 
-            if (_oldPassController.text.contains(_newPassController.text)) {
-              // как то обработать ошибку
+            if (oldInput.isEmpty || newInput.isEmpty) {
+              setState(() {
+                _oldPassError = oldInput.isEmpty;
+                _newPassError = newInput.isEmpty;
+                _errorMessage = 'Заполните оба поля';
+              });
+              _clearErrorAfterDelay();
+              return;
+            }
+
+            if (!_isValidPassword(newInput)) {
+              setState(() {
+                _newPassError = true;
+                _errorMessage = 'Пароль должен быть от 8 до 25 символов и содержать цифру и спецсимвол';
+              });
+              _clearErrorAfterDelay();
+              return;
+            }
+
+            final success = await _setPassword(oldInput, newInput);
+
+            if (success) {
+              Navigator.pop(context);
             } else {
-              _setPassword(_oldPassController.text, _newPassController.text);
+              setState(() {
+                _oldPassError = true;
+                _errorMessage = 'Старый пароль неверный';
+              });
+              _clearErrorAfterDelay();
             }
-
-            Navigator.pop(context);
           },
           iconSize: 36, // Можно настроить размер иконки
         ),
@@ -202,7 +272,8 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
-    required onPressed,
+    required bool isError,
+    String? errorText,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,44 +287,48 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
             color: darkImperialBlue,
           ),
         ),
-
-        SizedBox(height: 10,),
-
-        TextField(
-          controller: controller,
-          style: const TextStyle(
-            fontFamily: "NotoSans",
-            fontSize: 14,
-            fontWeight: FontWeight.w300,
-            color: black,
+        const SizedBox(height: 10),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isError ? Colors.red : lightVioletDivider.withOpacity(0.5),
+                width: 1.5,
+              ),
+            ),
           ),
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ), // Уменьшаем отступы сверху и снизу
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightVioletDivider.withOpacity(0.5), // Цвет полоски
-                width: 1,
-              ),
+          child: TextField(
+            controller: controller,
+            obscureText: label.contains("пароль"), // скрываем для паролей
+            style: const TextStyle(
+              fontFamily: "NotoSans",
+              fontSize: 14,
+              fontWeight: FontWeight.w300,
+              color: black,
             ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightVioletDivider.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightVioletDivider.withOpacity(0.5),
-                width: 1,
-              ),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.only(top: 7, bottom: 14),
+              border: InputBorder.none,
             ),
           ),
         ),
+        if (isError && errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              errorText,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.red,
+              ),
+            ),
+          ),
       ],
     );
   }
+
 }
+
+

@@ -179,6 +179,7 @@ class _AccountMainPageState extends State<AccountPage> {
 
         TextField(
           controller: controller,
+          readOnly: true, // ← вот это добавили
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
@@ -190,10 +191,10 @@ class _AccountMainPageState extends State<AccountPage> {
             contentPadding: const EdgeInsets.only(
               top: 7,
               bottom: 14,
-            ), // Уменьшаем отступы сверху и снизу
+            ),
             border: UnderlineInputBorder(
               borderSide: BorderSide(
-                color: lightVioletDivider.withOpacity(0.5), // Цвет полоски
+                color: lightVioletDivider.withOpacity(0.5),
                 width: 1,
               ),
             ),
@@ -211,6 +212,7 @@ class _AccountMainPageState extends State<AccountPage> {
             ),
           ),
         ),
+
       ],
     );
   }
