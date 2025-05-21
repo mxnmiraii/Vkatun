@@ -1,7 +1,9 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"io"
@@ -119,6 +121,10 @@ func (api *API) editResume(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := api.db.UpdateResume(r.Context(), id, input); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Resume not found", http.StatusNotFound)
+			return
+		}
 		api.logger.Error("failed to update resume", zap.Int("resume_id", id), zap.Error(err))
 		http.Error(w, "Failed to update resume", http.StatusInternalServerError)
 		return
@@ -141,6 +147,10 @@ func (api *API) editResumeSection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := api.db.UpdateResumeSection(r.Context(), id, section, payload.Content); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Resume not found", http.StatusNotFound)
+			return
+		}
 		api.logger.Error(
 			"failed to update resume section",
 			zap.String("section", section),
@@ -299,6 +309,10 @@ func (api *API) checkSkills(w http.ResponseWriter, r *http.Request) {
 func (api *API) deleteResume(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	if err := api.db.DeleteResume(r.Context(), id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Resume not found", http.StatusNotFound)
+			return
+		}
 		api.logger.Error("failed to delete resume", zap.Int("resume_id", id), zap.Error(err))
 		http.Error(w, "Failed to delete resume", http.StatusInternalServerError)
 		return

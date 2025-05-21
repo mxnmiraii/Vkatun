@@ -2,6 +2,7 @@ package pgsql
 
 import (
 	"context"
+	"database/sql"
 	"vkatun/pkg/models"
 )
 
@@ -33,24 +34,51 @@ func (d *DB) GetResumeByID(ctx context.Context, id int) (*models.Resume, error) 
 
 // UpdateResume обновляет все поля резюме
 func (d *DB) UpdateResume(ctx context.Context, id int, resume models.Resume) error {
-	_, err := d.pool.Exec(ctx, `
+	res, err := d.pool.Exec(ctx, `
         UPDATE resume SET title=$1, contacts=$2, job=$3, experience=$4, education=$5, skills=$6, about=$7, updated_at=NOW()
         WHERE id = $8
     `, resume.Title, resume.Contacts, resume.Job, resume.Experience, resume.Education, resume.Skills, resume.About, id)
-	return err
+	if err != nil {
+		return err
+	}
+
+	rowsAffected := res.RowsAffected()
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
 // UpdateResumeSection обновляет одну секцию резюме
 func (d *DB) UpdateResumeSection(ctx context.Context, id int, section string, content string) error {
 	query := "UPDATE resume SET " + section + " = $1, updated_at = NOW() WHERE id = $2"
-	_, err := d.pool.Exec(ctx, query, content, id)
-	return err
+	res, err := d.pool.Exec(ctx, query, content, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected := res.RowsAffected()
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
 // DeleteResume удаляет резюме по ID
 func (d *DB) DeleteResume(ctx context.Context, id int) error {
-	_, err := d.pool.Exec(ctx, "DELETE FROM resume WHERE id = $1", id)
-	return err
+	res, err := d.pool.Exec(ctx, "DELETE FROM resume WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected := res.RowsAffected()
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
 // ListResumes возвращает список резюме пользователя
