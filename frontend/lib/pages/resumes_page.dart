@@ -11,6 +11,7 @@ import 'package:vkatun/design/images.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/dialogs/error_dialog.dart';
 import 'package:vkatun/pages/resume_view_page.dart';
+import 'package:vkatun/pages/start_page.dart';
 import 'package:vkatun/windows/window_resumes_page.dart';
 import 'package:vkatun/api_service.dart';
 
@@ -18,6 +19,7 @@ import '../account/account_main_page.dart';
 import '../design/colors.dart';
 import '../dialogs/warning_dialog.dart';
 import '../windows/scan_windows/indicator.dart';
+import 'entry_page.dart';
 import 'onboarding_content.dart';
 
 class ResumesPage extends StatefulWidget {
@@ -43,8 +45,13 @@ class _ResumesPageState extends State<ResumesPage>
   bool _showOnboarding = true;
   final _onboardingKey = GlobalKey();
 
-  late final _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
-  late final _pulseAnim = _pulseCtrl.drive(Tween(begin: 0.95, end: 1.05).chain(CurveTween(curve: Curves.easeInOut)));
+  late final _pulseCtrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+  late final _pulseAnim = _pulseCtrl.drive(
+    Tween(begin: 0.95, end: 1.05).chain(CurveTween(curve: Curves.easeInOut)),
+  );
 
   void _closeOnboarding() {
     setState(() {
@@ -860,16 +867,26 @@ class _ResumesPageState extends State<ResumesPage>
                     padding: const EdgeInsets.only(left: 15),
                     child: IconButton(
                       icon: accountIcon,
-                        onPressed: _showOnboarding
-                            ? null
-                            : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AccountMainPage(),
-                            ),
-                          );
-                        },
+                      onPressed:
+                          isGuest
+                              ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => StartPage(),
+                                  ),
+                                );
+                              }
+                              : _showOnboarding
+                              ? null
+                              : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AccountMainPage(),
+                                  ),
+                                );
+                              },
                     ),
                   ),
                   Flexible(
@@ -883,16 +900,17 @@ class _ResumesPageState extends State<ResumesPage>
                     child: IconButton(
                       key: _parametersIconKey,
                       icon: parametersIcon,
-                      onPressed: _showOnboarding
-                      ? null
-                      : () {
-                        if (_sortOverlayEntry != null) {
-                          _sortOverlayEntry?.remove();
-                          _sortOverlayEntry = null;
-                        } else {
-                          _showSortMenu();
-                        }
-                      },
+                      onPressed:
+                          _showOnboarding
+                              ? null
+                              : () {
+                                if (_sortOverlayEntry != null) {
+                                  _sortOverlayEntry?.remove();
+                                  _sortOverlayEntry = null;
+                                } else {
+                                  _showSortMenu();
+                                }
+                              },
                     ),
                   ),
                 ],
@@ -913,19 +931,23 @@ class _ResumesPageState extends State<ResumesPage>
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
+                    if (_reachedLimit) SizedBox(height: 7),
                     if (_reachedLimit)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: lightVioletDivider.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.orange, width: 1),
+                            border: Border.all(
+                              color: mediumSlateBlue,
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.info_outline, color: Colors.orange),
+                              Icon(Icons.info_outline, color: midnightPurple),
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -933,8 +955,10 @@ class _ResumesPageState extends State<ResumesPage>
                                       ? 'Вы можете хранить только 1 резюме в гостевом режиме'
                                       : 'Достигнут лимит в 15 резюме',
                                   style: TextStyle(
-                                    color: Colors.orange,
+                                    fontFamily: 'Playfair',
+                                    color: midnightPurple,
                                     fontSize: 14,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ),
@@ -944,15 +968,17 @@ class _ResumesPageState extends State<ResumesPage>
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => AccountMainPage(),
+                                        builder: (context) => StartPage(),
                                       ),
                                     );
                                   },
                                   child: Text(
                                     'Войти',
                                     style: TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Playfair',
+                                      color: midnightPurple,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),

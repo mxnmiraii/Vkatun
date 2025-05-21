@@ -54,6 +54,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   bool _isSecondStep = true;
   bool _isFourthStep = false;
 
+  final GlobalKey forwardIconWBgKey = GlobalKey();
+
   late final _pulseCtrl = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1000),
@@ -203,7 +205,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               _pulseCtrl.repeat(reverse: true);
             }
           },
-          iconKey: widget.iconKey ?? GlobalKey(),
+          iconKey: isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
           isFirstBigStep: isFirst,
           isSecondBigStep: isSecond,
           isFourthBigStep: isFourth,
@@ -452,6 +454,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                   ? ScaleTransition(
                 scale: _namePulseAnim,
                 child: IconButton(
+                  key: forwardIconWBgKey,
                   onPressed: () {
                     _namePulseCtrl.stop();
                     if (targetPage != null) {

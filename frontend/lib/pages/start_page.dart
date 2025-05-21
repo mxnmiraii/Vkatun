@@ -44,10 +44,7 @@ class StartPage extends StatelessWidget {
               child: IconButton(
                 icon: arrowBackIcon,
                 onPressed: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => EntryPage()),
-                  // );
+                  Navigator.pop(context);
                 },
               ),
             ),

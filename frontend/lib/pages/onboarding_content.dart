@@ -196,7 +196,10 @@ class _OnboardingContentState extends State<OnboardingContent> {
                           ),
                         ),
                       )
-                      : Positioned(
+                      : Stack(
+                    children: [
+                      _buildSpotlightEffect(forwardIconWBg),
+                      Positioned(
                         left: bottom35,
                         right: bottom35,
                         top: MediaQuery.of(context).size.height * 0.2 + 80,
@@ -233,6 +236,8 @@ class _OnboardingContentState extends State<OnboardingContent> {
                           ),
                         ),
                       ),
+                    ],
+                  )
                 ],
               )
               : widget.isThirdBigStep
