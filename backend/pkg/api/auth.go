@@ -197,6 +197,10 @@ func (api *API) updateProfilePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserIDFromContext(r *http.Request) (int, bool) {
+	if id, ok := r.Context().Value("user_id").(int); ok {
+		return id, true
+	}
+
 	authHeader := r.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
 		return 0, false

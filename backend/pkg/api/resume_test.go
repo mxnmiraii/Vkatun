@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -37,13 +38,25 @@ func TestGetResumeByID(t *testing.T) {
 
 func TestDeleteResume(t *testing.T) {
 	mockDB := new(mock_db.MockDB)
+
+	mockDB.On("GetResumeByID", mock.Anything, 1).Return(&models.Resume{
+		ID:     1,
+		UserID: 42,
+	}, nil)
+	mockDB.On("GetUserByID", mock.Anything, 42).Return(&models.User{
+		ID:    42,
+		Email: "user@example.com",
+	}, nil)
 	mockDB.On("DeleteResume", mock.Anything, 1).Return(nil)
 
 	a := New(mockDB, logger.Log)
 	req := httptest.NewRequest(http.MethodDelete, "/resume/1/delete", nil)
-	rr := httptest.NewRecorder()
-
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
+	ctx := context.WithValue(req.Context(), "user_id", 42)
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
 	a.GetRouter().ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
@@ -52,6 +65,7 @@ func TestDeleteResume(t *testing.T) {
 
 func TestEditResume(t *testing.T) {
 	mockDB := new(mock_db.MockDB)
+
 	updatedResume := models.Resume{
 		Title:      "Updated Resume",
 		Contacts:   "Email",
@@ -61,6 +75,15 @@ func TestEditResume(t *testing.T) {
 		Skills:     "Go, Docker",
 		About:      "Hardworking",
 	}
+
+	mockDB.On("GetResumeByID", mock.Anything, 1).Return(&models.Resume{
+		ID:     1,
+		UserID: 42,
+	}, nil)
+	mockDB.On("GetUserByID", mock.Anything, 42).Return(&models.User{
+		ID:    42,
+		Email: "user@example.com",
+	}, nil)
 	mockDB.On("UpdateResume", mock.Anything, 1, updatedResume).Return(nil)
 
 	a := New(mockDB, logger.Log)
@@ -68,9 +91,12 @@ func TestEditResume(t *testing.T) {
 	body, _ := json.Marshal(updatedResume)
 	req := httptest.NewRequest(http.MethodPost, "/resume/1/edit", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
-	rr := httptest.NewRecorder()
-
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
+	ctx := context.WithValue(req.Context(), "user_id", 42)
+	req = req.WithContext(ctx)
+
+	rr := httptest.NewRecorder()
 	a.GetRouter().ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
