@@ -17,14 +17,23 @@ import (
 
 func TestGetResumeByID(t *testing.T) {
 	mockDB := new(mock_db.MockDB)
-	testResume := &models.Resume{ID: 1, Title: "Test Resume"}
-	mockDB.On("GetResumeByID", mock.Anything, 1).Return(testResume, nil)
+
+	mockDB.On("GetResumeByID", mock.Anything, 1).Return(&models.Resume{
+		ID:     1,
+		UserID: 42,
+		Title:  "Test Resume",
+	}, nil)
+	mockDB.On("GetUserByID", mock.Anything, 42).Return(&models.User{
+		ID:    42,
+		Email: "user@example.com",
+	}, nil)
 
 	a := New(mockDB, logger.Log)
 	req := httptest.NewRequest(http.MethodGet, "/resume/1", nil)
-	rr := httptest.NewRecorder()
-
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
+	req = req.WithContext(context.WithValue(req.Context(), "user_id", 42))
+
+	rr := httptest.NewRecorder()
 	a.GetRouter().ServeHTTP(rr, req)
 
 	assert.Equal(t, http.StatusOK, rr.Code)
@@ -52,9 +61,7 @@ func TestDeleteResume(t *testing.T) {
 	a := New(mockDB, logger.Log)
 	req := httptest.NewRequest(http.MethodDelete, "/resume/1/delete", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
-
-	ctx := context.WithValue(req.Context(), "user_id", 42)
-	req = req.WithContext(ctx)
+	req = req.WithContext(context.WithValue(req.Context(), "user_id", 42))
 
 	rr := httptest.NewRecorder()
 	a.GetRouter().ServeHTTP(rr, req)
@@ -92,9 +99,7 @@ func TestEditResume(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/resume/1/edit", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
-
-	ctx := context.WithValue(req.Context(), "user_id", 42)
-	req = req.WithContext(ctx)
+	req = req.WithContext(context.WithValue(req.Context(), "user_id", 42))
 
 	rr := httptest.NewRecorder()
 	a.GetRouter().ServeHTTP(rr, req)
