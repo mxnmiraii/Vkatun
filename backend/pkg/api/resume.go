@@ -91,6 +91,20 @@ func (api *API) uploadResumeGuest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *API) getResumeByID(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		api.logger.Warn("unauthorized profile request: missing token")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := api.db.GetUserByID(r.Context(), userID)
+	if err != nil {
+		api.logger.Error("failed to fetch user", zap.Int("user_id", userID), zap.Error(err))
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -104,6 +118,20 @@ func (api *API) getResumeByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Resume not found", http.StatusNotFound)
 		return
 	}
+
+	isOwner := resume.UserID == userID
+	isAdmin := isAdmin(user.Email)
+
+	if !isOwner && !isAdmin {
+		api.logger.Warn("forbidden: resume does not belong to user",
+			zap.Int("resume_id", id),
+			zap.Int("owner_id", resume.UserID),
+			zap.Int("requester_id", userID),
+		)
+		http.Error(w, "Forbidden: not your resume", http.StatusForbidden)
+		return
+	}
+
 	_ = json.NewEncoder(w).Encode(resume)
 }
 
