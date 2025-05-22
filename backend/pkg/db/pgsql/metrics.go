@@ -22,5 +22,8 @@ func (d *DB) UpdateMetrics(ctx context.Context, updates models.MetricsUpdateRequ
 	_, err := d.pool.Exec(ctx, `
         UPDATE metrics SET total_users=$1, total_resumes=$2, total_changes_app=$3, last_updated_at=NOW()
     `, updates.Updates.TotalUsers, updates.Updates.TotalResumes, updates.Updates.TotalChangesApp)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
