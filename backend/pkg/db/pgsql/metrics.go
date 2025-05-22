@@ -66,16 +66,21 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 
 	log.Println("[DEBUG] IncrementActiveUsersToday called with userID =", userID, "today =", today)
 
-	var storedDate string
+	var ns sql.NullString
 	err := d.pool.QueryRow(ctx, `
         SELECT active_users_json ->> $1 FROM metrics
-    `, userKey).Scan(&storedDate)
-	if err != nil && err != sql.ErrNoRows {
+    `, userKey).Scan(&ns)
+	if err != nil {
 		log.Println("[DEBUG] SELECT failed:", err)
 		return err
 	}
 
-	log.Println("[DEBUG] storedDate =", storedDate)
+	storedDate := ""
+	if ns.Valid {
+		storedDate = ns.String
+	}
+
+	log.Println("[DEBUG] storedDate =", ns)
 
 	if storedDate == today {
 		log.Println("[DEBUG] already counted today, skipping")
