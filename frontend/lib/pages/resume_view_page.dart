@@ -57,6 +57,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
   bool _isSecondStep = true;
   bool _isFourthStep = false;
+  bool _showOverlay = true;
 
   final GlobalKey forwardIconWBgKey = GlobalKey();
 
@@ -89,6 +90,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           _showFullScreenOnboarding(false, _isSecondStep, _isFourthStep);
         })
         : null;
+  }
+
+  void _hideOverlay() {
+    setState(() => _showOverlay = false);
   }
 
   void _switchOnboardingSteps() {
@@ -144,7 +149,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           ),
     );
 
-    Overlay.of(context).insert(buttonOverlayEntry);
+    if (_showOverlay) {
+      Overlay.of(context).insert(buttonOverlayEntry);
+    }
 
     showGeneralDialog(
       context: context,
@@ -169,6 +176,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           },
           rotationController: _rotationController,
           resume: widget.resume,
+          showOnboarding: widget.showOnboarding,
+          isSeventhBigStep: true,
         );
       },
     ).then((_) {
@@ -428,6 +437,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                             icon: magicIcon,
                             onPressed: () {
                               _pulseCtrl.stop();
+                              _hideOverlay();
                               _openDialog();
                             },
                             iconSize: 36,

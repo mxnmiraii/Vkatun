@@ -109,7 +109,9 @@ class ApiService {
               (r) => r['id'] == resumeId,
           orElse: () => throw Exception('Резюме не найдено')
       );
-      return _processGuestAnalysis('$baseUrl/guest/check/grammar', resume);
+      Map<String, dynamic> res = await _processGuestAnalysis('$baseUrl/guest/check/grammar', resume);
+      print(res);
+      return res;
     }
 
     try {
@@ -233,7 +235,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'text': resume['text']}),
+        body: json.encode({'name': json.encode(resume)}),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {

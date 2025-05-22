@@ -8,6 +8,7 @@ import 'package:vkatun/design/dimensions.dart';
 import '../api_service.dart';
 import '../design/images.dart';
 import '../dialogs/warning_dialog.dart';
+import '../pages/onboarding_content.dart';
 import '../pages/resume_view_page.dart';
 import '../pdf_service.dart';
 
@@ -16,6 +17,8 @@ class WindowResumesPage extends StatefulWidget {
   final AnimationController rotationController;
   final Map<String, dynamic> resume;
   final VoidCallback onDelete;
+  final bool showOnboarding;
+  final VoidCallback? stopOnboarding;
 
   const WindowResumesPage({
     super.key,
@@ -23,6 +26,8 @@ class WindowResumesPage extends StatefulWidget {
     required this.rotationController,
     required this.resume,
     required this.onDelete,
+    this.showOnboarding = false,
+    this.stopOnboarding,
   });
 
   @override
@@ -41,6 +46,28 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
   void initState() {
     super.initState();
     _startDotsAnimation();
+    widget.showOnboarding ? WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showFullScreenOnboarding();
+    }) : null;
+  }
+
+  void _showFullScreenOnboarding() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.82),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
+      pageBuilder: (context, _, __) {
+        return OnboardingContent(
+          hideOnboarding: () {
+            Navigator.pop(context);
+          },
+          iconKey: GlobalKey(),
+          isFirstBigStep: false,
+          isNinthBigStep: true,
+        );
+      },
+    );
   }
 
   @override
@@ -87,163 +114,177 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
       body: Stack(
         children: [
           // Основное окно с кнопками
-          if (!_isExporting) Center(
-            child: Dialog(
-              insetPadding: const EdgeInsets.all(30),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      upColorGradient,
-                      downColorGradient.withOpacity(0.6),
-                    ],
+          if (!_isExporting)
+            Center(
+              child: Dialog(
+                insetPadding: const EdgeInsets.all(30),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        upColorGradient,
+                        downColorGradient.withOpacity(0.6),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: Border.all(
+                      color: darkViolet.withOpacity(0.64),
+                      width: widthBorderRadius,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(borderRadius),
-                  border: Border.all(
-                    color: darkViolet.withOpacity(0.64),
-                    width: widthBorderRadius,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          'Резюме',
+                          style: textStyle.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      if (!_isReadyToDownload) ...[
+                        _buildButton(
+                          icon: miniPenIcon,
+                          text: 'Редактировать резюме',
+                          onPressed:
+                              !widget.showOnboarding
+                                  ? () {
+                                    widget.onClose();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => ResumeViewPage(
+                                              resume: widget.resume,
+                                              onDelete: widget.onDelete,
+                                            ),
+                                      ),
+                                    );
+                                  }
+                                  : () {},
+                          textStyle: textStyle,
+                          borderColor: borderWindowColor,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildButton(
+                          icon: miniDownloadIcon,
+                          text: 'Экспорт резюме',
+                          onPressed: () {
+                            if (widget.showOnboarding) {widget.stopOnboarding!();}
+                            _exportResume();
+                          },
+                          textStyle: textStyle,
+                          borderColor: borderWindowColor,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildButton(
+                          icon: miniDeleteIcon,
+                          text: 'Удалить резюме',
+                          onPressed: !widget.showOnboarding ? () async {
+                            try {
+                              final apiService = Provider.of<ApiService>(
+                                context,
+                                listen: false,
+                              );
+                              await apiService.deleteResume(
+                                widget.resume['id'] as int,
+                              );
+                              widget.onDelete();
+                              widget.onClose();
+                            } catch (e) {
+                              _showWarningDialog(context);
+                            }
+                          } : () {},
+                          textStyle: textStyle,
+                          borderColor: borderWindowColor,
+                        ),
+                      ] else ...[
+                        SizedBox(
+                          height: 180,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Резюме готово к скачиванию',
+                                style: textStyle.copyWith(
+                                  color: midnightPurple,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildButton(
+                                icon: miniDownloadIcon,
+                                text: 'Скачать PDF',
+                                onPressed: () async {
+                                  if (_pdfFile != null) {
+                                    PdfService.openFile(_pdfFile!);
+                                    await AppMetrica.reportEvent(
+                                      'login_success',
+                                    );
+                                  }
+                                  widget.onClose();
+                                },
+                                textStyle: textStyle,
+                                borderColor: borderWindowColor,
+                              ),
+                              const SizedBox(height: 10),
+                              _buildButton(
+                                icon: Icon(Icons.close),
+                                text: 'Закрыть',
+                                onPressed: widget.onClose,
+                                textStyle: textStyle,
+                                borderColor: borderWindowColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
+              ),
+            ),
+
+          // Полноэкранное белое окно подготовки (25% прозрачности)
+          if (_isExporting)
+            Container(
+              color: Colors.white.withOpacity(
+                0.25,
+              ), // 25% прозрачности (75% непрозрачности)
+              child: Center(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 20,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        'Резюме',
-                        style: textStyle.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 20,
-                        ),
-                        textAlign: TextAlign.center,
+                    const SizedBox(height: 20),
+                    Text(
+                      _loadingText,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: midnightPurple,
+                        fontFamily: 'Playfair',
                       ),
                     ),
-                    const SizedBox(height: 30),
-                    if (!_isReadyToDownload) ...[
-                      _buildButton(
-                        icon: miniPenIcon,
-                        text: 'Редактировать резюме',
-                        onPressed: () {
-                          widget.onClose();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ResumeViewPage(
-                                resume: widget.resume,
-                                onDelete: widget.onDelete,
-                              ),
-                            ),
-                          );
-                        },
-                        textStyle: textStyle,
-                        borderColor: borderWindowColor,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildButton(
-                        icon: miniDownloadIcon,
-                        text: 'Экспорт резюме',
-                        onPressed: _exportResume,
-                        textStyle: textStyle,
-                        borderColor: borderWindowColor,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildButton(
-                        icon: miniDeleteIcon,
-                        text: 'Удалить резюме',
-                        onPressed: () async {
-                          try {
-                            final apiService = Provider.of<ApiService>(
-                              context,
-                              listen: false,
-                            );
-                            await apiService.deleteResume(widget.resume['id'] as int);
-                            widget.onDelete();
-                            widget.onClose();
-                          } catch (e) {
-                            _showWarningDialog(context);
-                          }
-                        },
-                        textStyle: textStyle,
-                        borderColor: borderWindowColor,
-                      ),
-                    ] else ...[
-                      SizedBox(
-                        height: 180,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Резюме готово к скачиванию',
-                              style: textStyle.copyWith(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            _buildButton(
-                              icon: miniDownloadIcon,
-                              text: 'Скачать PDF',
-                              onPressed: () async {
-                                if (_pdfFile != null) {
-                                  PdfService.openFile(_pdfFile!);
-                                  await AppMetrica.reportEvent(
-                                    'login_success',
-                                  );
-                                }
-                                widget.onClose();
-                              },
-                              textStyle: textStyle,
-                              borderColor: borderWindowColor,
-                            ),
-                            const SizedBox(height: 10),
-                            _buildButton(
-                              icon: Icon(Icons.close),
-                              text: 'Закрыть',
-                              onPressed: _resetToInitialState,
-                              textStyle: textStyle,
-                              borderColor: borderWindowColor,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
             ),
-          ),
-
-          // Полноэкранное белое окно подготовки (25% прозрачности)
-          if (_isExporting) Container(
-            color: Colors.white.withOpacity(0.25), // 25% прозрачности (75% непрозрачности)
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                  Text(
-                    _loadingText,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: midnightPurple,
-                      fontFamily: 'Playfair'
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -279,14 +320,18 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
     }
   }
 
-  static Future<Map<String, dynamic>> getLocalResume(int resumeId, BuildContext context) async {
+  static Future<Map<String, dynamic>> getLocalResume(
+    int resumeId,
+    BuildContext context,
+  ) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final List<Map<String, dynamic>> allResumes = apiService.getLocalResumes();
+      final List<Map<String, dynamic>> allResumes =
+          apiService.getLocalResumes();
 
       // Приводим ID к int для корректного сравнения
       final resume = allResumes.firstWhere(
-            (r) => (r['id'] as num).toInt() == resumeId,  // <-- Важно!
+        (r) => (r['id'] as num).toInt() == resumeId, // <-- Важно!
         orElse: () => throw Exception('Резюме с ID $resumeId не найдено'),
       );
 

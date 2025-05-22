@@ -4,21 +4,27 @@ import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
+import 'package:vkatun/pages/resumes_page.dart';
 import 'package:vkatun/windows/scan_windows/check_widget.dart';
 import 'package:vkatun/windows/scan_windows/scan.dart';
 
 import '../api_service.dart';
+import '../pages/onboarding_content.dart';
 
 class WindowFixMistakes extends StatefulWidget {
   final VoidCallback onClose;
   final AnimationController rotationController;
   final Map<String, dynamic> resume;
+  final bool showOnboarding;
+  final bool isSeventhBigStep;
 
   const WindowFixMistakes({
     super.key,
     required this.onClose,
     required this.rotationController,
     required this.resume,
+    this.showOnboarding = false,
+    this.isSeventhBigStep = false,
   });
 
   @override
@@ -59,6 +65,38 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
 
   final Color activeColor = Colors.white; // основной бэкграунд
   final Color inactiveColor = Colors.transparent;
+
+  bool isEighthBigStep = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.showOnboarding
+        ? WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showFullScreenOnboarding(false, widget.isSeventhBigStep, false);
+        })
+        : null;
+  }
+
+  void _showFullScreenOnboarding(isFirst, isSeventh, isEight) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.82),
+      transitionDuration: const Duration(milliseconds: timeShowAnimation),
+      pageBuilder: (context, _, __) {
+        return OnboardingContent(
+          hideOnboarding: () {
+            Navigator.pop(context);
+          },
+          iconKey: GlobalKey(),
+          isFirstBigStep: isFirst,
+          isSeventhBigStep: isSeventh,
+          isEightBigStep: isEight,
+        );
+      },
+    );
+  }
 
   Future<List<Issue>> _analyzeResumeSkills(int id, String nameIssue) async {
     try {
@@ -192,8 +230,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         isScanningStructure = false;
         isLoading = false;
       });
-      if (mounted) {
-      }
+      if (mounted) {}
     }
   }
 
@@ -624,29 +661,42 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: ElevatedButton(
-                onPressed: () async {  // Добавьте async здесь
-                  try {
-                    await AppMetrica.reportEvent('scanning_resume');
+                onPressed:
+                    widget.showOnboarding
+                        ? () {
+                          widget.onClose;
+                          Navigator.pop(context);
+                          setState(() {
+                            isEighthBigStep = true;
+                          });
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _showFullScreenOnboarding(false, false, true);
+                          });
+                        }
+                        : () async {
+                          // Добавьте async здесь
+                          try {
+                            await AppMetrica.reportEvent('scanning_resume');
 
-                    switch (index) {
-                      case 0:
-                        setState(() {
-                          isScanningFix = true;
-                        });
-                        break;
-                      case 1:
-                        scanningStructureState();
-                        break;
-                      case 2:
-                        setState(() {
-                          isScanningContent = true;
-                        });
-                        break;
-                    }
-                  } catch (e) {
-                    debugPrint('Ошибка отправки события: $e');
-                  }
-                },
+                            switch (index) {
+                              case 0:
+                                setState(() {
+                                  isScanningFix = true;
+                                });
+                                break;
+                              case 1:
+                                scanningStructureState();
+                                break;
+                              case 2:
+                                setState(() {
+                                  isScanningContent = true;
+                                });
+                                break;
+                            }
+                          } catch (e) {
+                            debugPrint('Ошибка отправки события: $e');
+                          }
+                        },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(

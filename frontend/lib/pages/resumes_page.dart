@@ -45,6 +45,8 @@ class _ResumesPageState extends State<ResumesPage>
   bool _showOnboarding = true;
   final _onboardingKey = GlobalKey();
 
+  bool _showOverlay = true;
+
   late final _pulseCtrl = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1000),
@@ -59,6 +61,12 @@ class _ResumesPageState extends State<ResumesPage>
   void _closeOnboarding() {
     setState(() {
       _showOnboarding = false;
+    });
+  }
+
+  void _hideOverlay() {
+    setState(() {
+      _showOverlay = false;
     });
   }
 
@@ -165,6 +173,13 @@ class _ResumesPageState extends State<ResumesPage>
     }
   }
 
+  void _stopOnboarding() {
+    setState(() {
+      _showOnboarding = false;
+      _showOverlay = true;
+    });
+  }
+
   void _openDialog(int resumeId) async {
     final resume = await _getResumeById(resumeId);
 
@@ -205,7 +220,7 @@ class _ResumesPageState extends State<ResumesPage>
           ),
     );
 
-    Overlay.of(context).insert(buttonOverlayEntry);
+    if (_showOverlay) {Overlay.of(context).insert(buttonOverlayEntry);}
 
     showGeneralDialog(
       context: context,
@@ -235,6 +250,8 @@ class _ResumesPageState extends State<ResumesPage>
               _reachedLimit = false;
             });
           },
+          showOnboarding: _showOnboarding,
+          stopOnboarding: _stopOnboarding,
         );
       },
     ).then((_) {
@@ -616,6 +633,7 @@ class _ResumesPageState extends State<ResumesPage>
         }
       },
       onLongPress: () {
+        if (_showOnboarding) {_hideOverlay();}
         _openDialog(resume['id']); // добавить
       },
       child: Card(

@@ -13,6 +13,9 @@ class OnboardingContent extends StatefulWidget {
   final bool isFourthBigStep;
   final bool isFifthBigStep;
   final bool isSixthBigStep;
+  final bool isSeventhBigStep;
+  final bool isEightBigStep;
+  final bool isNinthBigStep;
 
   const OnboardingContent({
     super.key,
@@ -25,6 +28,9 @@ class OnboardingContent extends StatefulWidget {
     this.isFourthBigStep = false,
     this.isFifthBigStep = false,
     this.isSixthBigStep = false,
+    this.isSeventhBigStep = false,
+    this.isEightBigStep = false,
+    this.isNinthBigStep = false,
   });
 
   @override
@@ -389,6 +395,130 @@ class _OnboardingContentState extends State<OnboardingContent> {
                             Text(
                               'Отлично, теперь нажми на эту кнопку, чтобы посмотреть рекомендации '
                               'для улучшения твоего резюме!',
+                              style: _textStyle,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: widget.hideOnboarding,
+                                  style: _blueButtonStyle,
+                                  child: Text(
+                                    'Хорошо!',
+                                    style: _textStyle.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : widget.isSeventhBigStep
+              ? Stack(
+                children: [
+                  Positioned(
+                    left: bottom35,
+                    right: bottom35,
+                    bottom: bottom35 * 2 + 80,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(19),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Отлично, мы зашли в меню рекомендаций. В данном разделе вы можете '
+                              'просканировать свое резюме, получить список рекомендаций и внедрить их.',
+                              style: _textStyle,
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: widget.hideOnboarding,
+                                  style: _blueButtonStyle,
+                                  child: Text(
+                                    'Хорошо!',
+                                    style: _textStyle.copyWith(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+              : widget.isEightBigStep
+              ? Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: bottom35),
+                  child: Material(
+                    borderRadius: BorderRadius.circular(19),
+                    color: Colors.white,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Отлично, давай теперь экспортируем твое резюме! Зажми и удерживай иконку резюме.',
+                            style: _textStyle,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: widget.hideOnboarding,
+                                style: _blueButtonStyle,
+                                child: Text(
+                                  'Хорошо!',
+                                  style: _textStyle.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Spacer(),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              : widget.isNinthBigStep
+              ? Stack(
+                children: [
+                  Positioned(
+                    left: bottom35,
+                    right: bottom35,
+                    bottom: bottom35 * 2 + 80,
+                    child: Material(
+                      borderRadius: BorderRadius.circular(19),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Супер! Это наш последний этап, остается только нажать '
+                              'на кнопку "Экспорт резюме".',
                               style: _textStyle,
                             ),
                             const SizedBox(height: 16),
