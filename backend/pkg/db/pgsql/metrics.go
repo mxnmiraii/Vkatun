@@ -71,6 +71,7 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
         SELECT active_users_json ->> $1 FROM metrics
     `, userKey).Scan(&storedDate)
 	if err != nil && err != sql.ErrNoRows {
+		log.Println("[DEBUG] SELECT failed:", err)
 		return err
 	}
 
