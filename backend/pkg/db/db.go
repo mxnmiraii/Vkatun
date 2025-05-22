@@ -16,6 +16,11 @@ type DB interface {
 	GetMetrics(ctx context.Context) (*models.Metrics, error)
 	UpdateMetrics(ctx context.Context, updates models.MetricsUpdateRequest) error
 
+	IncrementTotalUsers(ctx context.Context) error
+	IncrementTotalResumes(ctx context.Context) error
+	IncrementChangesApp(ctx context.Context) error
+	IncrementActiveUsersToday(ctx context.Context, userID int) error
+
 	RegisterUser(ctx context.Context, email, passwordHash, username string) error
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetUserByID(ctx context.Context, id int) (*models.User, error)

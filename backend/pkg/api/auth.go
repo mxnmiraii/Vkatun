@@ -53,6 +53,8 @@ func (api *API) registerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_ = api.db.IncrementTotalUsers(r.Context())
+
 	api.logger.Info("user registered successfully", zap.String("email", req.Email))
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
 }

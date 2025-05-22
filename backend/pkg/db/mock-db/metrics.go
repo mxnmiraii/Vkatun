@@ -14,3 +14,19 @@ func (m *MockDB) UpdateMetrics(ctx context.Context, updates models.MetricsUpdate
 	args := m.Called(ctx, updates)
 	return args.Error(0)
 }
+
+func (d *MockDB) IncrementTotalUsers(ctx context.Context) error {
+	return nil
+}
+
+func (d *MockDB) IncrementTotalResumes(ctx context.Context) error {
+	return nil
+}
+
+func (d *MockDB) IncrementChangesApp(ctx context.Context) error {
+	return nil
+}
+
+func (d *MockDB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
+	return nil
+}

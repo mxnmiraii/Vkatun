@@ -60,10 +60,18 @@ func (api *API) updateMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
+	if input.Updates.TotalUsers == 0 && input.Updates.TotalResumes == 0 && input.Updates.TotalChangesApp == 0 {
+		api.logger.Warn("empty or missing updates field", zap.Any("input", input))
+		http.Error(w, "Invalid or missing updates", http.StatusBadRequest)
+		return
+	}
+
 	if err := api.db.UpdateMetrics(r.Context(), input); err != nil {
 		api.logger.Error("failed to update metrics", zap.Error(err))
 		http.Error(w, "Failed to update metrics", http.StatusInternalServerError)
 		return
 	}
+	api.logger.Info("metrics update", zap.String("source", input.Source))
+
 	json.NewEncoder(w).Encode(map[string]string{"message": "Metrics updated successfully"})
 }

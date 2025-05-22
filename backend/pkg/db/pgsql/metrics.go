@@ -2,6 +2,10 @@ package pgsql
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"strconv"
+	"time"
 	"vkatun/pkg/models"
 )
 
@@ -26,4 +30,57 @@ func (d *DB) UpdateMetrics(ctx context.Context, updates models.MetricsUpdateRequ
 		return err
 	}
 	return nil
+}
+
+func (d *DB) IncrementTotalUsers(ctx context.Context) error {
+	_, err := d.pool.Exec(ctx, `
+        UPDATE metrics
+        SET total_users = total_users + 1,
+            last_updated_at = NOW()
+    `)
+	return err
+}
+
+func (d *DB) IncrementTotalResumes(ctx context.Context) error {
+	_, err := d.pool.Exec(ctx, `
+        UPDATE metrics
+        SET total_resumes = total_resumes + 1,
+            last_updated_at = NOW()
+    `)
+	return err
+}
+
+func (d *DB) IncrementChangesApp(ctx context.Context) error {
+	_, err := d.pool.Exec(ctx, `
+        UPDATE metrics
+        SET total_changes_app = total_changes_app + 1,
+            last_updated_at = NOW()
+    `)
+	return err
+}
+
+func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
+	userKey := strconv.Itoa(userID)
+	today := time.Now().Format("2006-01-02")
+
+	var storedDate string
+	err := d.pool.QueryRow(ctx, `
+        SELECT active_users_json ->> $1 FROM metrics
+    `, userKey).Scan(&storedDate)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if storedDate == today {
+		return nil
+	}
+
+	_, err = d.pool.Exec(ctx, `
+        UPDATE metrics
+        SET active_users_today = active_users_today + 1,
+            active_users_json = jsonb_set(active_users_json, $1, to_jsonb($2::text), true),
+            last_updated_at = NOW()
+    `, fmt.Sprintf("{%s}", userKey), today)
+
+	return err
 }
