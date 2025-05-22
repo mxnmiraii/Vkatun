@@ -80,7 +80,7 @@
 > 3. Вставьте туда следующую ссылку:
 >
 > ```
-> https://gist.githubusercontent.com/mxnmiraii/acd1fb041eeca2b18576a12c3fd7ce95/raw/aa1e8804b288059c7af0271912cb520cfe4556ad/swagger-v1.0.2.yaml
+> https://gist.githubusercontent.com/mxnmiraii/acd1fb041eeca2b18576a12c3fd7ce95/raw/8d9cfd51c84b4ee7536a71e919ebd656e2199f66/swagger-v1.0.2.yaml
 > ```
 
 ### 📌 Дополительная документация
