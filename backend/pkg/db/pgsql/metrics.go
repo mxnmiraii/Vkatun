@@ -82,15 +82,18 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 	}
 
 	log.Println("[DEBUG] running UPDATE for new active user")
-	_, err = d.pool.Exec(ctx, `
+	res, err := d.pool.Exec(ctx, `
         UPDATE metrics
         SET active_users_today = active_users_today + 1,
-            active_users_json = jsonb_set(active_users_json, $1, to_jsonb($2::text), true),
+            active_users_json = jsonb_set(COALESCE(active_users_json, '{}'::jsonb), $1, to_jsonb($2::text), true),
             last_updated_at = NOW()
     `, fmt.Sprintf("{%s}", userKey), today)
 
 	if err != nil {
 		log.Println("[DEBUG] UPDATE failed:", err)
 	}
+
+	rows := res.RowsAffected()
+	log.Println("[DEBUG] UPDATE affected rows:", rows)
 	return err
 }
