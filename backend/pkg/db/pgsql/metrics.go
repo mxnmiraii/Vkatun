@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 	"vkatun/pkg/models"
@@ -63,6 +64,8 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 	userKey := strconv.Itoa(userID)
 	today := time.Now().Format("2006-01-02")
 
+	log.Println("[DEBUG] IncrementActiveUsersToday called with userID =", userID, "today =", today)
+
 	var storedDate string
 	err := d.pool.QueryRow(ctx, `
         SELECT active_users_json ->> $1 FROM metrics
@@ -71,10 +74,14 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 		return err
 	}
 
+	log.Println("[DEBUG] storedDate =", storedDate)
+
 	if storedDate == today {
+		log.Println("[DEBUG] already counted today, skipping")
 		return nil
 	}
 
+	log.Println("[DEBUG] running UPDATE for new active user")
 	_, err = d.pool.Exec(ctx, `
         UPDATE metrics
         SET active_users_today = active_users_today + 1,
@@ -82,5 +89,8 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
             last_updated_at = NOW()
     `, fmt.Sprintf("{%s}", userKey), today)
 
+	if err != nil {
+		log.Println("[DEBUG] UPDATE failed:", err)
+	}
 	return err
 }
