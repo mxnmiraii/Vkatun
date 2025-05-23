@@ -313,10 +313,12 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+
             // ФИО с улучшенным отображением
             _buildSection(
               title: 'ФИО',
-              content: widget.resume['title']?.trim() ?? 'Не указано',
+              content: _extractFullName(widget.resume['title']),
               hasCheck: true,
               targetPage: FullNamePage(
                 data:
@@ -442,6 +444,20 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
+
+
+  String _extractFullName(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return 'Не указано';
+
+    final parts = raw.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) {
+      return parts.take(3).join(' ');
+    } else {
+      return raw.trim();
+    }
+  }
+
+
 
   Widget _buildSection({
     required String title,
@@ -975,27 +991,31 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       var trimmedLine = line.trim();
       if (trimmedLine.isEmpty) continue;
 
-      // Удаляем "Ключевые навыки" или "Языки:" из начала строки
       final lower = trimmedLine.toLowerCase();
-      if (lower.startsWith('ключевые навыки')) continue;
-      if (lower.startsWith('языки:')) {
-        trimmedLine = trimmedLine.substring(trimmedLine.indexOf(':') + 1).trim();
+
+      // Игнорируем заголовки или вводные фразы
+      if (lower.startsWith('ключевые навыки') ||
+          lower.startsWith('языки:') ||
+          lower.startsWith('знание языков') ||
+          lower.startsWith('навыки')) {
+        continue;
       }
 
-      // Разделяем по запятым и точкам с запятой
+      // Разделяем по запятой или точке с запятой
       if (trimmedLine.contains(',') || trimmedLine.contains(';')) {
         skills.addAll(trimmedLine
             .split(RegExp(r'[;,]'))
-            .map((e) => e.trim().replaceAll(RegExp(r'\.$'), '')) // <-- вот это
+            .map((e) => e.trim().replaceAll(RegExp(r'\.$'), '')) // удаление точки на конце
             .where((e) => e.isNotEmpty));
-
       } else {
-        skills.add(trimmedLine);
+        // Один навык без разделителей
+        skills.add(trimmedLine.replaceAll(RegExp(r'\.$'), ''));
       }
     }
 
     return skills;
   }
+
 
 
 
