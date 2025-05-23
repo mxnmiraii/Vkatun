@@ -178,3 +178,7 @@ final SvgPicture accessVioletIcon = SvgPicture.asset(
 final SvgPicture doneBlueIcon = SvgPicture.asset(
   'assets/images/done_blue_icon.svg',
 );
+
+final SvgPicture addIconCircle = SvgPicture.asset(
+  'assets/images/add_icon_circle.svg',
+);

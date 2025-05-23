@@ -369,14 +369,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             _buildExperienceSection(),
 
             // Образование с лучшей структурой
-            _buildSection(
-              title: 'Образование',
-              content: _formatEducation(widget.resume['education']),
-              hasCheck: true,
-              targetPage: EducationPage(
-                data: _parseEducation(widget.resume['education']),
-              ),
-            ),
+            _buildEducationSection(),
 
             // Ключевые навыки с лучшим форматированием
             _buildSection(
@@ -555,38 +548,322 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   }
 
   Widget _buildExperienceSection() {
-    final hasExperience = widget.resume['experience']?.isNotEmpty == true;
-    final experienceContent =
-        hasExperience
-            ? _parseExperienceShort(widget.resume['experience'])
-            : 'Не указано';
+    final experienceData = _parseExperience(widget.resume['experience'] ?? '');
+    final totalExperience = _calculateTotalExperience(experienceData);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSection(
-          title: 'Опыт работы',
-          content: experienceContent,
-          hasCheck: true,
-          targetPage: WorkExperiencePage(
-            data: _parseExperienceData(widget.resume['experience']),
+        // Заголовок с общим стажем
+        Padding(
+          padding: const EdgeInsets.only(top: 24, bottom: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Опыт работы${totalExperience.isNotEmpty ? ' • $totalExperience' : ''}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    fontFamily: 'PlayFair',
+                    color: Colors.black,
+                    height: 1.0,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        if (!hasExperience)
-          Padding(
-            padding: const EdgeInsets.only(left: 16, top: 8),
-            child: Text(
+
+        // Карточки опыта работы
+        if (experienceData.isNotEmpty)
+          ...experienceData.map((exp) => _buildExperienceCard(exp)).toList(),
+
+        // Кнопка добавления
+        Padding(
+          padding: const EdgeInsets.only(left: 0, top: 0, bottom: 0),
+          child: TextButton.icon(
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                  builder: (_) => WorkExperiencePage(data: List.filled(6, '')),
+              ));
+            },
+            icon: addIconCircle,
+            label: Text(
               'Добавить опыт работы',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: FontWeight.w300,
-                fontFamily: 'PlayFair',
-                color: Colors.blue,
+                fontFamily: 'NotoSans',
+                color: midnightPurple,
                 height: 1.0,
               ),
             ),
           ),
+        ),
+
+        const Divider(color: lightGray),
       ],
     );
+  }
+
+  Widget _buildExperienceCard(Map<String, String> experience) {
+    final company = experience['company'] ?? '';
+    final position = experience['position'] ?? '';
+    final period = _formatPeriod(experience['startDate'], experience['endDate']);
+    final duration = _calculateDuration(experience['startDate'], experience['endDate']);
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  // Always show all 4 lines, even if some fields are empty
+                  Text(
+                    company.isNotEmpty ? company : 'Название компании',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: company.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                      fontStyle: company.isEmpty ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    position.isNotEmpty ? position : 'Название должности',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: position.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                      fontStyle: position.isEmpty ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    period.isNotEmpty ? period : 'Период работы не указан',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: period.isNotEmpty ? mediumGray : lightGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    duration.isNotEmpty ? duration : 'Срок не указан',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: duration.isNotEmpty ? mediumGray : lightGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  SizedBox(height: 10,),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => WorkExperiencePage(
+                        data: [
+                          experience['startDate'] ?? '',
+                          experience['endDate'] ?? '',
+                          experience['company'] ?? '',
+                          experience['position'] ?? '',
+                          experience['duties'] ?? '',
+                          (experience['isCurrent'] ?? 'false') == 'true' ? 'true' : 'false',
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                icon: forwardIconWBg,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  List<Map<String, String>> _parseExperience(String raw) {
+    if (raw.trim().isEmpty) return [];
+
+    final List<Map<String, String>> result = [];
+    final entries = raw.split('\n\n'); // Разделяем по пустым строкам
+
+    for (var entry in entries) {
+      final lines = entry.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      if (lines.isEmpty) continue;
+
+      final experience = <String, String>{};
+
+      // Парсим даты (первые две строки могут быть датами)
+      int index = 0;
+      if (lines.length > index && _isDate(lines[index])) {
+        experience['startDate'] = lines[index];
+        index++;
+      }
+      if (lines.length > index && _isDate(lines[index])) {
+        experience['endDate'] = lines[index];
+        index++;
+      } else if (index > 0) {
+        experience['endDate'] = '';
+        experience['isCurrent'] = 'true';
+      }
+
+      // Остальные данные
+      if (lines.length > index) experience['company'] = lines[index++];
+      if (lines.length > index) experience['position'] = lines[index++];
+      if (lines.length > index) experience['duties'] = lines.skip(index).join('\n');
+
+      result.add(experience);
+    }
+
+    return result;
+  }
+
+  String _calculateTotalExperience(List<Map<String, String>> experiences) {
+    if (experiences.isEmpty) return '';
+
+    int totalMonths = 0;
+    final now = DateTime.now();
+
+    for (var exp in experiences) {
+      final startDate = _parseDate(exp['startDate'] ?? '');
+      if (startDate == null) continue;
+
+      DateTime? endDate;
+      if (exp['isCurrent'] == 'true') {
+        endDate = now;
+      } else {
+        endDate = _parseDate(exp['endDate'] ?? '');
+      }
+
+      if (endDate == null) continue;
+
+      final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
+      totalMonths += months;
+    }
+
+    if (totalMonths == 0) return '';
+
+    final years = totalMonths ~/ 12;
+    final months = totalMonths % 12;
+
+    if (years > 0 && months > 0) {
+      return '$years ${_getYearWord(years)} $months ${_getMonthWord(months)}';
+    } else if (years > 0) {
+      return '$years ${_getYearWord(years)}';
+    } else {
+      return '$months ${_getMonthWord(months)}';
+    }
+  }
+
+  String _formatPeriod(String? start, String? end) {
+    if (start == null || start.isEmpty) return '';
+
+    final startDate = _parseDate(start);
+    if (startDate == null) return '';
+
+    final formattedStart = '${_getMonthName(startDate.month)} ${startDate.year}';
+
+    if (end == null || end.isEmpty) {
+      return 'с $formattedStart по настоящее время';
+    }
+
+    final endDate = _parseDate(end);
+    if (endDate == null) return 'с $formattedStart';
+
+    return 'с $formattedStart по ${_getMonthName(endDate.month)} ${endDate.year}';
+  }
+
+  String _calculateDuration(String? start, String? end) {
+    if (start == null || start.isEmpty) return '';
+
+    final startDate = _parseDate(start);
+    if (startDate == null) return '';
+
+    final endDate = end?.isEmpty ?? true ? DateTime.now() : _parseDate(end!);
+    if (endDate == null) return '';
+
+    final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
+    if (months <= 0) return '';
+
+    final years = months ~/ 12;
+    final remainingMonths = months % 12;
+
+    if (years > 0 && remainingMonths > 0) {
+      return '$years ${_getYearWord(years)} $remainingMonths ${_getMonthWord(remainingMonths)}';
+    } else if (years > 0) {
+      return '$years ${_getYearWord(years)}';
+    } else {
+      return '$remainingMonths ${_getMonthWord(remainingMonths)}';
+    }
+  }
+
+  DateTime? _parseDate(String dateStr) {
+    final parts = dateStr.split('.');
+    if (parts.length != 3) return null;
+
+    try {
+      final day = int.parse(parts[0]);
+      final month = int.parse(parts[1]);
+      final year = int.parse(parts[2]);
+      return DateTime(year, month, day);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+    ];
+    return months[month - 1];
+  }
+
+  String _getYearWord(int years) {
+    if (years % 100 >= 11 && years % 100 <= 14) return 'лет';
+
+    switch (years % 10) {
+      case 1: return 'год';
+      case 2:
+      case 3:
+      case 4: return 'года';
+      default: return 'лет';
+    }
+  }
+
+  String _getMonthWord(int months) {
+    if (months % 100 >= 11 && months % 100 <= 14) return 'месяцев';
+
+    switch (months % 10) {
+      case 1: return 'месяц';
+      case 2:
+      case 3:
+      case 4: return 'месяца';
+      default: return 'месяцев';
+    }
   }
 
   String _formatContacts(String? contacts) {
@@ -616,6 +893,182 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     if (about == null || about.trim().isEmpty) return 'Не указано';
 
     return about.split('\n').where((s) => s.trim().isNotEmpty).join('\n\n');
+  }
+
+  Widget _buildEducationSection() {
+    final educationData = _parseEducation(widget.resume['education'] ?? '');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Заголовок
+        Padding(
+          padding: const EdgeInsets.only(top: 24, bottom: 16),
+          child: Text(
+            'Образование',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'PlayFair',
+              color: Colors.black,
+              height: 1.0,
+            ),
+          ),
+        ),
+
+        // Карточки образования
+        if (educationData.isNotEmpty)
+          ...educationData.map((edu) => _buildEducationCard(edu)).toList(),
+
+        // Кнопка добавления
+        Padding(
+          padding: const EdgeInsets.only(left: 0, top: 0, bottom: 0),
+          child: TextButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EducationPage(data: List.filled(5, '')),
+                ),
+              );
+            },
+            icon: addIconCircle,
+            label: Text(
+              'Добавить учебное заведение',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w300,
+                fontFamily: 'NotoSans',
+                color: midnightPurple,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ),
+
+        const Divider(color: lightGray),
+      ],
+    );
+  }
+
+  Widget _buildEducationCard(Map<String, String> education) {
+    final institution = education['institution'] ?? '';
+    final faculty = education['faculty'] ?? '';
+    final specialization = education['specialization'] ?? '';
+    final year = education['year'] ?? '';
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  // Учебное заведение
+                  Text(
+                    institution.isNotEmpty ? institution : 'Название учебного заведения',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: institution.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Факультет
+                  Text(
+                    faculty.isNotEmpty ? faculty : 'Факультет не указан',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: faculty.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Специализация
+                  Text(
+                    specialization.isNotEmpty ? specialization : 'Специализация не указана',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: specialization.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Год окончания
+                  Text(
+                    year.isNotEmpty ? year : 'Год окончания не указан',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: year.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EducationPage(
+                        data: [
+                          institution,
+                          faculty,
+                          specialization,
+                          year,
+                          education['degree'] ?? '',
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                icon: forwardIconWBg,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  List<Map<String, String>> _parseEducation(String raw) {
+    if (raw.trim().isEmpty) return [];
+
+    final List<Map<String, String>> result = [];
+    final entries = raw.split('\n\n'); // Разделяем по пустым строкам
+
+    for (var entry in entries) {
+      final lines = entry.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      if (lines.isEmpty) continue;
+
+      final education = <String, String>{};
+
+      // Парсим данные
+      if (lines.isNotEmpty) education['institution'] = lines[0];
+      if (lines.length > 1) education['faculty'] = lines[1];
+      if (lines.length > 2) education['specialization'] = lines[2];
+      if (lines.length > 3) education['degree'] = lines[3];
+      if (lines.length > 4) education['year'] = _extractYear(lines[4]);
+
+      result.add(education);
+    }
+
+    return result;
   }
 }
 
