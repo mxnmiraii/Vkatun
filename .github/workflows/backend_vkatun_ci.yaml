@@ -144,10 +144,10 @@ jobs:
         run: npm install -g newman
 
       - name: Run admin_collection.json
-        run: newman run backend/qa/postman/admin_collection.json --working-dir backend/qa/postman
+        run: newman run backend/qa/postman/admin_collection.json --working-dir backend/qa/postman --insecure
 
       - name: Run guest_collection.json
-        run: newman run backend/qa/postman/guest_collection.json --working-dir backend/qa/postman
+        run: newman run backend/qa/postman/guest_collection.json --working-dir backend/qa/postman --insecure
 
       - name: Run user_collection.json
-        run: newman run backend/qa/postman/user_collection.json --working-dir backend/qa/postman
+        run: newman run backend/qa/postman/user_collection.json --working-dir backend/qa/postman --insecure
