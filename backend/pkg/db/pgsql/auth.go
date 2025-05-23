@@ -12,7 +12,10 @@ func (d *DB) RegisterUser(ctx context.Context, email, passwordHash, username str
 		INSERT INTO users (email, password_hash, username)
 		VALUES ($1, $2, $3)
 	`, email, passwordHash, username)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetUserByEmail возвращает пользователя по email

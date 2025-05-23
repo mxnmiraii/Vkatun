@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -48,6 +50,12 @@ func (api *API) registerUser(w http.ResponseWriter, r *http.Request) {
 
 	err = api.db.RegisterUser(r.Context(), req.Email, string(hashedPassword), req.Name)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			http.Error(w, "A user with this email is already registered", http.StatusConflict)
+			return
+		}
+
 		api.logger.Error("failed to register user in DB", zap.String("email", req.Email), zap.Error(err))
 		http.Error(w, "Failed to register user", http.StatusInternalServerError)
 		return
