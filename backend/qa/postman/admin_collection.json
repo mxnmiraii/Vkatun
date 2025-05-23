@@ -1,0 +1,191 @@
+{
+	"info": {
+		"_postman_id": "3d824865-49c3-4348-a89d-39109308bc1c",
+		"name": "Vkatun Admin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38192646"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//const randomInt = Math.floor(Math.random() * 1000000);\r",
+							"//pm.environment.set(\"reg_email\", `user${randomInt}@example.com`);\r",
+							"//pm.environment.set(\"reg_password\", \"TestPass123!\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — успешный логин\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит токен и user_id\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    // Проверка и сохранение токена\r",
+							"    pm.expect(json).to.have.property(\"token\");\r",
+							"    pm.environment.set(\"auth_token\", json.token);\r",
+							"\r",
+							"    // Проверка и сохранение user_id (если в ответе id или user_id)\r",
+							"    if (json.id) {\r",
+							"        pm.environment.set(\"user_id\", json.id);\r",
+							"    } else if (json.user_id) {\r",
+							"        pm.environment.set(\"user_id\", json.user_id);\r",
+							"    } else if (json.user && json.user.id) {\r",
+							"        pm.environment.set(\"user_id\", json.user.id);\r",
+							"    } else {\r",
+							"        console.warn(\"ID пользователя не найден в ответе.\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"admin@mail.ru\",\r\n  \"password\": \"admin\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/login",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_without_autorization_metrics",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ошибка 401 без токена\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Unauthorized\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/metrics",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "metrics",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус ответа 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит все необходимые поля\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(jsonData).to.have.property(\"total_users\").that.is.a(\"number\");\r",
+							"    pm.expect(jsonData).to.have.property(\"active_users_today\").that.is.a(\"number\");\r",
+							"    pm.expect(jsonData).to.have.property(\"total_resumes\").that.is.a(\"number\");\r",
+							"    pm.expect(jsonData).to.have.property(\"total_changes_app\").that.is.a(\"number\");\r",
+							"    pm.expect(jsonData).to.have.property(\"last_updated_at\").that.is.a(\"string\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Поле last_updated_at имеет формат даты/времени ISO\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    const isoDateRegex = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z?$/;\r",
+							"    pm.expect(jsonData.last_updated_at).to.match(isoDateRegex);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxNjEsImV4cCI6MTc0ODUyNDc0OX0.NN-ghk5eqLpmqCiPju3ba0lU4S8oxL6QgALSDaRbW4k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/metrics",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

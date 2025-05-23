@@ -1,0 +1,1698 @@
+{
+	"info": {
+		"_postman_id": "a0b08377-2017-4336-b74c-8c6951f6fcac",
+		"name": "Vkatun",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38192646"
+	},
+	"item": [
+		{
+			"name": "negativ_registrer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 400 — отсутствуют обязательные поля\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text();\r",
+							"    pm.expect(json).to.include(\"Missing required fields\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"testuser{{$randomInt}}@example.com\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/register",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "registrer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 или 201 — регистрация успешна\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит id или токен (если предусмотрено)\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(Object.keys(json).length > 0).to.be.true;\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const randomInt = Math.floor(Math.random() * 1000000);\r",
+							"const email = `user${randomInt}@example.com`;\r",
+							"const password = `TestPass${randomInt}!`;\r",
+							"const name = `User${randomInt}`;\r",
+							"\r",
+							"//Устанавливаем переменные окружения\r",
+							"pm.environment.set(\"reg_email\", email);\r",
+							"pm.environment.set(\"reg_password\", password);\r",
+							"pm.environment.set(\"reg_name\", name);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"{{reg_email}}\",\r\n  \"password\": \"{{reg_password}}\",\r\n  \"name\": \"{{reg_name}}\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/register",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//const randomInt = Math.floor(Math.random() * 1000000);\r",
+							"//pm.environment.set(\"reg_email\", `user${randomInt}@example.com`);\r",
+							"//pm.environment.set(\"reg_password\", \"TestPass123!\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — успешный логин\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит токен и user_id\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    // Проверка и сохранение токена\r",
+							"    pm.expect(json).to.have.property(\"token\");\r",
+							"    pm.environment.set(\"auth_token\", json.token);\r",
+							"\r",
+							"    // Проверка и сохранение user_id (если в ответе id или user_id)\r",
+							"    if (json.id) {\r",
+							"        pm.environment.set(\"user_id\", json.id);\r",
+							"    } else if (json.user_id) {\r",
+							"        pm.environment.set(\"user_id\", json.user_id);\r",
+							"    } else if (json.user && json.user.id) {\r",
+							"        pm.environment.set(\"user_id\", json.user.id);\r",
+							"    } else {\r",
+							"        console.warn(\"ID пользователя не найден в ответе.\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"{{reg_email}}\",\r\n  \"password\": \"{{reg_password}}\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/login",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "profile_password",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Генерация нового пароля и сохранение его в окружение\r",
+							"const newPass = `NewPass${Math.floor(Math.random() * 100000)}`;\r",
+							"pm.environment.set(\"new_password\", newPass);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — пароль успешно обновлён\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит поле message\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"});\r",
+							"\r",
+							"// Обновляем сохранённый пароль на новый\r",
+							"pm.environment.set(\"reg_password\", pm.environment.get(\"new_password\"));\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"currentPassword\": \"{{reg_password}}\",\r\n  \"newPassword\": \"{{new_password}}\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/profile/password",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"profile",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_profile_password",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ожидаем ошибку 400 или 401\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([400, 401]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const text = pm.response.text();\r",
+							"    pm.expect(text).to.include(\"Current password is incorrect\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"currentPassword\": \"НеверныйПароль123!\",\r\n  \"newPassword\": \"ShouldNotWork123!\"\r\n}"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/profile/password",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"profile",
+						"password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload_without_file",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 400 при отсутствии файла\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const jsonData = pm.response.text(); \r",
+							"    pm.expect(jsonData).to.include(\"file\"); \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "https://87.228.38.184/upload?file=",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"upload"
+					],
+					"query": [
+						{
+							"key": "file",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload_file",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус ответа 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение и resume_id\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"message\");\r",
+							"    pm.expect(jsonData).to.have.property(\"resume_id\");\r",
+							"    pm.expect(jsonData.resume_id).to.be.a(\"number\");\r",
+							"\r",
+							"    // Сохраняем resume_id в переменную окружения\r",
+							"    pm.environment.set(\"resume_id\", jsonData.resume_id);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "test_resume.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://87.228.38.184/upload",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_resume",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус ответа 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит корректные поля\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    const expectedFields = [\r",
+							"        \"id\",\"user_id\", \"title\", \"contacts\", \"job\", \"experience\",\r",
+							"        \"education\", \"skills\", \"about\", \"created_at\", \"updated_at\"\r",
+							"    ];\r",
+							"\r",
+							"    expectedFields.forEach(field => {\r",
+							"        pm.expect(json).to.have.property(field);\r",
+							"    });\r",
+							"\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_get_resume",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 404 для несуществующего резюме\", function () {\r",
+							"    pm.response.to.have.status(404); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text();\r",
+							"    pm.expect(json).to.include(\"Resume not found\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/999999",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"999999"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resume_edit",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — успешное обновление резюме\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"    pm.expect(json.message).to.be.a(\"string\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"title\": \"Обновлённый заголовок\",\r\n  \"contacts\": \"example@email.com\",\r\n  \"job\": \"Frontend Developer\",\r\n  \"experience\": \"3 года работы в веб-разработке\",\r\n  \"education\": \"БГУИР, 2018\",\r\n  \"skills\": \"JavaScript, React, CSS\",\r\n  \"about\": \"Ответственный, внимательный к деталям.\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/edit",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resume_edit_not_full_body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — успешное обновление\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"    pm.expect(json.message).to.be.a(\"string\");\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"contacts\": \"example@email.com\",\r\n  \"job\": \"Frontend Developer\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/edit",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "edit_resume",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — Резюме успешно обновлено\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об успехе\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"    pm.expect(json.message).to.include(\"Resume updated successfully\"); \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Обновлённое резюме\",\r\n    \"contacts\": \"user@example.com\",\r\n    \"job\": \"Senior Backend Developer\",\r\n    \"experience\": \"5 лет в крупных IT-компаниях\",\r\n    \"education\": \"МГУ, прикладная математика\",\r\n    \"skills\": \"Python, Django, Postgres, REST, Docker\",\r\n    \"about\": \"Ответственный и увлечённый разработчик\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/edit",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"edit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resune_edit_section",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — Секция успешно обновлена\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об успешном обновлении\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"    pm.expect(json.message).to.be.a(\"string\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"content\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/edit/skills",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"edit",
+						"skills"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resume_edit_invalid_section",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ошибка 500 при недопустимом значении section\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([500]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке при недопустимом section\", function () {\r",
+							"    const json = pm.response.text();\r",
+							"    pm.expect(json.toLowerCase()).to.include(\"section\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"content\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/edit/invalid_section",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"edit",
+						"invalid_section"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_grammar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — грамматика проверена\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит массив issues\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    pm.expect(json).to.have.property(\"issues\");\r",
+							"    pm.expect(json.issues).to.be.an(\"array\");\r",
+							"\r",
+							"    if (json.issues.length > 0) {\r",
+							"        const issue = json.issues[0];\r",
+							"        pm.expect(issue).to.have.property(\"text\");\r",
+							"        pm.expect(issue).to.have.property(\"suggestion\");\r",
+							"        pm.expect(issue).to.have.property(\"type\");\r",
+							"\r",
+							"        pm.expect(issue.text).to.be.a(\"string\");\r",
+							"        pm.expect(issue.suggestion).to.be.a(\"string\");\r",
+							"        pm.expect(issue.type).to.be.a(\"string\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"issues\": [\r\n    {\r\n      \"text\": \"string\",\r\n      \"suggestion\": \"string\",\r\n      \"type\": \"string\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/check/grammar",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"check",
+						"grammar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_check_grammar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 404 — резюме не найдено\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text();\r",
+							"    pm.expect(json).to.include(\"Resume not found\");\r",
+							"   // pm.expect(json.message.toLowerCase()).to.include(\"not found\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"issues\": [\r\n    {\r\n      \"text\": \"string\",\r\n      \"suggestion\": \"string\",\r\n      \"type\": \"string\"\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/resume/184541/check/grammar",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"184541",
+						"check",
+						"grammar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_about",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — проверка прошла успешно\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит комментарий\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"comment\");\r",
+							"    pm.expect(json.comment).to.be.a(\"string\");\r",
+							"    pm.expect(json.comment.length).to.be.greaterThan(0);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/check/about",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"check",
+						"about"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_check_about",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 404 — резюме не найдено\", function () {\r",
+							"    pm.response.to.have.status(404); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text(); \r",
+							"    pm.expect(json).to.include(\"Resume not found\"); \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/18133/check/about",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"18133",
+						"check",
+						"about"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_experience",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — проверка опыта успешна\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит комментарий\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"comment\");\r",
+							"    pm.expect(json.comment).to.be.a(\"string\");\r",
+							"    pm.expect(json.comment.length).to.be.greaterThan(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/check/experience",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"check",
+						"experience"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_check_experience",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 404 — резюме не найдено\", function () {\r",
+							"    pm.response.to.have.status(404); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text();\r",
+							"    pm.expect(json).to.include(\"Resume not found\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/18331/check/experience",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"18331",
+						"check",
+						"experience"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check_skills",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — проверка навыков успешна\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит массив issues\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"issues\");\r",
+							"    pm.expect(json.issues).to.be.an(\"array\");\r",
+							"\r",
+							"    if (json.issues.length > 0) {\r",
+							"        const issue = json.issues[0];\r",
+							"        pm.expect(issue).to.have.property(\"text\");\r",
+							"        pm.expect(issue).to.have.property(\"reason\");\r",
+							"\r",
+							"        pm.expect(issue.text).to.be.a(\"string\");\r",
+							"        pm.expect(issue.reason).to.be.a(\"string\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/{{resume_id}}/check/skills",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"{{resume_id}}",
+						"check",
+						"skills"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_check_skills",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 404 — резюме не найдено\", function () {\r",
+							"    pm.response.to.have.status(404); \r",
+							"});\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text();\r",
+							"    pm.expect(json).to.include(\"Resume not found\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resume/1478/check/skills",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resume",
+						"1478",
+						"check",
+						"skills"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_resumes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — список резюме получен\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ — массив объектов с резюме\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.be.an(\"array\");\r",
+							"\r",
+							"    if (json.length > 0) {\r",
+							"        const resume = json[0];\r",
+							"        pm.expect(resume).to.have.property(\"id\");\r",
+							"        pm.expect(resume).to.have.property(\"title\");\r",
+							"        pm.expect(resume).to.have.property(\"created_at\");\r",
+							"\r",
+							"        pm.expect(resume.id).to.be.a(\"number\");\r",
+							"        pm.expect(resume.title).to.be.a(\"string\");\r",
+							"        pm.expect(resume.created_at).to.be.a(\"string\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resumes",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resumes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_get_resumes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 401 — неавторизованный доступ\", function () {\r",
+							"    pm.response.to.have.status(401); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const responseBody = pm.response.text();\r",
+							"    pm.expect(responseBody).to.include(\"Unauthorized\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://87.228.38.184/resumes",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"resumes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "profile",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — Профиль получен\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит ID, email и username\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"\r",
+							"    pm.expect(json).to.have.property(\"id\").that.is.a(\"number\");\r",
+							"    pm.expect(json).to.have.property(\"email\").that.is.a(\"string\");\r",
+							"    pm.expect(json).to.have.property(\"username\").that.is.a(\"string\");\r",
+							"\r",
+							"   \r",
+							"    pm.environment.set(\"user_id\", json.id);\r",
+							"    pm.environment.set(\"user_email\", json.email);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"testuser{{$randomInt}}@example.com\"\r\n}"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/profile",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_profile_name",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ожидаем 400 при пустом имени\", function () {\r",
+							"    pm.response.to.have.status(500); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const json = pm.response.text(); \r",
+							"    pm.expect(json).to.include(\"Failed to update name\"); \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"\"\r\n}"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/profile/name",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"profile",
+						"name"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "profile_name",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const suffix = Math.floor(Math.random() * 1000000);\r",
+							"pm.environment.set(\"random_suffix\", suffix);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 200 — Имя успешно изменено\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение\", function () {\r",
+							"    const json = pm.response.json();\r",
+							"    pm.expect(json).to.have.property(\"message\");\r",
+							"})"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"NewName{{random_suffix}}\"\r\n}"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/profile/name",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"profile",
+						"name"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

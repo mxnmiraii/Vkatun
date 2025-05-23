@@ -1,0 +1,241 @@
+{
+	"info": {
+		"_postman_id": "13655f21-f457-47f8-ae91-4b0f659740ae",
+		"name": "Not_avtoriz_user",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38192646"
+	},
+	"item": [
+		{
+			"name": "negati_guest_upload",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус 400 — отсутствие файла\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const jsonData = pm.response.text(); \r",
+							"    pm.expect(jsonData).to.include(\"Failed to read file\"); \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "https://87.228.38.184/guest/upload",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"guest",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "guest_upload",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус ответа 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит message и text\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"message\").that.is.a(\"string\");\r",
+							"    pm.expect(jsonData).to.have.property(\"text\").that.is.a(\"string\");\r",
+							"});\r",
+							"\r",
+							"//pm.test(\"Поле text содержит допустимое значение\", function () {\r",
+							"   // const jsonData = pm.response.json();\r",
+							"   // const allowedValues = [\"spelling\", \"punctuation\", \"grammar\", \"style\"];\r",
+							"  //  pm.expect(allowedValues).to.include(jsonData.text);\r",
+							"//});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "test_resume.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://87.228.38.184/guest/upload",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"guest",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "negativ_guest_check_grammar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ошибка при отсутствии поля name\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит сообщение об ошибке\", function () {\r",
+							"    const jsonData = pm.response.text(); \r",
+							"    pm.expect(jsonData).to.include(\"Resume text is required\"); \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://87.228.38.184/guest/check/grammar",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"guest",
+						"check",
+						"grammar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "guest_check_grammar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Статус ответа 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ответ содержит массив issues\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"issues\").that.is.an(\"array\");\r",
+							"\r",
+							"    if (jsonData.issues.length > 0) {\r",
+							"        pm.test(\"Каждая ошибка содержит text, suggestion и type\", function () {\r",
+							"            jsonData.issues.forEach(issue => {\r",
+							"                pm.expect(issue).to.have.property(\"text\").that.is.a(\"string\");\r",
+							"                pm.expect(issue).to.have.property(\"suggestion\").that.is.a(\"string\");\r",
+							"                pm.expect(issue).to.have.property(\"type\").that.is.a(\"string\");\r",
+							"            });\r",
+							"        });\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"resume\": \"Lukyanov Maxim Alekseevich Мужчина +7 (999) 9868074 3555835@mail.ru — предпочитаемый способ связи Праживает: МоскваГражданство: Россия есть разрешение на роботу: Россия Готов\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://87.228.38.184/guest/check/grammar",
+					"protocol": "https",
+					"host": [
+						"87",
+						"228",
+						"38",
+						"184"
+					],
+					"path": [
+						"guest",
+						"check",
+						"grammar"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
