@@ -41,6 +41,13 @@ func (api *API) registerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if strings.TrimSpace(req.Email) == "" ||
+		strings.TrimSpace(req.Name) == "" ||
+		strings.TrimSpace(req.Password) == "" {
+		http.Error(w, "Missing required fields: email, name, and password must be provided", http.StatusBadRequest)
+		return
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		api.logger.Error("failed to hash password", zap.Error(err))
@@ -52,7 +59,7 @@ func (api *API) registerUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			http.Error(w, "A user with this email is already registered", http.StatusConflict)
+			http.Error(w, "A user with this email or username already exists", http.StatusConflict)
 			return
 		}
 
