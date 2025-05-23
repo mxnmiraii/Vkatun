@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/account/account_page.dart';
 import 'package:vkatun/account/period_selector.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
+
+import '../api_service.dart';
 
 class MetricsPage extends StatefulWidget {
   const MetricsPage({super.key});
@@ -23,6 +26,8 @@ class _MetricsPageState extends State<MetricsPage> {
 
   DateTime? selectedFrom;
   DateTime? selectedTo;
+  bool isLoading = true;
+  String errorMessage = '';
 
   @override
   void dispose() {
@@ -32,10 +37,41 @@ class _MetricsPageState extends State<MetricsPage> {
   @override
   void initState() {
     super.initState();
+    _loadMetrics();
   }
 
   String _format(DateTime date) {
     return "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
+  }
+
+  Future<void> _loadMetrics() async {
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
+    try {
+      // Получаем ApiService через Provider
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final data = await apiService.getMetrics();
+
+      if (!mounted) return;
+
+      setState(() {
+        metrics = data;
+        isLoading = false;
+      });
+      print(metrics);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Не удалось загрузить метрики: ${e.toString()}';
+      });
+    }
   }
 
   @override

@@ -255,8 +255,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         backgroundColor: veryPaleBlue,
         toolbarHeight: appBarHeight,
         automaticallyImplyLeading: false,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.5),
+        scrolledUnderElevation: 0, // Убираем тень при скролле
+        surfaceTintColor: Colors.transparent,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -307,7 +309,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(buttonPaddingVertical),
+        padding: const EdgeInsets.all(buttonPaddingVertical + 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -479,18 +481,18 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       height: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 16),
                   Text(
                     content,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'PlayFair',
+                      fontFamily: 'NotoSans',
                       color: Colors.black,
                       height: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 13),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
