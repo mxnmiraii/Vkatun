@@ -879,105 +879,122 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     final skills = _parseSkills(rawSkills);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
-        Text(
-          'Ключевые навыки',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            fontFamily: 'PlayFair',
-            color: Colors.black,
-            height: 1.0,
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (skills.isEmpty)
-          Text(
-            'Не указано',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w300,
-              fontFamily: 'NotoSans',
-              color: Colors.black,
-              height: 1.0,
-            ),
-          )
-        else
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: skills
-                .map((s) => Container(
-              padding:
-              const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-              decoration: BoxDecoration(
-                color: lightGray,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                s,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: 'NotoSans',
-                  height: 1.0,
-                ),
-              ),
-            ))
-                .toList(),
-          ),
-        const SizedBox(height: 12),
+        const Divider(color: lightGray), // верхняя линия
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => KeySkillsPage(data: rawSkills ?? ''),
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  Text(
+                    'Ключевые навыки',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'PlayFair',
+                      color: Colors.black,
+                      height: 1.0,
+                    ),
                   ),
-                );
-              },
-              icon: forwardIconWBg,
+                  const SizedBox(height: 16),
+                  if (skills.isEmpty)
+                    Text(
+                      'Не указано',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w300,
+                        fontFamily: 'NotoSans',
+                        color: Colors.black,
+                        height: 1.0,
+                      ),
+                    )
+                  else
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: skills
+                          .map((s) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 4, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: lightGray,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          s,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            fontFamily: 'NotoSans',
+                            height: 1.0,
+                          ),
+                        ),
+                      ))
+                          .toList(),
+                    ),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          KeySkillsPage(data: rawSkills ?? ''),
+                    ),
+                  );
+                },
+                icon: forwardIconWBg,
+              ),
             ),
           ],
         ),
-        const Divider(color: lightGray),
+        const Divider(color: lightGray), // нижняя линия
       ],
     );
   }
 
+
+
   List<String> _parseSkills(String? raw) {
     if (raw == null || raw.trim().isEmpty) return [];
 
-    final lines = raw.split('\n');
-
     final List<String> skills = [];
 
+    final lines = raw.split('\n');
+
     for (var line in lines) {
-      final trimmedLine = line.trim();
+      var trimmedLine = line.trim();
       if (trimmedLine.isEmpty) continue;
 
-      if (trimmedLine.contains(',')) {
+      // Удаляем "Ключевые навыки" или "Языки:" из начала строки
+      final lower = trimmedLine.toLowerCase();
+      if (lower.startsWith('ключевые навыки')) continue;
+      if (lower.startsWith('языки:')) {
+        trimmedLine = trimmedLine.substring(trimmedLine.indexOf(':') + 1).trim();
+      }
+
+      // Разделяем по запятым и точкам с запятой
+      if (trimmedLine.contains(',') || trimmedLine.contains(';')) {
         skills.addAll(trimmedLine
-            .split(',')
+            .split(RegExp(r'[;,]'))
             .map((e) => e.trim())
-            .where((e) =>
-        e.isNotEmpty &&
-            !e.toLowerCase().contains('ключевые навыки')));
+            .where((e) => e.isNotEmpty));
       } else {
-        if (!trimmedLine.toLowerCase().contains('ключевые навыки')) {
-          skills.add(trimmedLine);
-        }
+        skills.add(trimmedLine);
       }
     }
 
     return skills;
   }
-
 
 
 
