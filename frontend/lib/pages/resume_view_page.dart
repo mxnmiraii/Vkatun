@@ -986,8 +986,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       if (trimmedLine.contains(',') || trimmedLine.contains(';')) {
         skills.addAll(trimmedLine
             .split(RegExp(r'[;,]'))
-            .map((e) => e.trim())
+            .map((e) => e.trim().replaceAll(RegExp(r'\.$'), '')) // <-- вот это
             .where((e) => e.isNotEmpty));
+
       } else {
         skills.add(trimmedLine);
       }
