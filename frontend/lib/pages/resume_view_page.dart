@@ -372,12 +372,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             _buildEducationSection(),
 
             // Ключевые навыки с лучшим форматированием
-            _buildSection(
-              title: 'Ключевые навыки',
-              content: _formatSkills(widget.resume['skills']),
-              hasCheck: true,
-              targetPage: KeySkillsPage(data: widget.resume['skills'] ?? ''),
-            ),
+            _buildSkillsSection(),
 
             // О себе с улучшенным отображением
             _buildSection(
@@ -879,15 +874,112 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     ].join('\n');
   }
 
-  String _formatSkills(String? skills) {
-    if (skills == null || skills.trim().isEmpty) return 'Не указано';
+  Widget _buildSkillsSection() {
+    final rawSkills = widget.resume['skills'];
+    final skills = _parseSkills(rawSkills);
 
-    return skills
-        .split('\n')
-        .where((s) => s.trim().isNotEmpty)
-        .map((s) => '• ${s.trim()}')
-        .join('\n');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        Text(
+          'Ключевые навыки',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            fontFamily: 'PlayFair',
+            color: Colors.black,
+            height: 1.0,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (skills.isEmpty)
+          Text(
+            'Не указано',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w300,
+              fontFamily: 'NotoSans',
+              color: Colors.black,
+              height: 1.0,
+            ),
+          )
+        else
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: skills
+                .map((s) => Container(
+              padding:
+              const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              decoration: BoxDecoration(
+                color: lightGray,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                s,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  fontFamily: 'NotoSans',
+                  height: 1.0,
+                ),
+              ),
+            ))
+                .toList(),
+          ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => KeySkillsPage(data: rawSkills ?? ''),
+                  ),
+                );
+              },
+              icon: forwardIconWBg,
+            ),
+          ],
+        ),
+        const Divider(color: lightGray),
+      ],
+    );
   }
+
+  List<String> _parseSkills(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return [];
+
+    final lines = raw.split('\n');
+
+    final List<String> skills = [];
+
+    for (var line in lines) {
+      final trimmedLine = line.trim();
+      if (trimmedLine.isEmpty) continue;
+
+      if (trimmedLine.contains(',')) {
+        skills.addAll(trimmedLine
+            .split(',')
+            .map((e) => e.trim())
+            .where((e) =>
+        e.isNotEmpty &&
+            !e.toLowerCase().contains('ключевые навыки')));
+      } else {
+        if (!trimmedLine.toLowerCase().contains('ключевые навыки')) {
+          skills.add(trimmedLine);
+        }
+      }
+    }
+
+    return skills;
+  }
+
+
+
 
   String _formatAboutMe(String? about) {
     if (about == null || about.trim().isEmpty) return 'Не указано';
