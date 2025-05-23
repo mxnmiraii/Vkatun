@@ -106,6 +106,7 @@ class _ResumesPageState extends State<ResumesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showFullScreenOnboarding(_isFirstBigStep, _isFifthBigStep);
     });
+    _syncResumes();
     _loadResumes();
   }
 
@@ -154,6 +155,18 @@ class _ResumesPageState extends State<ResumesPage>
     } catch (e) {
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _syncResumes() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      if (!apiService.isGuest) {
+        await apiService.syncData();
+        print('Данные успешно синхронизированы');
+      }
+    } catch (e) {
+      print('Ошибка синхронизации: $e');
     }
   }
 

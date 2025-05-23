@@ -235,7 +235,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'name': json.encode(resume)}),
+        body: json.encode({'resume': json.encode(resume)}),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -482,18 +482,75 @@ class ApiService {
     if (isGuest) return;
 
     try {
-      // Здесь должна быть логика синхронизации изменений
-      // Например, отправка всех локально измененных резюме
+      // 1. Получаем текущие локальные резюме
+      final localResumes = getLocalResumes();
+      final localResumeIds = localResumes.map((r) => r['id'] as int).toSet();
+
+      // 2. Запрашиваем список резюме с сервера
       final response = await http.get(
         Uri.parse('$baseUrl/resumes'),
         headers: _headers,
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        await _saveLocalResumes(List<Map<String, dynamic>>.from(json.decode(response.body)));
+        final serverResumes = List<Map<String, dynamic>>.from(json.decode(response.body));
+        final serverResumeIds = serverResumes.map((r) => r['id'] as int).toSet();
+
+        // 3. Проверяем целостность каждого резюме
+        final List<Map<String, dynamic>> completeResumes = [];
+
+        for (final serverResume in serverResumes) {
+          try {
+            // Для каждого резюме получаем полную версию
+            final fullResume = await getResumeById(serverResume['id']);
+            completeResumes.add(fullResume);
+          } catch (e) {
+            print('Ошибка загрузки резюме ${serverResume['id']}: $e');
+            // Если не удалось загрузить, используем сокращенную версию (если есть локально)
+            final localResume = localResumes.firstWhere(
+                  (r) => r['id'] == serverResume['id'],
+              orElse: () => serverResume,
+            );
+            completeResumes.add(localResume);
+          }
+        }
+
+        // 4. Сохраняем обновленные данные
+        await _saveLocalResumes(completeResumes);
+
+        // 5. Удаляем локальные резюме, которых нет на сервере
+        final resumesToKeep = completeResumes.where((r) => serverResumeIds.contains(r['id'])).toList();
+        await _saveLocalResumes(resumesToKeep);
+
+        return;
       }
+      throw Exception('Ошибка сервера: ${response.statusCode}');
     } catch (e) {
       print('Ошибка синхронизации: $e');
+      // В оффлайн режиме проверяем целостность локальных данных
+      final localResumes = getLocalResumes();
+      final validResumes = await _validateLocalResumes(localResumes);
+      await _saveLocalResumes(validResumes);
     }
+  }
+
+// Проверяет целостность локальных резюме
+  Future<List<Map<String, dynamic>>> _validateLocalResumes(List<Map<String, dynamic>> resumes) async {
+    final List<Map<String, dynamic>> validResumes = [];
+
+    for (final resume in resumes) {
+      try {
+        // Проверяем обязательные поля
+        if (resume['id'] != null &&
+            resume['title'] != null &&
+            resume['created_at'] != null) {
+          validResumes.add(resume);
+        }
+      } catch (e) {
+        print('Поврежденное резюме удалено: ${resume['id']}');
+      }
+    }
+
+    return validResumes;
   }
 }
