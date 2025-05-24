@@ -121,6 +121,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        print(json.decode(response.body));
         return json.decode(response.body);
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');
@@ -146,6 +147,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        print(json.decode(response.body));
         return json.decode(response.body);
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');
@@ -163,6 +165,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        print(json.decode(response.body));
         return json.decode(response.body);
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');
@@ -180,6 +183,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        print(json.decode(response.body));
         return json.decode(response.body);
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');
@@ -197,6 +201,7 @@ class ApiService {
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        print(json.decode(response.body));
         return json.decode(response.body);
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');

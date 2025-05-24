@@ -767,175 +767,177 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         Divider(color: lightViolet.withOpacity(0.5), thickness: 2),
         SizedBox(height: space / 2),
         Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children:
-                index == 0
-                    ? [
-                      _buildButton('Орфография', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningSpell = true;
-                          spellingIssues = [];
-                        });
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children:
+              index == 0
+                  ? [
+                _buildButton('Орфография', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningSpell = true;
+                    spellingIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeGrammar(
-                            widget.resume['id'],
-                            'spelling',
-                          );
-                          setState(() {
-                            spellingIssues = issues;
-                            isLoading = false;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isScanningSpell = false;
-                            isLoading = false;
-                          });
-                        }
-                      }),
-                      _buildButton('Пунктуация', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningPunctuation = true;
-                          punctuationIssues = [];
-                        });
+                  try {
+                    final issues = await _analyzeResumeGrammar(
+                      widget.resume['id'],
+                      'spelling',
+                    );
+                    setState(() {
+                      spellingIssues = issues;
+                      isLoading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isScanningSpell = false;
+                      isLoading = false;
+                    });
+                  }
+                }),
+                _buildButton('Пунктуация', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningPunctuation = true;
+                    punctuationIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeGrammar(
-                            widget.resume['id'],
-                            'punctuation',
-                          );
-                          setState(() {
-                            punctuationIssues = issues;
-                            isLoading = false;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isScanningPunctuation = false;
-                            isLoading = false;
-                          });
-                        }
-                      }),
-                      _buildButton('Грамматика', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningGrammar = true;
-                          grammarIssues = [];
-                        });
+                  try {
+                    final issues = await _analyzeResumeGrammar(
+                      widget.resume['id'],
+                      'punctuation',
+                    );
+                    setState(() {
+                      punctuationIssues = issues;
+                      isLoading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isScanningPunctuation = false;
+                      isLoading = false;
+                    });
+                  }
+                }),
+                _buildButton('Грамматика', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningGrammar = true;
+                    grammarIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeGrammar(
-                            widget.resume['id'],
-                            'grammar',
-                          );
-                          setState(() {
-                            grammarIssues = issues;
-                            isLoading = false;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                            isScanningGrammar = false;
-                          });
-                        }
-                      }),
-                      _buildButton('Стилевые ошибки', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningStyle = true;
-                          styleIssues = [];
-                        });
+                  try {
+                    final issues = await _analyzeResumeGrammar(
+                      widget.resume['id'],
+                      'grammar',
+                    );
+                    setState(() {
+                      grammarIssues = issues;
+                      isLoading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isLoading = false;
+                      isScanningGrammar = false;
+                    });
+                  }
+                }),
+                _buildButton('Стилевые ошибки', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningStyle = true;
+                    styleIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeGrammar(
-                            widget.resume['id'],
-                            'style',
-                          );
-                          setState(() {
-                            styleIssues = issues;
-                            isLoading = false;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                            isScanningStyle = false;
-                          });
-                        }
-                      }),
-                    ]
-                    : [
-                      _buildButton('Навыки', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningSkills = true;
-                          skillsIssues = [];
-                        });
+                  try {
+                    final issues = await _analyzeResumeGrammar(
+                      widget.resume['id'],
+                      'style',
+                    );
+                    setState(() {
+                      styleIssues = issues;
+                      isLoading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isLoading = false;
+                      isScanningStyle = false;
+                    });
+                  }
+                }),
+              ]
+                  : [
+                _buildButton('Навыки', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningSkills = true;
+                    skillsIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeSkills(
-                            widget.resume['id'],
-                            'skills',
-                          );
-                          setState(() {
-                            skillsIssues = issues;
-                            isLoading = false;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                            isScanningSkills = false;
-                          });
-                        }
-                      }),
-                      _buildButton('О себе', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningAboutMe = true;
-                          aboutMeIssues = [];
-                        });
+                  try {
+                    final issues = await _analyzeResumeSkills(
+                      widget.resume['id'],
+                      'skills',
+                    );
+                    setState(() {
+                      skillsIssues = issues;
+                      isLoading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isLoading = false;
+                      isScanningSkills = false;
+                    });
+                  }
+                }),
+                _buildButton('О себе', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningAboutMe = true;
+                    aboutMeIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeAboutMe(
-                            widget.resume['id'],
-                            'about',
-                          );
-                          setState(() {
-                            aboutMeIssues = issues;
-                            isLoading = false;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                            isScanningAboutMe = false;
-                          });
-                        }
-                      }),
-                      _buildButton('Опыт работы', () async {
-                        setState(() {
-                          isLoading = true;
-                          isScanningExperience = true;
-                          experienceIssues = [];
-                        });
+                  try {
+                    final issues = await _analyzeResumeAboutMe(
+                      widget.resume['id'],
+                      'about',
+                    );
+                    setState(() {
+                      aboutMeIssues = issues;
+                      isLoading = false;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isLoading = false;
+                      isScanningAboutMe = false;
+                    });
+                  }
+                }),
+                _buildButton('Опыт работы', () async {
+                  setState(() {
+                    isLoading = true;
+                    isScanningExperience = true;
+                    experienceIssues = [];
+                  });
 
-                        try {
-                          final issues = await _analyzeResumeExoerience(
-                            widget.resume['id'],
-                            'experience',
-                          );
-                          setState(() {
-                            isLoading = false;
-                            experienceIssues = issues;
-                          });
-                        } catch (e) {
-                          setState(() {
-                            isLoading = false;
-                            isScanningExperience = false;
-                          });
-                        }
-                      }),
-                    ],
+                  try {
+                    final issues = await _analyzeResumeExoerience(
+                      widget.resume['id'],
+                      'experience',
+                    );
+                    setState(() {
+                      isLoading = false;
+                      experienceIssues = issues;
+                    });
+                  } catch (e) {
+                    setState(() {
+                      isLoading = false;
+                      isScanningExperience = false;
+                    });
+                  }
+                }),
+              ],
+            ),
           ),
         ),
         SizedBox(height: space),

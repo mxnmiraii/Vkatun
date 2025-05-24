@@ -1075,8 +1075,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             ),
           ),
         ),
-
-        const Divider(color: lightGray),
       ],
     );
   }

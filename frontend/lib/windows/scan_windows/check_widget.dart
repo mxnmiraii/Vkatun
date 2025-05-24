@@ -324,7 +324,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                   ),
                                 ),
                               )
-                          )
+                          ),
                         ],
                       ),
                     ),
