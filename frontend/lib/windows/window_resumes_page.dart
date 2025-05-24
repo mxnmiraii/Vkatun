@@ -37,6 +37,7 @@ class WindowResumesPage extends StatefulWidget {
 class _WindowResumesPageState extends State<WindowResumesPage> {
   bool _isExporting = false;
   bool _isReadyToDownload = false;
+  bool _isConfirmingDelete = false;
   File? _pdfFile;
   int _loadingDots = 0;
   Timer? _dotsTimer;
@@ -113,8 +114,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Основное окно с кнопками
-          if (!_isExporting)
+          if (!_isExporting && !_isConfirmingDelete)
             Center(
               child: Dialog(
                 insetPadding: const EdgeInsets.all(30),
@@ -162,21 +162,21 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                           icon: miniPenIcon,
                           text: 'Редактировать резюме',
                           onPressed:
-                              !widget.showOnboarding
-                                  ? () {
-                                    widget.onClose();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => ResumeViewPage(
-                                              resume: widget.resume,
-                                              onDelete: widget.onDelete,
-                                            ),
-                                      ),
-                                    );
-                                  }
-                                  : () {},
+                          !widget.showOnboarding
+                              ? () {
+                            widget.onClose();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => ResumeViewPage(
+                                  resume: widget.resume,
+                                  onDelete: widget.onDelete,
+                                ),
+                              ),
+                            );
+                          }
+                              : () {},
                           textStyle: textStyle,
                           borderColor: borderWindowColor,
                         ),
@@ -195,30 +195,20 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                         _buildButton(
                           icon: miniDeleteIcon,
                           text: 'Удалить резюме',
-                          onPressed: !widget.showOnboarding ? () async {
-                            try {
-                              final apiService = Provider.of<ApiService>(
-                                context,
-                                listen: false,
-                              );
-                              await apiService.deleteResume(
-                                widget.resume['id'] as int,
-                              );
-                              widget.onDelete();
-                              widget.onClose();
-                            } catch (e) {
-                              _showWarningDialog(context);
-                            }
+                          onPressed: !widget.showOnboarding ? () {
+                            setState(() {
+                              _isConfirmingDelete = true;
+                            });
                           } : () {},
                           textStyle: textStyle,
                           borderColor: borderWindowColor,
                         ),
                       ] else ...[
                         SizedBox(
-                          height: 180,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              SizedBox(height: 30,),
                               Text(
                                 'Резюме готово к скачиванию',
                                 style: textStyle.copyWith(
@@ -227,7 +217,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 30),
                               _buildButton(
                                 icon: miniDownloadIcon,
                                 text: 'Скачать PDF',
@@ -261,12 +251,105 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
               ),
             ),
 
-          // Полноэкранное белое окно подготовки (25% прозрачности)
+          if (_isConfirmingDelete)
+            Center(
+              child: Dialog(
+                insetPadding: const EdgeInsets.all(30),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        upColorGradient,
+                        downColorGradient.withOpacity(0.6),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: Border.all(
+                      color: darkViolet.withOpacity(0.64),
+                      width: widthBorderRadius,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          'Резюме',
+                          style: textStyle.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 20,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: 45),
+                      Text(
+                        'Резюме готово к удалению',
+                        style: textStyle.copyWith(
+                          color: midnightPurple,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      _buildButton(
+                        icon: miniDeleteIcon,
+                        text: 'Удалить резюме',
+                        onPressed: () async {
+                          try {
+                            final apiService = Provider.of<ApiService>(
+                              context,
+                              listen: false,
+                            );
+                            await apiService.deleteResume(
+                              widget.resume['id'] as int,
+                            );
+                            widget.onDelete();
+                            widget.onClose();
+                          } catch (e) {
+                            _showWarningDialog(context);
+                            setState(() {
+                              _isConfirmingDelete = false;
+                            });
+                          }
+                        },
+                        textStyle: textStyle,
+                        borderColor: borderWindowColor,
+                      ),
+                      const SizedBox(height: 10),
+                      _buildButton(
+                        icon: miniDownloadIcon,
+                        text: 'Оставить',
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmingDelete = false;
+                          });
+                        },
+                        textStyle: textStyle,
+                        borderColor: borderWindowColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           if (_isExporting)
             Container(
               color: Colors.white.withOpacity(
                 0.25,
-              ), // 25% прозрачности (75% непрозрачности)
+              ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -321,17 +404,16 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
   }
 
   static Future<Map<String, dynamic>> getLocalResume(
-    int resumeId,
-    BuildContext context,
-  ) async {
+      int resumeId,
+      BuildContext context,
+      ) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final List<Map<String, dynamic>> allResumes =
-          apiService.getLocalResumes();
+      apiService.getLocalResumes();
 
-      // Приводим ID к int для корректного сравнения
       final resume = allResumes.firstWhere(
-        (r) => (r['id'] as num).toInt() == resumeId, // <-- Важно!
+            (r) => (r['id'] as num).toInt() == resumeId,
         orElse: () => throw Exception('Резюме с ID $resumeId не найдено'),
       );
 
