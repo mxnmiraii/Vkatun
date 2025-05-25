@@ -9,13 +9,16 @@ class CheckWidget extends StatefulWidget {
   final VoidCallback onClose;
   final Map<String, dynamic> resume;
   final List<Issue> issues;
+  final VoidCallback? onResumeChange;
+
   const CheckWidget(
       {
         super.key,
         required this.availableHeight,
         required this.onClose,
         required this.resume,
-        required this.issues
+        required this.issues,
+        this.onResumeChange,
       }
       );
 
@@ -75,6 +78,7 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                         availableHeight: widget.availableHeight,
                         onClose: widget.onClose,
                         resume: widget.resume,
+                        onResumeChange: widget.onResumeChange,
                       ),
                     );
                   }),
@@ -107,14 +111,10 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                           builder: (context) => ApplyCorrections(
                             originalResume: widget.resume,
                             corrections: widget.issues,
+                            onResumeChange: widget.onResumeChange,
                           ),
                         ),
-                      ).then((correctedResume) {
-                        if (correctedResume != null) {
-                          // Сохраняем исправленное резюме
-                          print('Исправленное резюме: $correctedResume');
-                        }
-                      });
+                      );
                     },
                     child: Text(
                       'Внедрить все',
@@ -143,6 +143,7 @@ class IssueCard extends StatefulWidget {
   final double availableHeight;
   final VoidCallback onClose;
   final Map<String, dynamic> resume;
+  final VoidCallback? onResumeChange;
 
   const IssueCard({
     super.key,
@@ -151,7 +152,8 @@ class IssueCard extends StatefulWidget {
     required this.onToggle,
     required this.availableHeight,
     required this.onClose,
-    required this.resume
+    required this.resume,
+    required this.onResumeChange,
   });
 
   @override
@@ -303,12 +305,14 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                           originalResume: widget.resume,
                                           corrections: [widget.issue],
                                           singleCorrection: widget.issue,
+                                          onResumeChange: widget.onResumeChange,
                                         ),
                                       ),
                                     ).then((correctedResume) {
                                       if (correctedResume != null) {
                                         // Сохраняем исправленное резюме
                                         print('Исправленное резюме: $correctedResume');
+                                        // endpoint 25.04.2025
                                       }
                                     });
                                   },

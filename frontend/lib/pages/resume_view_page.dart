@@ -120,33 +120,32 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     late OverlayEntry buttonOverlayEntry;
 
     buttonOverlayEntry = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            bottom: bottom35,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Material(
-                color: Colors.transparent,
-                child: AnimatedBuilder(
-                  animation: _rotationController,
-                  builder: (context, child) {
-                    return Transform.rotate(
-                      angle: _rotationController.value * 2 * math.pi,
-                      child: IconButton(
-                        icon: addIcon,
-                        onPressed: () {
-                          buttonOverlayEntry.remove();
-                          _closeDialog();
-                        },
-                        iconSize: 36,
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (context) => Positioned(
+        bottom: bottom35,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: AnimatedBuilder(
+              animation: _rotationController,
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: _rotationController.value * 2 * math.pi,
+                  child: IconButton(
+                    icon: addIcon,
+                    onPressed: () {
+                      buttonOverlayEntry.remove();
+                      _closeDialog();
+                    },
+                    iconSize: 36,
+                  ),
+                );
+              },
             ),
           ),
+        ),
+      ),
     );
 
     if (_showOverlay) {
@@ -171,16 +170,16 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       pageBuilder: (ctx, anim1, anim2) {
         return WindowFixMistakes(
           onClose: () {
-            // buttonOverlayEntry.remove();
             _closeDialog();
           },
           rotationController: _rotationController,
           resume: widget.resume,
           showOnboarding: widget.showOnboarding,
           isSeventhBigStep: true,
+          onResumeChange: _updateResumeData,
         );
       },
-    ).then((_) {
+    ).then((result) {
       if (buttonOverlayEntry.mounted) {
         buttonOverlayEntry.remove();
       }
@@ -189,6 +188,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       }
     });
   }
+
 
   void _closeDialog() {
     _rotationController.reverse();
@@ -341,6 +341,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                           });
                         }
                         : null,
+                resumeId: widget.resume['id'],
+                onResumeChange: _updateResumeData,
               ),
             ),
 
@@ -443,6 +445,61 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
+  }
+
+  Future<void> _updateResumeData() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+
+      // Для гостей - только локальное хранилище
+      if (apiService.isGuest) {
+        final localResumes = apiService.getLocalResumes();
+        final updatedResume = localResumes.firstWhere(
+              (r) => r['id'] == widget.resume['id'],
+          orElse: () => widget.resume,
+        );
+
+        if (mounted) {
+          setState(() {
+            widget.resume.clear();
+            widget.resume.addAll(updatedResume);
+          });
+        }
+        return;
+      }
+
+      // Для авторизованных пользователей - пробуем обновить с сервера,
+      // но при ошибке используем локальные данные
+      try {
+        final updatedResume = await apiService.getResumeById(widget.resume['id'] as int);
+        if (mounted) {
+          setState(() {
+            widget.resume.clear();
+            widget.resume.addAll(updatedResume);
+          });
+        }
+      } catch (e) {
+        // Если ошибка сервера - используем локальные данные
+        final localResumes = apiService.getLocalResumes();
+        final updatedResume = localResumes.firstWhere(
+              (r) => r['id'] == widget.resume['id'],
+          orElse: () => widget.resume,
+        );
+
+        if (mounted) {
+          setState(() {
+            widget.resume.clear();
+            widget.resume.addAll(updatedResume);
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Не удалось обновить резюме: ${e.toString()}')),
+        );
+      }
+    }
   }
 
 

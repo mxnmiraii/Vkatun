@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/windows/scan_windows/check_widget.dart';
 
+import '../api_service.dart';
 import '../design/images.dart';
 
 class ApplyCorrections extends StatefulWidget {
   final Map<String, dynamic> originalResume;
   final List<Issue> corrections;
   final Issue? singleCorrection;
+  final VoidCallback? onResumeChange;
 
   const ApplyCorrections({
     super.key,
     required this.originalResume,
     required this.corrections,
     this.singleCorrection,
+    required this.onResumeChange,
   });
 
   @override
@@ -373,13 +377,62 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         child: IconButton(
           icon: doneBlueIcon,
           onPressed: () {
-
+            _editResumeFull();
+            widget.onResumeChange!();
           },
           iconSize: 36, // Можно настроить размер иконки
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
+  }
+
+  Future<void> _editResumeFull() async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      // Показываем индикатор загрузки
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Подготавливаем данные для отправки
+      final dataToUpdate = {
+        'title': _correctedResume['title'],
+        'contacts': _correctedResume['contacts'],
+        'job': _correctedResume['job'],
+        'experience': _correctedResume['experience'],
+        'education': _correctedResume['education'],
+        'skills': _correctedResume['skills'],
+        'about': _correctedResume['about'],
+      };
+
+      // Отправляем изменения
+      await apiService.editResume(
+        widget.originalResume['id'] as int,
+        dataToUpdate,
+      );
+
+      // Успешное обновление - закрываем экран с результатом
+      if (mounted) {
+        Navigator.of(context).pop(); // Закрываем индикатор загрузки
+        Navigator.of(context).pop(true);
+      }
+
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Закрываем индикатор загрузки
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Не удалось сохранить изменения: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildScrollableResumeView({

@@ -225,7 +225,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                                   if (_pdfFile != null) {
                                     PdfService.openFile(_pdfFile!);
                                     await AppMetrica.reportEvent(
-                                      'login_success',
+                                      'export_success',
                                     );
                                   }
                                   widget.onClose();

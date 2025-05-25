@@ -13,6 +13,8 @@ class Scan extends StatelessWidget {
   final String title;
   final List<Issue> issues;
   final bool isLoading;
+  final VoidCallback? onResumeChange;
+
   const Scan({
     super.key,
     required this.onBackPressed,
@@ -21,6 +23,7 @@ class Scan extends StatelessWidget {
     required this.title,
     required this.issues,
     this.isLoading = false,
+    required this.onResumeChange,
   });
 
   @override
@@ -120,6 +123,7 @@ class Scan extends StatelessWidget {
                             onClose: onClose,
                             resume: resume,
                             issues: issues,
+                            onResumeChange: onResumeChange,
                           );
                         },
                       ),

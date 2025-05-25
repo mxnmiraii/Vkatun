@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
+import '../api_service.dart';
 import '../pages/onboarding_content.dart';
 
 class FullNamePage extends StatefulWidget {
   final List<String> data;
   final bool showOnboarding;
+  final int resumeId;
   final VoidCallback? hideOnboarding;
   final GlobalKey? doneIconKey;
   final VoidCallback? onReturnFromOnboarding;
+  final VoidCallback? onResumeChange;
 
   const FullNamePage({
     super.key,
@@ -19,13 +23,16 @@ class FullNamePage extends StatefulWidget {
     this.hideOnboarding,
     this.doneIconKey,
     this.onReturnFromOnboarding,
+    required this.resumeId,
+    required this.onResumeChange,
   });
 
   @override
   State<FullNamePage> createState() => _FullNamePageState();
 }
 
-class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMixin {
+class _FullNamePageState extends State<FullNamePage>
+    with TickerProviderStateMixin {
   late TextEditingController _surnameController = TextEditingController();
   late TextEditingController _nameController = TextEditingController();
   late TextEditingController _patronymicController = TextEditingController();
@@ -47,6 +54,55 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
     super.dispose();
   }
 
+  Future<void> _saveChanges() async {
+    final newData = [
+      _surnameController.text.trim(),
+      _nameController.text.trim(),
+      _patronymicController.text.trim(),
+    ];
+
+    // Проверяем, были ли изменения
+    bool hasChanges = false;
+    for (int i = 0; i < newData.length; i++) {
+      if (i < widget.data.length && newData[i] != widget.data[i] ||
+          i >= widget.data.length && newData[i].isNotEmpty) {
+        hasChanges = true;
+        break;
+      }
+    }
+
+    if (hasChanges) {
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+        final fullName = newData.join(' ');
+
+        // Обновляем секцию "title" (ФИО)
+        await apiService.editResumeSection(
+          id: widget.resumeId,
+          section: 'title',
+          content: fullName,
+        );
+
+        // Возвращаем новые данные
+        if (widget.onReturnFromOnboarding != null) {
+          widget.onReturnFromOnboarding!();
+        }
+        Navigator.pop(context, newData);
+        widget.onResumeChange!();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Если изменений не было, просто закрываем страницу
+      if (widget.onReturnFromOnboarding != null) {
+        widget.onReturnFromOnboarding!();
+      }
+      Navigator.pop(context);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -63,8 +119,8 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
 
     widget.showOnboarding
         ? WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding();
-    })
+          _showFullScreenOnboarding();
+        })
         : null;
   }
 
@@ -100,7 +156,8 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: SafeArea(  // Добавлен SafeArea для AppBar
+        child: SafeArea(
+          // Добавлен SafeArea для AppBar
           child: Container(
             color: Colors.white,
             child: AppBar(
@@ -116,9 +173,12 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      onPressed: widget.showOnboarding ? null : () {
-                        Navigator.pop(context);
-                      },
+                      onPressed:
+                          widget.showOnboarding
+                              ? null
+                              : () {
+                                Navigator.pop(context);
+                              },
                       icon: lightArrowBackIcon,
                     ),
                   ),
@@ -140,8 +200,9 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
         ),
       ),
 
-      body: SafeArea(  // Добавлен SafeArea для основного контента
-        top: false,    // Отключаем верхний SafeArea, так как он уже есть в AppBar
+      body: SafeArea(
+        // Добавлен SafeArea для основного контента
+        top: false, // Отключаем верхний SafeArea, так как он уже есть в AppBar
         child: Stack(
           children: [
             // Градиент на фоне
@@ -214,27 +275,25 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
       ),
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
-        child: widget.showOnboarding
-            ? ScaleTransition(
-          scale: _pulseAnim,
-          child: IconButton(
-            icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              _pulseCtrl.stop();
-              widget.onReturnFromOnboarding!();
-              widget.hideOnboarding;
-              Navigator.pop(context);
-            },
-            iconSize: 36,
-          ),
-        )
-            : IconButton(
-          icon: darkerBiggerDoneIcon,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          iconSize: 36,
-        ),
+        child:
+            widget.showOnboarding
+                ? ScaleTransition(
+                  scale: _pulseAnim,
+                  child: IconButton(
+                    icon: darkerBiggerDoneIcon,
+                    onPressed: () {
+                      _saveChanges();
+                    }, // Используем новую функцию
+                    iconSize: 36,
+                  ),
+                )
+                : IconButton(
+                  icon: darkerBiggerDoneIcon,
+                  onPressed: () {
+                    _saveChanges();
+                  }, // Используем новую функцию
+                  iconSize: 36,
+                ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -268,34 +327,34 @@ class _FullNamePageState extends State<FullNamePage> with TickerProviderStateMix
           ),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ),
-            border: index != length - 1
-                ? UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender,
-                width: 2.5,
-              ),
-            )
-                : InputBorder.none,
-            enabledBorder: index != length - 1
-                ? UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender,
-                width: 2.5,
-              ),
-            )
-                : InputBorder.none,
-            focusedBorder: index != length - 1
-                ? UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender,
-                width: 2.5,
-              ),
-            )
-                : InputBorder.none,
+            contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
+            border:
+                index != length - 1
+                    ? UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: lightDarkenLavender,
+                        width: 2.5,
+                      ),
+                    )
+                    : InputBorder.none,
+            enabledBorder:
+                index != length - 1
+                    ? UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: lightDarkenLavender,
+                        width: 2.5,
+                      ),
+                    )
+                    : InputBorder.none,
+            focusedBorder:
+                index != length - 1
+                    ? UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: lightDarkenLavender,
+                        width: 2.5,
+                      ),
+                    )
+                    : InputBorder.none,
           ),
         ),
       ],

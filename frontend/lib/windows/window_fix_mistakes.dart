@@ -17,6 +17,7 @@ class WindowFixMistakes extends StatefulWidget {
   final Map<String, dynamic> resume;
   final bool showOnboarding;
   final bool isSeventhBigStep;
+  final VoidCallback? onResumeChange;
 
   const WindowFixMistakes({
     super.key,
@@ -25,6 +26,7 @@ class WindowFixMistakes extends StatefulWidget {
     required this.resume,
     this.showOnboarding = false,
     this.isSeventhBigStep = false,
+    required this.onResumeChange,
   });
 
   @override
@@ -411,6 +413,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'Орфография',
                   issues: spellingIssues,
                   isLoading: isLoading,
+                  onResumeChange: widget.onResumeChange,
                 )
                 : isScanningPunctuation
                 ? Scan(
@@ -424,6 +427,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'Пунктуация',
                   issues: punctuationIssues,
                   isLoading: isLoading,
+          onResumeChange: widget.onResumeChange,
                 )
                 : isScanningGrammar
                 ? Scan(
@@ -437,6 +441,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'Грамматика',
                   issues: grammarIssues,
                   isLoading: isLoading,
+          onResumeChange: widget.onResumeChange,
                 )
                 : isScanningStyle
                 ? Scan(
@@ -450,6 +455,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'Стилевые ошибки',
                   issues: styleIssues,
                   isLoading: isLoading,
+          onResumeChange: widget.onResumeChange,
                 )
                 : _scan(index, 'Исправление ошибок'))
             : _buildPage(index, 'Исправление ошибок', [
@@ -494,6 +500,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               title: 'Структура',
               issues: structureIssues,
               isLoading: isLoading,
+          onResumeChange: widget.onResumeChange,
             )
             : _buildPage(index, 'Структура', [
               _buildText(
@@ -526,6 +533,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'Навыки',
                   issues: skillsIssues,
                   isLoading: isLoading,
+          onResumeChange: widget.onResumeChange,
                 )
                 : isScanningAboutMe
                 ? Scan(
@@ -539,6 +547,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'О себе',
                   isLoading: isLoading,
                   issues: aboutMeIssues,
+          onResumeChange: widget.onResumeChange,
                 )
                 : isScanningExperience
                 ? Scan(
@@ -552,6 +561,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   title: 'Опыт работы',
                   issues: experienceIssues,
                   isLoading: isLoading,
+          onResumeChange: widget.onResumeChange,
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [
