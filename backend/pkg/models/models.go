@@ -33,11 +33,12 @@ type ResumeOutput struct {
 }
 
 type Metrics struct {
-	TotalUsers       int       `json:"total_users"`
-	ActiveUsersToday int       `json:"active_users_today"`
-	TotalResumes     int       `json:"total_resumes"`
-	TotalChangesApp  int       `json:"total_changes_app"`
-	LastUpdatedAt    time.Time `json:"last_updated_at"`
+	TotalUsers              int       `json:"total_users"`
+	ActiveUsersToday        int       `json:"active_users_today"`
+	TotalResumes            int       `json:"total_resumes"`
+	TotalChangesApp         int       `json:"total_changes_app"`
+	AcceptedRecommendations int       `json:"-"`
+	LastUpdatedAt           time.Time `json:"last_updated_at"`
 }
 
 type MetricsUpdate struct {

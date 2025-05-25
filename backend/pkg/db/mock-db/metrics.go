@@ -23,10 +23,13 @@ func (d *MockDB) IncrementTotalResumes(ctx context.Context) error {
 	return nil
 }
 
-func (d *MockDB) IncrementChangesApp(ctx context.Context) error {
+func (d *MockDB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (d *MockDB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
+func (d *MockDB) IncrementRecommendations(ctx context.Context) error {
+	return nil
+}
+func (d *MockDB) IncrementAcceptedRecommendations(ctx context.Context) error {
 	return nil
 }

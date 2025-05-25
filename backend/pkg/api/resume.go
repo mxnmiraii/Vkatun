@@ -199,8 +199,6 @@ func (api *API) editResume(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_ = api.db.IncrementChangesApp(r.Context())
-
 	json.NewEncoder(w).Encode(map[string]string{"message": "Resume updated successfully"})
 }
 
@@ -270,8 +268,6 @@ func (api *API) editResumeSection(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to update section", http.StatusInternalServerError)
 		return
 	}
-
-	_ = api.db.IncrementChangesApp(r.Context())
 
 	json.NewEncoder(w).Encode(map[string]string{"message": "Section updated successfully"})
 }

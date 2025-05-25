@@ -32,6 +32,14 @@ func (api *API) getMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch metrics", http.StatusInternalServerError)
 		return
 	}
+
+	if metrics.TotalChangesApp > 0 {
+		ratio := float64(metrics.AcceptedRecommendations) / float64(metrics.TotalChangesApp)
+		metrics.TotalChangesApp = int(ratio * 100)
+	} else {
+		metrics.TotalChangesApp = 0
+	}
+
 	json.NewEncoder(w).Encode(metrics)
 }
 
@@ -74,4 +82,22 @@ func (api *API) updateMetrics(w http.ResponseWriter, r *http.Request) {
 	api.logger.Info("metrics update", zap.String("source", input.Source))
 
 	json.NewEncoder(w).Encode(map[string]string{"message": "Metrics updated successfully"})
+}
+
+func (api *API) incrementRecommendations(w http.ResponseWriter, r *http.Request) {
+	if err := api.db.IncrementRecommendations(r.Context()); err != nil {
+		api.logger.Error("failed to increment recommendations", zap.Error(err))
+		http.Error(w, "Failed to increment", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{"message": "Recommendations incremented"})
+}
+
+func (api *API) incrementAcceptedRecommendations(w http.ResponseWriter, r *http.Request) {
+	if err := api.db.IncrementAcceptedRecommendations(r.Context()); err != nil {
+		api.logger.Error("failed to increment accepted recommendations", zap.Error(err))
+		http.Error(w, "Failed to increment", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(map[string]string{"message": "Accepted recommendations incremented"})
 }

@@ -18,8 +18,9 @@ type DB interface {
 
 	IncrementTotalUsers(ctx context.Context) error
 	IncrementTotalResumes(ctx context.Context) error
-	IncrementChangesApp(ctx context.Context) error
 	IncrementActiveUsersToday(ctx context.Context, userID int) error
+	IncrementRecommendations(ctx context.Context) error
+	IncrementAcceptedRecommendations(ctx context.Context) error
 
 	RegisterUser(ctx context.Context, email, passwordHash, username string) error
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)

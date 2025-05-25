@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 	"vkatun/pkg/models"
@@ -14,8 +13,16 @@ import (
 func (d *DB) GetMetrics(ctx context.Context) (*models.Metrics, error) {
 	var m models.Metrics
 	err := d.pool.QueryRow(ctx, `
-        SELECT total_users, active_users_today, total_resumes, total_changes_app, last_updated_at FROM metrics
-    `).Scan(&m.TotalUsers, &m.ActiveUsersToday, &m.TotalResumes, &m.TotalChangesApp, &m.LastUpdatedAt)
+	SELECT total_users, active_users_today, total_resumes, total_changes_app, accepted_recommendations, last_updated_at
+	FROM metrics
+`).Scan(
+		&m.TotalUsers,
+		&m.ActiveUsersToday,
+		&m.TotalResumes,
+		&m.TotalChangesApp,
+		&m.AcceptedRecommendations,
+		&m.LastUpdatedAt,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -51,27 +58,15 @@ func (d *DB) IncrementTotalResumes(ctx context.Context) error {
 	return err
 }
 
-func (d *DB) IncrementChangesApp(ctx context.Context) error {
-	_, err := d.pool.Exec(ctx, `
-        UPDATE metrics
-        SET total_changes_app = total_changes_app + 1,
-            last_updated_at = NOW()
-    `)
-	return err
-}
-
 func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 	userKey := strconv.Itoa(userID)
 	today := time.Now().Format("2006-01-02")
-
-	log.Println("[DEBUG] IncrementActiveUsersToday called with userID =", userID, "today =", today)
 
 	var ns sql.NullString
 	err := d.pool.QueryRow(ctx, `
         SELECT active_users_json ->> $1 FROM metrics
     `, userKey).Scan(&ns)
 	if err != nil {
-		log.Println("[DEBUG] SELECT failed:", err)
 		return err
 	}
 
@@ -80,26 +75,43 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 		storedDate = ns.String
 	}
 
-	log.Println("[DEBUG] storedDate =", ns)
-
 	if storedDate == today {
-		log.Println("[DEBUG] already counted today, skipping")
 		return nil
 	}
 
-	log.Println("[DEBUG] running UPDATE for new active user")
-	res, err := d.pool.Exec(ctx, `
+	_, err = d.pool.Exec(ctx, `
         UPDATE metrics
         SET active_users_today = active_users_today + 1,
             active_users_json = jsonb_set(COALESCE(active_users_json, '{}'::jsonb), $1, to_jsonb($2::text), true),
             last_updated_at = NOW()
     `, fmt.Sprintf("{%s}", userKey), today)
-
 	if err != nil {
-		log.Println("[DEBUG] UPDATE failed:", err)
+		return err
 	}
 
-	rows := res.RowsAffected()
-	log.Println("[DEBUG] UPDATE affected rows:", rows)
-	return err
+	return nil
+}
+
+func (d *DB) IncrementRecommendations(ctx context.Context) error {
+	_, err := d.pool.Exec(ctx, `
+        UPDATE metrics
+        SET total_changes_app = total_changes_app + 1,
+            last_updated_at = NOW()
+    `)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DB) IncrementAcceptedRecommendations(ctx context.Context) error {
+	_, err := d.pool.Exec(ctx, `
+        UPDATE metrics
+        SET accepted_recommendations = accepted_recommendations + 1,
+            last_updated_at = NOW()
+    `)
+	if err != nil {
+		return err
+	}
+	return nil
 }
