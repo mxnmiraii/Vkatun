@@ -64,6 +64,18 @@ class _EntryPageState extends State<EntryPage> {
     _performLogin(emailNumber, password);
   }
 
+  Future<void> logLoginEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('login_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
   Future<void> _performLogin(String emailNumber, String password) async {
     setState(() {
       _isLoading = true;
@@ -76,7 +88,7 @@ class _EntryPageState extends State<EntryPage> {
         password: password,
       );
 
-      await AppMetrica.reportEvent('login_success');
+      logLoginEvent();
 
       Navigator.pushReplacement(
         context,

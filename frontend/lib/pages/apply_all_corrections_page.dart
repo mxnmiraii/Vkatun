@@ -1,3 +1,4 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
@@ -60,6 +61,18 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         _isSyncingScroll = false;
       }
     });
+  }
+
+  Future<void> logAddRecEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('add_recommendation_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
   }
 
   @override
@@ -376,9 +389,10 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
           icon: doneBlueIcon,
-          onPressed: () {
+          onPressed: () async {
             _editResumeFull();
             widget.onResumeChange!();
+            logAddRecEvent();
           },
           iconSize: 36, // Можно настроить размер иконки
         ),

@@ -59,6 +59,18 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  Future<void> logRegisterEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('registration_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Future<void> _performRegistration(String login, String emailNumber, String password) async {
@@ -75,9 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
           password: password,
         );
 
-        await AppMetrica.reportEvent(
-          'registration_success',
-        );
+        logRegisterEvent();
 
         // Успешная регистрация
         Navigator.pushReplacement(

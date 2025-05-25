@@ -91,6 +91,18 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
     return 'Подготавливаем файл${'.' * _loadingDots}';
   }
 
+  Future<void> logExportEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('export_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
   void _resetToInitialState() {
     setState(() {
       _isExporting = false;
@@ -224,9 +236,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                                 onPressed: () async {
                                   if (_pdfFile != null) {
                                     PdfService.openFile(_pdfFile!);
-                                    await AppMetrica.reportEvent(
-                                      'export_success',
-                                    );
+                                    logExportEvent();
                                   }
                                   widget.onClose();
                                 },
