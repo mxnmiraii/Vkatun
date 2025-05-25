@@ -21,7 +21,6 @@ import 'package:vkatun/windows_edit_resume/work_experience_page.dart';
 import '../dialogs/warning_dialog.dart';
 import 'onboarding_content.dart';
 
-
 class ResumeViewPage extends StatefulWidget {
   final Map<String, dynamic> resume;
   final bool isLoadResume;
@@ -88,8 +87,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
     widget.showOnboarding
         ? WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showFullScreenOnboarding(false, _isSecondStep, _isFourthStep);
-        })
+      _showFullScreenOnboarding(false, _isSecondStep, _isFourthStep);
+    })
         : null;
   }
 
@@ -212,29 +211,29 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       pageBuilder: (context, _, __) {
         return widget.isSixthBigStep
             ? OnboardingContent(
-              hideOnboarding: () {
-                Navigator.pop(context);
-                _pulseCtrl.repeat(reverse: true);
-              },
-              iconKey: widget.iconKey ?? GlobalKey(),
-              isFirstBigStep: false,
-              isSixthBigStep: true,
-            )
+          hideOnboarding: () {
+            Navigator.pop(context);
+            _pulseCtrl.repeat(reverse: true);
+          },
+          iconKey: widget.iconKey ?? GlobalKey(),
+          isFirstBigStep: false,
+          isSixthBigStep: true,
+        )
             : OnboardingContent(
-              hideOnboarding: () {
-                Navigator.pop(context);
-                if (_isSecondStep) {
-                  _namePulseCtrl.repeat(reverse: true);
-                } else if (_isFourthStep) {
-                  _pulseCtrl.repeat(reverse: true);
-                }
-              },
-              iconKey:
-                  isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
-              isFirstBigStep: isFirst,
-              isSecondBigStep: isSecond,
-              isFourthBigStep: isFourth,
-            );
+          hideOnboarding: () {
+            Navigator.pop(context);
+            if (_isSecondStep) {
+              _namePulseCtrl.repeat(reverse: true);
+            } else if (_isFourthStep) {
+              _pulseCtrl.repeat(reverse: true);
+            }
+          },
+          iconKey:
+          isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
+          isFirstBigStep: isFirst,
+          isSecondBigStep: isSecond,
+          isFourthBigStep: isFourth,
+        );
       },
     );
   }
@@ -265,28 +264,28 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           children: [
             IconButton(
               onPressed:
-                  widget.showOnboarding
-                      ? null
-                      : widget.isLoadResume
-                      ? () async {
-                        try {
-                          final apiService = Provider.of<ApiService>(
-                            context,
-                            listen: false,
-                          );
-                          await apiService.deleteResume(
-                            widget.resume['id'] as int,
-                          );
-                          widget.onDelete();
+              widget.showOnboarding
+                  ? null
+                  : widget.isLoadResume
+                  ? () async {
+                try {
+                  final apiService = Provider.of<ApiService>(
+                    context,
+                    listen: false,
+                  );
+                  await apiService.deleteResume(
+                    widget.resume['id'] as int,
+                  );
+                  widget.onDelete();
 
-                          Navigator.pop(context);
-                        } catch (e) {
-                          _showWarningDialog(context);
-                        }
-                      }
-                      : () {
-                        Navigator.pop(context);
-                      },
+                  Navigator.pop(context);
+                } catch (e) {
+                  _showWarningDialog(context);
+                }
+              }
+                  : () {
+                Navigator.pop(context);
+              },
               icon: backIconWBg,
             ),
 
@@ -323,25 +322,25 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               hasCheck: true,
               targetPage: FullNamePage(
                 data:
-                    widget.resume['title'] == null ||
-                            widget.resume['title'].isEmpty
-                        ? ['', '', '']
-                        : widget.resume['title'].split(' '),
+                widget.resume['title'] == null ||
+                    widget.resume['title'].isEmpty
+                    ? ['', '', '']
+                    : widget.resume['title'].split(' '),
                 showOnboarding: widget.showOnboarding,
                 doneIconKey: widget.iconKey,
                 onReturnFromOnboarding:
-                    widget.showOnboarding
-                        ? () {
-                          _switchOnboardingSteps();
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _showFullScreenOnboarding(
-                              false,
-                              _isSecondStep,
-                              _isFourthStep,
-                            );
-                          });
-                        }
-                        : null,
+                widget.showOnboarding
+                    ? () {
+                  _switchOnboardingSteps();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _showFullScreenOnboarding(
+                      false,
+                      _isSecondStep,
+                      _isFourthStep,
+                    );
+                  });
+                }
+                    : null,
                 resumeId: widget.resume['id'],
                 onResumeChange: _updateResumeData,
               ),
@@ -351,9 +350,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             _buildSection(
               title: 'Желаемая должность',
               content:
-                  (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
-                      ? widget.resume['job']!.trim()
-                      : 'Не указано',
+              (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
+                  ? widget.resume['job']!.trim()
+                  : 'Не указано',
               hasCheck: true,
               targetPage: DesiredPositionPage(
                 data: [widget.resume['job']?.trim() ?? ''],
@@ -391,59 +390,59 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       ),
 
       floatingActionButton:
-          widget.isLoadResume
-              ? Padding(
-                padding: EdgeInsets.only(bottom: bottom35),
-                child:
-                    widget.showOnboarding && _isFourthStep
-                        ? ScaleTransition(
-                          scale: _pulseAnim,
-                          child: IconButton(
-                            onPressed: () {
-                              _pulseCtrl.stop();
-                              Navigator.pop(context, true);
-                              widget.onReturnFromOnboarding!();
-                            },
-                            icon: doneIcon,
-                          ),
-                        )
-                        : IconButton(
-                          onPressed:
-                              widget.showOnboarding
-                                  ? _isFourthStep
-                                      ? () {
-                                        _pulseCtrl.stop();
-                                        Navigator.pop(context, true);
-                                      }
-                                      : null
-                                  : () {
-                                    Navigator.pop(context, true);
-                                  },
-                          icon: doneIcon,
-                        ),
-              )
-              : Padding(
-                padding: EdgeInsets.only(bottom: bottom35),
-                child:
-                    widget.showOnboarding && widget.isSixthBigStep
-                        ? ScaleTransition(
-                          scale: _pulseAnim,
-                          child: IconButton(
-                            icon: magicIcon,
-                            onPressed: () {
-                              _pulseCtrl.stop();
-                              _hideOverlay();
-                              _openDialog();
-                            },
-                            iconSize: 36,
-                          ),
-                        )
-                        : IconButton(
-                          icon: magicIcon,
-                          onPressed: _openDialog,
-                          iconSize: 36,
-                        ),
-              ),
+      widget.isLoadResume
+          ? Padding(
+        padding: EdgeInsets.only(bottom: bottom35),
+        child:
+        widget.showOnboarding && _isFourthStep
+            ? ScaleTransition(
+          scale: _pulseAnim,
+          child: IconButton(
+            onPressed: () {
+              _pulseCtrl.stop();
+              Navigator.pop(context, true);
+              widget.onReturnFromOnboarding!();
+            },
+            icon: doneIcon,
+          ),
+        )
+            : IconButton(
+          onPressed:
+          widget.showOnboarding
+              ? _isFourthStep
+              ? () {
+            _pulseCtrl.stop();
+            Navigator.pop(context, true);
+          }
+              : null
+              : () {
+            Navigator.pop(context, true);
+          },
+          icon: doneIcon,
+        ),
+      )
+          : Padding(
+        padding: EdgeInsets.only(bottom: bottom35),
+        child:
+        widget.showOnboarding && widget.isSixthBigStep
+            ? ScaleTransition(
+          scale: _pulseAnim,
+          child: IconButton(
+            icon: magicIcon,
+            onPressed: () {
+              _pulseCtrl.stop();
+              _hideOverlay();
+              _openDialog();
+            },
+            iconSize: 36,
+          ),
+        )
+            : IconButton(
+          icon: magicIcon,
+          onPressed: _openDialog,
+          iconSize: 36,
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -562,43 +561,43 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child:
-                  widget.showOnboarding &&
-                          title.contains('ФИО') &&
-                          _isSecondStep
-                      ? ScaleTransition(
-                        scale: _namePulseAnim,
-                        child: IconButton(
-                          key: forwardIconWBgKey,
-                          onPressed: () {
-                            _namePulseCtrl.stop();
-                            if (targetPage != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => targetPage),
-                              );
-                            }
-                          },
-                          icon: forwardIconWBg,
-                        ),
-                      )
-                      : IconButton(
-                        onPressed:
-                            targetPage != null
-                                ? () {
-                                  if (!widget.showOnboarding ||
-                                      (title.contains('ФИО') &&
-                                          _isSecondStep)) { // тут с условием хуйня с 6 шагом
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => targetPage,
-                                      ),
-                                    );
-                                  }
-                                }
-                                : null,
-                        icon: forwardIconWBg,
+              widget.showOnboarding &&
+                  title.contains('ФИО') &&
+                  _isSecondStep
+                  ? ScaleTransition(
+                scale: _namePulseAnim,
+                child: IconButton(
+                  key: forwardIconWBgKey,
+                  onPressed: () {
+                    _namePulseCtrl.stop();
+                    if (targetPage != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => targetPage),
+                      );
+                    }
+                  },
+                  icon: forwardIconWBg,
+                ),
+              )
+                  : IconButton(
+                onPressed:
+                targetPage != null
+                    ? () {
+                  if (!widget.showOnboarding ||
+                      (title.contains('ФИО') &&
+                          _isSecondStep)) { // тут с условием хуйня с 6 шагом
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => targetPage,
                       ),
+                    );
+                  }
+                }
+                    : null,
+                icon: forwardIconWBg,
+              ),
             ),
           ],
         ),
@@ -656,8 +655,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                  builder: (_) => WorkExperiencePage(data: List.filled(6, '')),
-              ));
+                    builder: (_) => WorkExperiencePage(data: List.filled(6, '')),
+                  ));
             },
             icon: addIconCircle,
             label: Text(
@@ -1137,27 +1136,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
-  Widget _buildEducationCard(List<String> education) {
-    final institution = education.length > 0 ? education[0] : '';
-    final specialization = education.length > 1 ? education[1] : '';
-    final yearsRaw = education.length > 2 ? education[2] : '';
-
-    // Парсим год окончания
-    String formattedYears = 'Годы обучения не указаны';
-    final yearMatches = RegExp(r'\b(19|20)\d{2}\b')
-        .allMatches(yearsRaw)
-        .map((m) => int.tryParse(m.group(0)!))
-        .whereType<int>()
-        .toList();
-
-    if (yearMatches.length >= 2) {
-      yearMatches.sort();
-      formattedYears = '${yearMatches.first}–${yearMatches.last}';
-    } else if (yearMatches.length == 1) {
-      final end = yearMatches.first;
-      final start = end - 4;
-      formattedYears = '$start–$end';
-    }
+  Widget _buildEducationCard(Map<String, String> education) {
+    final institution = education['institution'] ?? '';
+    final faculty = education['faculty'] ?? '';
+    final specialization = education['specialization'] ?? '';
+    final year = education['year'] ?? '';
 
     return Column(
       children: [
@@ -1169,50 +1152,57 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-
-                  // Название ВУЗа
+                  // Учебное заведение
                   Text(
                     institution.isNotEmpty ? institution : 'Название учебного заведения',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
                       fontFamily: 'NotoSans',
-                      color: Colors.black,
+                      color: institution.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
                   ),
                   const SizedBox(height: 4),
-
+                  // Факультет
+                  Text(
+                    faculty.isNotEmpty ? faculty : 'Факультет не указан',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      fontFamily: 'NotoSans',
+                      color: faculty.isNotEmpty ? Colors.black : mediumGray,
+                      height: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   // Специализация
                   Text(
                     specialization.isNotEmpty ? specialization : 'Специализация не указана',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
                       fontFamily: 'NotoSans',
-                      color: Colors.black,
+                      color: specialization.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
                   ),
                   const SizedBox(height: 4),
-
-                  // Годы обучения
+                  // Год окончания
                   Text(
-                    formattedYears,
-                    style: const TextStyle(
+                    year.isNotEmpty ? year : 'Год окончания не указан',
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
                       fontFamily: 'NotoSans',
-                      color: Colors.black,
+                      color: year.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                 ],
               ),
             ),
-
-            // Кнопка перехода к редактированию
             Expanded(
               flex: 1,
               child: IconButton(
@@ -1220,11 +1210,18 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => EducationPage(data: education),
+                      builder: (_) => EducationPage(
+                        data: [
+                          institution,
+                          faculty,
+                          specialization,
+                          year,
+                          education['degree'] ?? '',
+                        ],
+                      ),
                     ),
                   );
                 },
-
                 icon: forwardIconWBg,
               ),
             ),
@@ -1234,95 +1231,30 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
-
-  List<List<String>> _parseEducation(String raw) {
+  List<Map<String, String>> _parseEducation(String raw) {
     if (raw.trim().isEmpty) return [];
 
-    final result = <List<String>>[];
+    final List<Map<String, String>> result = [];
+    final entries = raw.split('\n\n'); // Разделяем по пустым строкам
 
-    final entries = raw
-        .split(RegExp(r'(\n{2,}|;+|\|{2,})'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+    for (var entry in entries) {
+      final lines = entry.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      if (lines.isEmpty) continue;
 
-    for (final entry in entries) {
-      print('\n=== Новый блок ===');
-      print(entry);
+      final education = <String, String>{};
 
-      final lines = entry
-          .split(RegExp(r'[\n;|,]+'))
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
-          .toList();
+      // Парсим данные
+      if (lines.isNotEmpty) education['institution'] = lines[0];
+      if (lines.length > 1) education['faculty'] = lines[1];
+      if (lines.length > 2) education['specialization'] = lines[2];
+      if (lines.length > 3) education['degree'] = lines[3];
+      if (lines.length > 4) education['year'] = _extractYear(lines[4]);
 
-      print('→ Все строки внутри блока:');
-      for (var i = 0; i < lines.length; i++) {
-        print('  [$i]: ${lines[i]}');
-      }
-
-      String? institution;
-      String? specialization;
-      final years = <int>[];
-
-      for (final line in lines) {
-        final lower = line.toLowerCase();
-
-        // Годы
-        final yearMatches = RegExp(r'\b(19|20)\d{2}\b').allMatches(line);
-        for (final match in yearMatches) {
-          years.add(int.parse(match.group(0)!));
-        }
-
-        // ВУЗ
-        if (institution == null &&
-            RegExp(r'(университет|институт|академ|колледж)').hasMatch(lower)) {
-          institution = _cleanInstitution(line);
-          continue;
-        }
-
-        // Специализация — без цифр и без упоминания вуза или города
-        if (specialization == null &&
-            !RegExp(r'\d').hasMatch(line) &&
-            !RegExp(r'(университет|институт|академ|колледж|петербург|москва|новосибирск|россия)').hasMatch(lower)) {
-          specialization = line;
-          continue;
-        }
-      }
-
-      // Формат годов
-      String yearsFormatted = 'Не указано';
-      if (years.length >= 2) {
-        years.sort();
-        yearsFormatted = '${years.first}–${years.last}';
-      } else if (years.length == 1) {
-        final end = years.first;
-        final start = end - 4;
-        yearsFormatted = '$start–$end';
-      }
-
-      result.add([
-        institution ?? 'Не указано',
-        specialization ?? 'Не указано',
-        yearsFormatted,
-      ]);
+      result.add(education);
     }
 
     return result;
   }
-  String _cleanInstitution(String raw) {
-    return raw
-        .replaceAll(RegExp(r'образование', caseSensitive: false), '')
-        .replaceAll(RegExp(r'высшее', caseSensitive: false), '')
-        .replaceAll(RegExp(r'среднее', caseSensitive: false), '')
-        .replaceAll(RegExp(r'незаконченное', caseSensitive: false), '')
-        .replaceAll(RegExp(r'(19|20)\d{2}'), '')
-        .replaceAll(RegExp(r'[^а-яА-ЯёЁa-zA-Z0-9 ,\.\-()]'), '')
-        .trim();
-  }
-
-
-
 }
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
@@ -1331,7 +1263,7 @@ List<String> _parseExperienceData(String? raw) {
   if (raw == null || raw.trim().isEmpty) return ['', '', '', '', '', 'false'];
 
   final lines =
-      raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+  raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
   String start = lines.isNotEmpty && _isDate(lines[0]) ? lines[0] : '';
   String end = lines.length > 1 && _isDate(lines[1]) ? lines[1] : '';
@@ -1402,7 +1334,7 @@ String _formatPhone(String rawPhone) {
 String _formatEducation(String? raw) {
   if (raw == null || raw.trim().isEmpty) return 'Не указано';
   final lines =
-      raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
+  raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
 
   String institution = lines.isNotEmpty ? lines[0] : '';
   String specialization = lines.length > 2 ? lines[2] : '';
@@ -1417,22 +1349,22 @@ String _formatEducation(String? raw) {
   ].where((s) => s.trim().isNotEmpty).join(', ');
 }
 
-// List<String> _parseEducation(String? raw) {
-//   if (raw == null || raw.trim().isEmpty) return List.filled(5, '');
-//
-//   final lines = raw.split('\n').map((s) => s.trim()).toList();
-//   while (lines.length < 5) {
-//     lines.add('');
-//   }
-//
-//   return [
-//     lines[0], // institution
-//     lines[1], // faculty
-//     lines[2], // specialization
-//     lines[4], // graduation year (original line — для контроллера будет парситься)
-//     lines[3], // degree
-//   ];
-// }
+List<String> _parseEducation(String? raw) {
+  if (raw == null || raw.trim().isEmpty) return List.filled(5, '');
+
+  final lines = raw.split('\n').map((s) => s.trim()).toList();
+  while (lines.length < 5) {
+    lines.add('');
+  }
+
+  return [
+    lines[0], // institution
+    lines[1], // faculty
+    lines[2], // specialization
+    lines[4], // graduation year (original line — для контроллера будет парситься)
+    lines[3], // degree
+  ];
+}
 
 String _extractYear(String input) {
   final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);
