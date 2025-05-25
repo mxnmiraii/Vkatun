@@ -1073,9 +1073,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     return skills;
   }
 
-
-
-
   String _formatAboutMe(String? about) {
     if (about == null || about.trim().isEmpty) return 'Не указано';
 
@@ -1136,11 +1133,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
-  Widget _buildEducationCard(Map<String, String> education) {
-    final institution = education['institution'] ?? '';
-    final faculty = education['faculty'] ?? '';
-    final specialization = education['specialization'] ?? '';
-    final year = education['year'] ?? '';
+  Widget _buildEducationCard(List<String> education) {
+    final institution = education.length > 0 ? education[0] : '';
+    final specialization = education.length > 1 ? education[1] : '';
+    final years = education.length > 2 ? education[2] : '';
 
     return Column(
       children: [
@@ -1152,7 +1148,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  // Учебное заведение
                   Text(
                     institution.isNotEmpty ? institution : 'Название учебного заведения',
                     style: TextStyle(
@@ -1164,19 +1159,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Факультет
-                  Text(
-                    faculty.isNotEmpty ? faculty : 'Факультет не указан',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
-                      color: faculty.isNotEmpty ? Colors.black : mediumGray,
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Специализация
                   Text(
                     specialization.isNotEmpty ? specialization : 'Специализация не указана',
                     style: TextStyle(
@@ -1188,18 +1170,17 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Год окончания
                   Text(
-                    year.isNotEmpty ? year : 'Год окончания не указан',
+                    years.isNotEmpty ? years : 'Годы обучения не указаны',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
                       fontFamily: 'NotoSans',
-                      color: year.isNotEmpty ? Colors.black : mediumGray,
+                      color: years.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
@@ -1210,15 +1191,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => EducationPage(
-                        data: [
-                          institution,
-                          faculty,
-                          specialization,
-                          year,
-                          education['degree'] ?? '',
-                        ],
-                      ),
+                      builder: (_) => EducationPage(data: education),
                     ),
                   );
                 },
@@ -1231,29 +1204,91 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
-  List<Map<String, String>> _parseEducation(String raw) {
+
+  List<List<String>> _parseEducation(String raw) {
     if (raw.trim().isEmpty) return [];
 
-    final List<Map<String, String>> result = [];
-    final entries = raw.split('\n\n'); // Разделяем по пустым строкам
+    final result = <List<String>>[];
 
-    for (var entry in entries) {
-      final lines = entry.split('\n').where((line) => line.trim().isNotEmpty).toList();
-      if (lines.isEmpty) continue;
+    final entries = raw
+        .split(RegExp(r'(\n{2,}|;+|\|{2,})'))
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
-      final education = <String, String>{};
+    for (final entry in entries) {
+      print('\n=== Новый блок ===');
+      print(entry);
 
-      // Парсим данные
-      if (lines.isNotEmpty) education['institution'] = lines[0];
-      if (lines.length > 1) education['faculty'] = lines[1];
-      if (lines.length > 2) education['specialization'] = lines[2];
-      if (lines.length > 3) education['degree'] = lines[3];
-      if (lines.length > 4) education['year'] = _extractYear(lines[4]);
+      final lines = entry
+          .split(RegExp(r'[\n;|,]+'))
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
 
-      result.add(education);
+      print('→ Все строки внутри блока:');
+      for (var i = 0; i < lines.length; i++) {
+        print('  [$i]: ${lines[i]}');
+      }
+
+      String? institution;
+      String? specialization;
+      final years = <int>[];
+
+      for (final line in lines) {
+        final lower = line.toLowerCase();
+
+        // Годы
+        final yearMatches = RegExp(r'\b(19|20)\d{2}\b').allMatches(line);
+        for (final match in yearMatches) {
+          years.add(int.parse(match.group(0)!));
+        }
+
+        // ВУЗ
+        if (institution == null &&
+            RegExp(r'(университет|институт|академ|колледж)').hasMatch(lower)) {
+          institution = _cleanInstitution(line);
+          continue;
+        }
+
+        // Специализация — без цифр и без упоминания вуза или города
+        if (specialization == null &&
+            !RegExp(r'\d').hasMatch(line) &&
+            !RegExp(r'(университет|институт|академ|колледж|петербург|москва|новосибирск|россия)').hasMatch(lower)) {
+          specialization = line;
+          continue;
+        }
+      }
+
+      // Формат годов
+      String yearsFormatted = 'Не указано';
+      if (years.length >= 2) {
+        years.sort();
+        yearsFormatted = '${years.first}–${years.last}';
+      } else if (years.length == 1) {
+        final end = years.first;
+        final start = end - 4;
+        yearsFormatted = '$start–$end';
+      }
+
+      result.add([
+        institution ?? 'Не указано',
+        specialization ?? 'Не указано',
+        yearsFormatted,
+      ]);
     }
 
     return result;
+  }
+  String _cleanInstitution(String raw) {
+    return raw
+        .replaceAll(RegExp(r'образование', caseSensitive: false), '')
+        .replaceAll(RegExp(r'высшее', caseSensitive: false), '')
+        .replaceAll(RegExp(r'среднее', caseSensitive: false), '')
+        .replaceAll(RegExp(r'незаконченное', caseSensitive: false), '')
+        .replaceAll(RegExp(r'(19|20)\d{2}'), '')
+        .replaceAll(RegExp(r'[^а-яА-ЯёЁa-zA-Z0-9 ,\.\-()]'), '')
+        .trim();
   }
 }
 
@@ -1349,22 +1384,6 @@ String _formatEducation(String? raw) {
   ].where((s) => s.trim().isNotEmpty).join(', ');
 }
 
-List<String> _parseEducation(String? raw) {
-  if (raw == null || raw.trim().isEmpty) return List.filled(5, '');
-
-  final lines = raw.split('\n').map((s) => s.trim()).toList();
-  while (lines.length < 5) {
-    lines.add('');
-  }
-
-  return [
-    lines[0], // institution
-    lines[1], // faculty
-    lines[2], // specialization
-    lines[4], // graduation year (original line — для контроллера будет парситься)
-    lines[3], // degree
-  ];
-}
 
 String _extractYear(String input) {
   final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);

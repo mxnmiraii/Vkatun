@@ -13,18 +13,15 @@ class EducationPage extends StatefulWidget {
 
 class _EducationPageState extends State<EducationPage> {
   late TextEditingController _institutionController;
-  late TextEditingController _facultyController;
   late TextEditingController _specializationController;
   late TextEditingController _graduationYearController;
-  late TextEditingController _degreeController;
+
 
   @override
   void dispose() {
     _institutionController.dispose();
-    _facultyController.dispose();
     _specializationController.dispose();
     _graduationYearController.dispose();
-    _degreeController.dispose();
     super.dispose();
   }
 
@@ -37,23 +34,13 @@ class _EducationPageState extends State<EducationPage> {
     _institutionController = TextEditingController(
       text: data.isNotEmpty ? data[0] : '',
     );
-    _facultyController = TextEditingController(
+    _specializationController = TextEditingController(
       text: data.length > 1 ? data[1] : '',
     );
-    _specializationController = TextEditingController(
+    _graduationYearController = TextEditingController(
       text: data.length > 2 ? data[2] : '',
     );
-    _graduationYearController = TextEditingController(
-      text: data.length > 3 ? _extractYear(data[3]) : '',
-    );
-    _degreeController = TextEditingController(
-      text: data.length > 4 ? data[4] : '',
-    );
-  }
 
-  String _extractYear(String input) {
-    final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);
-    return match?.group(0) ?? '';
   }
 
   @override
@@ -156,30 +143,16 @@ class _EducationPageState extends State<EducationPage> {
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: 'Факультет',
-                    controller: _facultyController,
+                    label: 'Специализация',
+                    controller: _specializationController,
                     index: 1,
                     length: widget.data.length,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: 'Специализация',
-                    controller: _specializationController,
-                    index: 2,
-                    length: widget.data.length,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Учёная степень',
-                    controller: _degreeController,
-                    index: 4,
-                    length: widget.data.length,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Год окончания',
+                    label: 'Годы окончания',
                     controller: _graduationYearController,
-                    index: 3,
+                    index: 2,
                     length: widget.data.length,
                   ),
                 ],
@@ -280,4 +253,3 @@ class _EducationPageState extends State<EducationPage> {
     );
   }
 }
-
