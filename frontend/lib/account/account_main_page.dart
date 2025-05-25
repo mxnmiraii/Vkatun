@@ -59,31 +59,28 @@ class _AccountMainPageState extends State<AccountMainPage> {
               automaticallyImplyLeading: false,
               toolbarHeight: appBarHeight,
               centerTitle: false,
-              title: Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+              title: Stack(
+                alignment: Alignment.center, // Центрируем детей
+                children: [
+                  // Кнопка "назад" (прижата к левому краю)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
                       icon: lightArrowBackIcon,
                     ),
-                    Flexible(
-                      child: Text(
-                        'Администратор',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 32,
-                          fontFamily: 'Playfair',
-                          color: purpleBlue,
-                        ),
-                      ),
+                  ),
+                  // Текст по центру
+                  Text(
+                    'Администратор',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 32,
+                      fontFamily: 'Playfair',
+                      color: purpleBlue,
                     ),
-                    Opacity(opacity: 0, child: lightArrowBackIcon),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
