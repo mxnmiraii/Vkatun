@@ -1,3 +1,4 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
@@ -60,6 +61,18 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         _isSyncingScroll = false;
       }
     });
+  }
+
+  Future<void> logAddRecEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('add_recommendation_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
   }
 
   @override
@@ -215,6 +228,13 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
 
   @override
   Widget build(BuildContext context) {
+    final _textStyle = TextStyle(
+      color: midnightPurple,
+      fontFamily: 'Playfair',
+      // letterSpacing: -1.1,
+      height: 1.0,
+    );
+
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.15 / 2;
 
@@ -229,20 +249,28 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context);
+              },
               icon: backIconWBg,
             ),
+
             Text(
               'Резюме',
-              style: TextStyle(
-                color: midnightPurple,
-                fontFamily: 'Playfair',
+              style: _textStyle.copyWith(
                 fontWeight: FontWeight.w800,
                 fontSize: 24,
               ),
               textAlign: TextAlign.center,
             ),
-            Opacity(opacity: 0, child: backIconWBg),
+
+            IgnorePointer(
+              ignoring: true,
+              child: Opacity(
+                opacity: 0,
+                child: IconButton(onPressed: () {}, icon: backIconWBg),
+              ),
+            ),
           ],
         ),
       ),
@@ -376,9 +404,10 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
           icon: doneBlueIcon,
-          onPressed: () {
+          onPressed: () async {
             _editResumeFull();
             widget.onResumeChange!();
+            logAddRecEvent();
           },
           iconSize: 36, // Можно настроить размер иконки
         ),

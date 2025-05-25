@@ -177,6 +177,18 @@ class _ResumesPageState extends State<ResumesPage>
     });
   }
 
+  Future<void> logLoadEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('load_resume_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> _getResumeById(int id) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
@@ -310,7 +322,7 @@ class _ResumesPageState extends State<ResumesPage>
         if (file.extension?.toLowerCase() == 'pdf') {
           await _uploadResume(File(file.path!));
 
-          await AppMetrica.reportEvent('load_resume_success');
+          logLoadEvent();
         } else {
           _showWarningDialog(context);
         }
@@ -1068,6 +1080,7 @@ class _ResumesPageState extends State<ResumesPage>
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey,
+                                  fontFamily: 'Playfair',
                                 ),
                               ),
                               SizedBox(height: 8),
@@ -1078,6 +1091,7 @@ class _ResumesPageState extends State<ResumesPage>
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
+                                  fontFamily: 'Playfair',
                                 ),
                               ),
                             ],

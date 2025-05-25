@@ -95,16 +95,17 @@ class _MetricsPageState extends State<MetricsPage> {
               automaticallyImplyLeading: false,
               toolbarHeight: appBarHeight,
               centerTitle: false,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              title: Stack(
+                alignment: Alignment.center, // Центрируем детей
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: lightArrowBackIcon,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: lightArrowBackIcon,
+                    ),
                   ),
-
+                  // Текст по центру
                   Text(
                     'Метрики',
                     style: TextStyle(
@@ -114,8 +115,6 @@ class _MetricsPageState extends State<MetricsPage> {
                       color: purpleBlue,
                     ),
                   ),
-
-                  Opacity(opacity: 0, child: lightArrowBackIcon),
                 ],
               ),
             ),
