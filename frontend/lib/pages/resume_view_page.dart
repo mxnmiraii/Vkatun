@@ -1058,11 +1058,14 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         continue;
       }
 
+      // Заменяем 3+ пробела на запятую
+      trimmedLine = trimmedLine.replaceAll(RegExp(r'\s{3,}'), ',');
+
       // Разделяем по запятой или точке с запятой
       if (trimmedLine.contains(',') || trimmedLine.contains(';')) {
         skills.addAll(trimmedLine
             .split(RegExp(r'[;,]'))
-            .map((e) => e.trim().replaceAll(RegExp(r'\.$'), '')) // удаление точки на конце
+            .map((e) => e.trim().replaceAll(RegExp(r'\.$'), ''))
             .where((e) => e.isNotEmpty));
       } else {
         // Один навык без разделителей
@@ -1072,6 +1075,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
     return skills;
   }
+
+
 
   String _formatAboutMe(String? about) {
     if (about == null || about.trim().isEmpty) return 'Не указано';

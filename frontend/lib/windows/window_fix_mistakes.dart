@@ -216,7 +216,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             (issue) => Issue(
               errorText: issue['text'] ?? '',
               suggestion: issue['suggestion'] ?? '',
-              description: '', // description не приходит из БД
+              description: 'Описание: ошибка в написании слова.', // description не приходит из БД
             ),
           )
           .toList();
