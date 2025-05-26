@@ -25,13 +25,14 @@ class ApiService {
     }
 
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/resumes'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .get(Uri.parse('$baseUrl/resumes'), headers: _headers)
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
-        final resumes = List<Map<String, dynamic>>.from(json.decode(response.body));
+        final resumes = List<Map<String, dynamic>>.from(
+          json.decode(response.body),
+        );
         await _saveLocalResumes(resumes);
         return resumes;
       }
@@ -44,16 +45,20 @@ class ApiService {
   // Загрузка резюме
   Future<Map<String, dynamic>> uploadResume(File file) async {
     try {
-      final uri = Uri.parse(isGuest ? '$baseUrl/guest/upload' : '$baseUrl/upload');
+      final uri = Uri.parse(
+        isGuest ? '$baseUrl/guest/upload' : '$baseUrl/upload',
+      );
       final request = http.MultipartRequest('POST', uri);
 
       if (!isGuest) request.headers.addAll(_headers);
 
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        file.path,
-        contentType: MediaType('application', 'pdf'),
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          contentType: MediaType('application', 'pdf'),
+        ),
+      );
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
@@ -62,7 +67,9 @@ class ApiService {
       if (response.statusCode == 200) {
         if (isGuest) {
           // Парсим текст резюме из ответа
-          final resumeText = json.decode(result['text']); // Декодируем вложенный JSON
+          final resumeText = json.decode(
+            result['text'],
+          ); // Декодируем вложенный JSON
 
           // Создаем структуру резюме
           final newResume = {
@@ -93,9 +100,7 @@ class ApiService {
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');
     } catch (e) {
-      if (isGuest) {
-
-      }
+      if (isGuest) {}
       throw Exception('Не удалось загрузить резюме: $e');
     }
   }
@@ -106,21 +111,29 @@ class ApiService {
   Future<Map<String, dynamic>> checkGrammar(int resumeId) async {
     if (isGuest) {
       final resume = getLocalResumes().firstWhere(
-              (r) => r['id'] == resumeId,
-          orElse: () => throw Exception('Резюме не найдено')
+        (r) => r['id'] == resumeId,
+        orElse: () => throw Exception('Резюме не найдено'),
       );
-      Map<String, dynamic> res = await _processGuestAnalysis('$baseUrl/guest/check/grammar', resume);
+      Map<String, dynamic> res = await _processGuestAnalysis(
+        '$baseUrl/guest/check/grammar',
+        resume,
+      );
       print(res);
       return res;
     }
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/resume/$resumeId/check/grammar'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/resume/$resumeId/check/grammar'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
+        if (json.decode(response.body)['issues'].length != 0) {
+          await incrementRecommendationsMetric();
+        }
         print(json.decode(response.body));
         return json.decode(response.body);
       }
@@ -134,19 +147,24 @@ class ApiService {
   Future<Map<String, dynamic>> checkStructure(int resumeId) async {
     if (isGuest) {
       final resume = getLocalResumes().firstWhere(
-              (r) => r['id'] == resumeId,
-          orElse: () => throw Exception('Резюме не найдено')
+        (r) => r['id'] == resumeId,
+        orElse: () => throw Exception('Резюме не найдено'),
       );
       return _processGuestAnalysis('$baseUrl/guest/check/structure', resume);
     }
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/resume/$resumeId/check/structure'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/resume/$resumeId/check/structure'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
+        if (json.decode(response.body)['issues'].length != 0) {
+          await incrementRecommendationsMetric();
+        }
         print(json.decode(response.body));
         return json.decode(response.body);
       }
@@ -159,12 +177,17 @@ class ApiService {
   // Анализ навыков
   Future<Map<String, dynamic>> analyzeSkills(int resumeId) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/resume/$resumeId/check/skills'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/resume/$resumeId/check/skills'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
+        if (json.decode(response.body)['issues'].length != 0) {
+          await incrementRecommendationsMetric();
+        }
         print(json.decode(response.body));
         return json.decode(response.body);
       }
@@ -177,12 +200,17 @@ class ApiService {
   // Анализ раздела "Обо мне"
   Future<Map<String, dynamic>> analyzeAbout(int resumeId) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/resume/$resumeId/check/about'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/resume/$resumeId/check/about'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
+        if (json.decode(response.body)['issues'].length != 0) {
+          await incrementRecommendationsMetric();
+        }
         print(json.decode(response.body));
         return json.decode(response.body);
       }
@@ -195,13 +223,18 @@ class ApiService {
   // Анализ опыта работы
   Future<Map<String, dynamic>> analyzeExperience(int resumeId) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/resume/$resumeId/check/experience'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/resume/$resumeId/check/experience'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
+        if (json.decode(response.body)['issues'].length != 0) {
+          await incrementRecommendationsMetric();
+        }
         return json.decode(response.body);
       }
       throw Exception('Ошибка сервера: ${response.statusCode}');
@@ -223,25 +256,38 @@ class ApiService {
 
   // Получение локальных резюме
   List<Map<String, dynamic>> getLocalResumes() {
-    final key = isGuest ? guestResumeKey : '$userResumesKey${prefs.getString('user_id')}';
+    final key =
+        isGuest
+            ? guestResumeKey
+            : '$userResumesKey${prefs.getString('user_id')}';
     final data = prefs.getString(key);
-    return data != null ? List<Map<String, dynamic>>.from(json.decode(data)) : [];
+    return data != null
+        ? List<Map<String, dynamic>>.from(json.decode(data))
+        : [];
   }
 
   // Сохранение локальных резюме
   Future<void> _saveLocalResumes(List<Map<String, dynamic>> resumes) async {
-    final key = isGuest ? guestResumeKey : '$userResumesKey${prefs.getString('user_id')}';
+    final key =
+        isGuest
+            ? guestResumeKey
+            : '$userResumesKey${prefs.getString('user_id')}';
     await prefs.setString(key, json.encode(resumes));
   }
 
   // Обработка анализа для гостя
-  Future<Map<String, dynamic>> _processGuestAnalysis(String url, Map<String, dynamic> resume) async {
+  Future<Map<String, dynamic>> _processGuestAnalysis(
+    String url,
+    Map<String, dynamic> resume,
+  ) async {
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'resume': json.encode(resume)}),
-      ).timeout(const Duration(seconds: 60));
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'resume': json.encode(resume)}),
+          )
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -254,7 +300,11 @@ class ApiService {
 
   /* ========== МЕТОДЫ АВТОРИЗАЦИИ ========== */
 
-  Future<void> register({required String username, required String emailOrPhone, required String password}) async {
+  Future<void> register({
+    required String username,
+    required String emailOrPhone,
+    required String password,
+  }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/register'),
       headers: {'Content-Type': 'application/json'},
@@ -275,14 +325,14 @@ class ApiService {
     }
   }
 
-  Future<void> login({required String emailOrPhone, required String password}) async {
+  Future<void> login({
+    required String emailOrPhone,
+    required String password,
+  }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'email': emailOrPhone,
-        'password': password,
-      }),
+      body: json.encode({'email': emailOrPhone, 'password': password}),
     );
 
     if (response.statusCode == 200) {
@@ -385,10 +435,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/metrics/update'),
         headers: _headers,
-        body: json.encode({
-          'source': source,
-          'updates': updates,
-        }),
+        body: json.encode({'source': source, 'updates': updates}),
       );
 
       if (response.statusCode != 200) {
@@ -408,16 +455,15 @@ class ApiService {
       if (isGuest) {
         final localResumes = getLocalResumes();
         return localResumes.firstWhere(
-                (r) => r['id'] == id,
-            orElse: () => throw Exception('Резюме не найдено')
+          (r) => r['id'] == id,
+          orElse: () => throw Exception('Резюме не найдено'),
         );
       }
 
       // Для авторизованных пользователей
-      final response = await http.get(
-        Uri.parse('$baseUrl/resume/$id'),
-        headers: _headers,
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .get(Uri.parse('$baseUrl/resume/$id'), headers: _headers)
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -427,14 +473,17 @@ class ApiService {
       // Если ошибка, пробуем найти локально
       final localResumes = getLocalResumes();
       final localResume = localResumes.firstWhere(
-              (r) => r['id'] == id,
-          orElse: () => throw Exception('Не удалось загрузить резюме: $e')
+        (r) => r['id'] == id,
+        orElse: () => throw Exception('Не удалось загрузить резюме: $e'),
       );
       return localResume;
     }
   }
 
-  Future<Map<String, dynamic>> editResume(int id, Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> editResume(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     final resumes = getLocalResumes();
     final index = resumes.indexWhere((r) => r['id'] == id);
 
@@ -452,11 +501,13 @@ class ApiService {
 
     if (!isGuest) {
       try {
-        final response = await http.post(
-          Uri.parse('$baseUrl/resume/$id/edit'),
-          headers: _headers,
-          body: json.encode(data),
-        ).timeout(const Duration(seconds: 5));
+        final response = await http
+            .post(
+              Uri.parse('$baseUrl/resume/$id/edit'),
+              headers: _headers,
+              body: json.encode(data),
+            )
+            .timeout(const Duration(seconds: 5));
 
         if (response.statusCode == 200) {
           // Обновляем локальную копию после успешного обновления на сервере
@@ -501,11 +552,13 @@ class ApiService {
 
     // 3. Для авторизованных пробуем синхронизировать
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/resume/$id/edit/$section'),
-        headers: _headers,
-        body: json.encode({'content': content}),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/resume/$id/edit/$section'),
+            headers: _headers,
+            body: json.encode({'content': content}),
+          )
+          .timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         // Успешная синхронизация - снимаем флаг
@@ -549,13 +602,14 @@ class ApiService {
       bool hasInternet = false;
 
       try {
-        final response = await http.get(
-          Uri.parse('$baseUrl/resumes'),
-          headers: _headers,
-        ).timeout(const Duration(seconds: 5));
+        final response = await http
+            .get(Uri.parse('$baseUrl/resumes'), headers: _headers)
+            .timeout(const Duration(seconds: 5));
 
         if (response.statusCode == 200) {
-          serverResumes = List<Map<String, dynamic>>.from(json.decode(response.body));
+          serverResumes = List<Map<String, dynamic>>.from(
+            json.decode(response.body),
+          );
           serverResumeIds = serverResumes.map((r) => r['id'] as int).toSet();
           hasInternet = true;
         }
@@ -568,15 +622,27 @@ class ApiService {
         for (final localResume in localResumes) {
           if (localResume['is_modified'] == true) {
             try {
-              const sections = ['title', 'contacts', 'job', 'experience', 'education', 'skills', 'about'];
+              const sections = [
+                'title',
+                'contacts',
+                'job',
+                'experience',
+                'education',
+                'skills',
+                'about',
+              ];
 
               for (final section in sections) {
                 if (localResume.containsKey(section)) {
-                  await http.post(
-                    Uri.parse('$baseUrl/resume/${localResume['id']}/edit/$section'),
-                    headers: _headers,
-                    body: json.encode({'content': localResume[section]}),
-                  ).timeout(const Duration(seconds: 5));
+                  await http
+                      .post(
+                        Uri.parse(
+                          '$baseUrl/resume/${localResume['id']}/edit/$section',
+                        ),
+                        headers: _headers,
+                        body: json.encode({'content': localResume[section]}),
+                      )
+                      .timeout(const Duration(seconds: 5));
                 }
               }
               localResume.remove('is_modified');
@@ -598,7 +664,7 @@ class ApiService {
           } catch (e) {
             print('Ошибка загрузки резюме ${serverResume['id']}: $e');
             final localResume = localResumes.firstWhere(
-                  (r) => r['id'] == serverResume['id'],
+              (r) => r['id'] == serverResume['id'],
               orElse: () => serverResume,
             );
             completeResumes.add(localResume);
@@ -639,8 +705,10 @@ class ApiService {
     }
   }
 
-// Проверяет целостность локальных резюме
-  Future<List<Map<String, dynamic>>> _validateLocalResumes(List<Map<String, dynamic>> resumes) async {
+  // Проверяет целостность локальных резюме
+  Future<List<Map<String, dynamic>>> _validateLocalResumes(
+    List<Map<String, dynamic>> resumes,
+  ) async {
     final List<Map<String, dynamic>> validResumes = [];
 
     for (final resume in resumes) {
@@ -657,5 +725,45 @@ class ApiService {
     }
 
     return validResumes;
+  }
+
+  /// Отправляет метрику о новой рекомендации
+  Future<void> incrementRecommendationsMetric() async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(
+              'https://87.228.38.184/metrics/increment/recommendations',
+            ),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode != 200) {
+        print('Ошибка отправки метрики рекомендаций: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Ошибка сети при отправке метрики рекомендаций: $e');
+    }
+  }
+
+  /// Отправляет метрику о принятой рекомендации
+  Future<void> incrementAcceptedMetric() async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('https://87.228.38.184/metrics/increment/accepted'),
+            headers: _headers,
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode != 200) {
+        print(
+          'Ошибка отправки метрики принятых рекомендаций: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('Ошибка сети при отправке метрики принятых рекомендаций: $e');
+    }
   }
 }

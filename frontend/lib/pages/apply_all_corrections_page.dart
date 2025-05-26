@@ -75,6 +75,15 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
     }
   }
 
+  Future<void> _acceptRec() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      await apiService.incrementAcceptedMetric();
+    } catch (e) {
+      print('Ошибка при автоинкременте: $e');
+    }
+  }
+
   @override
   void dispose() {
     _originalScrollController.dispose();
@@ -405,6 +414,7 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         child: IconButton(
           icon: doneBlueIcon,
           onPressed: () async {
+            _acceptRec();
             _editResumeFull();
             widget.onResumeChange!();
             logAddRecEvent();
