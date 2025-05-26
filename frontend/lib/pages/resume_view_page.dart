@@ -1195,91 +1195,36 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   }
 
 
+
   List<List<String>> _parseEducation(String raw) {
     if (raw.trim().isEmpty) return [];
 
     final result = <List<String>>[];
 
-    final entries = raw
-        .split(RegExp(r'(\n{2,}|;+|\|{2,})'))
+    // Разбиваем на блоки по двойному переводу строки (если несколько образований)
+    final blocks = raw
+        .split(RegExp(r'\n{2,}')) // если будет несколько образований через \n\n
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
 
-    for (final entry in entries) {
-      print('\n=== Новый блок ===');
-      print(entry);
-
-      final lines = entry
-          .split(RegExp(r'[\n;|,]+'))
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
+    for (final block in blocks) {
+      final lines = block
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
           .toList();
 
-      print('→ Все строки внутри блока:');
-      for (var i = 0; i < lines.length; i++) {
-        print('  [$i]: ${lines[i]}');
-      }
+      final institution = lines.length > 0 ? lines[0] : 'Не указано';
+      final specialization = lines.length > 1 ? lines[1] : 'Не указано';
+      final years = lines.length > 2 ? lines[2] : 'Не указано';
 
-      String? institution;
-      String? specialization;
-      final years = <int>[];
-
-      for (final line in lines) {
-        final lower = line.toLowerCase();
-
-        // Годы
-        final yearMatches = RegExp(r'\b(19|20)\d{2}\b').allMatches(line);
-        for (final match in yearMatches) {
-          years.add(int.parse(match.group(0)!));
-        }
-
-        // ВУЗ
-        if (institution == null &&
-            RegExp(r'(университет|институт|академ|колледж)').hasMatch(lower)) {
-          institution = _cleanInstitution(line);
-          continue;
-        }
-
-        // Специализация — без цифр и без упоминания вуза или города
-        if (specialization == null &&
-            !RegExp(r'\d').hasMatch(line) &&
-            !RegExp(r'(университет|институт|академ|колледж|петербург|москва|новосибирск|россия)').hasMatch(lower)) {
-          specialization = line;
-          continue;
-        }
-      }
-
-      // Формат годов
-      String yearsFormatted = 'Не указано';
-      if (years.length >= 2) {
-        years.sort();
-        yearsFormatted = '${years.first}–${years.last}';
-      } else if (years.length == 1) {
-        final end = years.first;
-        final start = end - 4;
-        yearsFormatted = '$start–$end';
-      }
-
-      result.add([
-        institution ?? 'Не указано',
-        specialization ?? 'Не указано',
-        yearsFormatted,
-      ]);
+      result.add([institution, specialization, years]);
     }
 
     return result;
   }
-  String _cleanInstitution(String raw) {
-    return raw
-        .replaceAll(RegExp(r'образование', caseSensitive: false), '')
-        .replaceAll(RegExp(r'высшее', caseSensitive: false), '')
-        .replaceAll(RegExp(r'среднее', caseSensitive: false), '')
-        .replaceAll(RegExp(r'незаконченное', caseSensitive: false), '')
-        .replaceAll(RegExp(r'(19|20)\d{2}'), '')
-        .replaceAll(RegExp(r'[^а-яА-ЯёЁa-zA-Z0-9 ,\.\-()]'), '')
-        .trim();
-  }
+
 }
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
