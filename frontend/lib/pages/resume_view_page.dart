@@ -465,48 +465,19 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
 
-      // Для гостей - только локальное хранилище
-      if (apiService.isGuest) {
-        final localResumes = apiService.getLocalResumes();
-        final updatedResume = localResumes.firstWhere(
-              (r) => r['id'] == widget.resume['id'],
-          orElse: () => widget.resume,
-        );
+      final localResumes = apiService.getLocalResumes();
+      final updatedResume = localResumes.firstWhere(
+            (r) => r['id'] == widget.resume['id'],
+        orElse: () => widget.resume,
+      );
 
-        if (mounted) {
-          setState(() {
-            widget.resume.clear();
-            widget.resume.addAll(updatedResume);
-          });
-        }
-        return;
+      if (mounted) {
+        setState(() {
+          widget.resume.clear();
+          widget.resume.addAll(updatedResume);
+        });
       }
-
-      // Для авторизованных пользователей - пробуем обновить с сервера,
-      // но при ошибке используем локальные данные
-      try {
-        final updatedResume = await apiService.getResumeById(widget.resume['id'] as int);
-        if (mounted) {
-          setState(() {
-            widget.resume.clear();
-            widget.resume.addAll(updatedResume);
-          });
-        }
-      } catch (e) {
-        // Если ошибка сервера - используем локальные данные
-        final localResumes = apiService.getLocalResumes();
-        final updatedResume = localResumes.firstWhere(
-              (r) => r['id'] == widget.resume['id'],
-          orElse: () => widget.resume,
-        );
-
-        if (mounted) {
-          setState(() {
-            widget.resume.clear();
-            widget.resume.addAll(updatedResume);
-          });
-        }
-      }
+      return;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

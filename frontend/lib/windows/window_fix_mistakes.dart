@@ -123,7 +123,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
           .map(
             (issue) => Issue(
               errorText: issue['text'].toString(),
-              suggestion: '',
+              suggestion: 'Рекомендуем исключить данный навык',
               description: issue['reason'].toString(),
             ),
           )
@@ -146,7 +146,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             (issue) => Issue(
               errorText: issue.toString(),
               suggestion: '',
-              description: 'Недостающий навык',
+              description: 'Рекомендуем исключить данный навык',
             ),
           )
           .toList();
@@ -156,7 +156,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
     }
   }
 
-  Future<List<Issue>> _analyzeResumeExoerience(int id, String nameIssue) async {
+  Future<List<Issue>> _analyzeResumeExperience(int id, String nameIssue) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.analyzeExperience(id);
@@ -168,7 +168,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             (issue) => Issue(
               errorText: issue.toString(),
               suggestion: '',
-              description: 'Недостающий навык',
+              description: 'Рекомендуем исключить данный навык',
             ),
           )
           .toList();
@@ -216,7 +216,9 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             (issue) => Issue(
               errorText: issue['text'] ?? '',
               suggestion: issue['suggestion'] ?? '',
-              description: 'Описание: ошибка в написании слова.', // description не приходит из БД
+              description: requiredType.contains('spelling')
+                  ? 'Ошибка в написании слова. Верный вариант - "${issue['suggestion']}".'
+                  : 'Ошибка в написании. Верный вариант - "${issue['suggestion']}".'
             ),
           )
           .toList();
@@ -943,7 +945,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                           });
 
                           try {
-                            final issues = await _analyzeResumeExoerience(
+                            final issues = await _analyzeResumeExperience(
                               widget.resume['id'],
                               'experience',
                             );

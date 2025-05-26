@@ -271,7 +271,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Вариант исправления:',
+                            'Предложенный вариант исправления:',
                             style: textStyleDescription,
                           ),
                           const SizedBox(height: 4),

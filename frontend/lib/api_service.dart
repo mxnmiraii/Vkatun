@@ -118,7 +118,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/resume/$resumeId/check/grammar'),
         headers: _headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
@@ -144,7 +144,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/resume/$resumeId/check/structure'),
         headers: _headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
@@ -162,7 +162,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/resume/$resumeId/check/skills'),
         headers: _headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
@@ -180,7 +180,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/resume/$resumeId/check/about'),
         headers: _headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
@@ -198,7 +198,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/resume/$resumeId/check/experience'),
         headers: _headers,
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
@@ -241,7 +241,7 @@ class ApiService {
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({'resume': json.encode(resume)}),
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);

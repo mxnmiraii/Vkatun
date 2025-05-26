@@ -258,7 +258,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                               _buildButton(
                                 icon: Icon(Icons.close),
                                 text: 'Закрыть',
-                                onPressed: widget.onClose,
+                                onPressed: widget.showOnboarding ? widget.onClose : _resetToInitialState,
                                 textStyle: textStyle,
                                 borderColor: borderWindowColor,
                               ),
@@ -314,9 +314,9 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      const SizedBox(height: 45),
+                      const SizedBox(height: 80),
                       Text(
-                        'Резюме готово к удалению',
+                        'Вы точно хотите удалить резюме?',
                         style: textStyle.copyWith(
                           color: midnightPurple,
                           fontSize: 16,
@@ -348,18 +348,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                         textStyle: textStyle,
                         borderColor: borderWindowColor,
                       ),
-                      const SizedBox(height: 10),
-                      _buildButton(
-                        icon: miniDownloadIcon,
-                        text: 'Оставить',
-                        onPressed: () {
-                          setState(() {
-                            _isConfirmingDelete = false;
-                          });
-                        },
-                        textStyle: textStyle,
-                        borderColor: borderWindowColor,
-                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
