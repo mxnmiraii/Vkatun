@@ -31,6 +31,7 @@ class ResumeViewPage extends StatefulWidget {
   final GlobalKey? iconKey;
   final VoidCallback? onReturnFromOnboarding;
   final bool isSixthBigStep;
+  final VoidCallback onUpdateResumeChange;
 
   const ResumeViewPage({
     super.key,
@@ -43,6 +44,7 @@ class ResumeViewPage extends StatefulWidget {
     this.iconKey,
     this.onReturnFromOnboarding,
     this.isSixthBigStep = false,
+    required this.onUpdateResumeChange,
   });
 
   @override
@@ -58,6 +60,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   bool _isSecondStep = true;
   bool _isFourthStep = false;
   bool _showOverlay = true;
+  bool _hasResumeChanged = false;
 
   final GlobalKey forwardIconWBgKey = GlobalKey();
 
@@ -176,7 +179,12 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           resume: widget.resume,
           showOnboarding: widget.showOnboarding,
           isSeventhBigStep: true,
-          onResumeChange: _updateResumeData,
+          onResumeChange: () {
+            _updateResumeData();
+            setState(() {
+              _hasResumeChanged = true;
+            });
+          },
         );
       },
     ).then((result) {
@@ -284,6 +292,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 }
               }
                   : () {
+                if (_hasResumeChanged) {widget.onUpdateResumeChange();}
                 Navigator.pop(context);
               },
               icon: backIconWBg,
@@ -342,7 +351,12 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 }
                     : null,
                 resumeId: widget.resume['id'],
-                onResumeChange: _updateResumeData,
+                onResumeChange: () {
+                  _updateResumeData();
+                  setState(() {
+                    _hasResumeChanged = true;
+                  });
+                },
               ),
             ),
 

@@ -19,6 +19,7 @@ class WindowResumesPage extends StatefulWidget {
   final VoidCallback onDelete;
   final bool showOnboarding;
   final VoidCallback? stopOnboarding;
+  final VoidCallback onUpdateResumeChange;
 
   const WindowResumesPage({
     super.key,
@@ -28,6 +29,7 @@ class WindowResumesPage extends StatefulWidget {
     required this.onDelete,
     this.showOnboarding = false,
     this.stopOnboarding,
+    required this.onUpdateResumeChange,
   });
 
   @override
@@ -47,9 +49,11 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
   void initState() {
     super.initState();
     _startDotsAnimation();
-    widget.showOnboarding ? WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding();
-    }) : null;
+    widget.showOnboarding
+        ? WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showFullScreenOnboarding();
+        })
+        : null;
   }
 
   void _showFullScreenOnboarding() {
@@ -174,21 +178,23 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                           icon: miniPenIcon,
                           text: 'Редактировать резюме',
                           onPressed:
-                          !widget.showOnboarding
-                              ? () {
-                            widget.onClose();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => ResumeViewPage(
-                                  resume: widget.resume,
-                                  onDelete: widget.onDelete,
-                                ),
-                              ),
-                            );
-                          }
-                              : () {},
+                              !widget.showOnboarding
+                                  ? () {
+                                    widget.onClose();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) => ResumeViewPage(
+                                              resume: widget.resume,
+                                              onDelete: widget.onDelete,
+                                              onUpdateResumeChange:
+                                                  widget.onUpdateResumeChange,
+                                            ),
+                                      ),
+                                    );
+                                  }
+                                  : () {},
                           textStyle: textStyle,
                           borderColor: borderWindowColor,
                         ),
@@ -197,7 +203,9 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                           icon: miniDownloadIcon,
                           text: 'Экспорт резюме',
                           onPressed: () {
-                            if (widget.showOnboarding) {widget.stopOnboarding!();}
+                            if (widget.showOnboarding) {
+                              widget.stopOnboarding!();
+                            }
                             _exportResume();
                           },
                           textStyle: textStyle,
@@ -207,11 +215,14 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                         _buildButton(
                           icon: miniDeleteIcon,
                           text: 'Удалить резюме',
-                          onPressed: !widget.showOnboarding ? () {
-                            setState(() {
-                              _isConfirmingDelete = true;
-                            });
-                          } : () {},
+                          onPressed:
+                              !widget.showOnboarding
+                                  ? () {
+                                    setState(() {
+                                      _isConfirmingDelete = true;
+                                    });
+                                  }
+                                  : () {},
                           textStyle: textStyle,
                           borderColor: borderWindowColor,
                         ),
@@ -220,7 +231,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(height: 30,),
+                              SizedBox(height: 30),
                               Text(
                                 'Резюме готово к скачиванию',
                                 style: textStyle.copyWith(
@@ -357,9 +368,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
 
           if (_isExporting)
             Container(
-              color: Colors.white.withOpacity(
-                0.25,
-              ),
+              color: Colors.white.withOpacity(0.25),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -414,16 +423,16 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
   }
 
   static Future<Map<String, dynamic>> getLocalResume(
-      int resumeId,
-      BuildContext context,
-      ) async {
+    int resumeId,
+    BuildContext context,
+  ) async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final List<Map<String, dynamic>> allResumes =
-      apiService.getLocalResumes();
+          apiService.getLocalResumes();
 
       final resume = allResumes.firstWhere(
-            (r) => (r['id'] as num).toInt() == resumeId,
+        (r) => (r['id'] as num).toInt() == resumeId,
         orElse: () => throw Exception('Резюме с ID $resumeId не найдено'),
       );
 

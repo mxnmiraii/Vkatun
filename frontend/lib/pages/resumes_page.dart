@@ -277,6 +277,7 @@ class _ResumesPageState extends State<ResumesPage>
           },
           showOnboarding: _showOnboarding,
           stopOnboarding: _stopOnboarding,
+          onUpdateResumeChange: _handleResumeUpdate,
         );
       },
     ).then((_) {
@@ -414,7 +415,7 @@ class _ResumesPageState extends State<ResumesPage>
                             _showFullScreenOnboarding(false, _isFifthBigStep);
                           });
                         }
-                        : null,
+                        : null, onUpdateResumeChange: _handleResumeUpdate,
               ),
         ),
       );
@@ -628,6 +629,10 @@ class _ResumesPageState extends State<ResumesPage>
     );
   }
 
+  void _handleResumeUpdate() {
+    _loadResumes();
+  }
+
   Widget _buildResumeCard(Map<String, dynamic> resume, int index) {
     return GestureDetector(
       onTap: () async {
@@ -652,10 +657,12 @@ class _ResumesPageState extends State<ResumesPage>
                             showOnboarding: true,
                             iconKey: addIconKey,
                             isSixthBigStep: true,
+                            onUpdateResumeChange: _handleResumeUpdate,
                           )
                           : ResumeViewPage(
                             resume: loadedResume,
                             onDelete: () {},
+                            onUpdateResumeChange: _handleResumeUpdate,
                           ),
             ),
           );
