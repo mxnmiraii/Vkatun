@@ -64,6 +64,23 @@ class _ResumesPageState extends State<ResumesPage>
     });
   }
 
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showFullScreenOnboarding(_isFirstBigStep, _isFifthBigStep);
+      });
+
+      await prefs.setBool('isFirstLaunch', false);
+    } else {
+      setState(() {
+        _showOnboarding = false;
+      });
+    }
+  }
+
   void _hideOverlay() {
     setState(() {
       _showOverlay = false;
@@ -103,9 +120,8 @@ class _ResumesPageState extends State<ResumesPage>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding(_isFirstBigStep, _isFifthBigStep);
-    });
+    _checkFirstLaunch();
+
     _syncResumes();
     _loadResumes();
   }
