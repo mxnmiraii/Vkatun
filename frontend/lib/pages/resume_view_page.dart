@@ -651,7 +651,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         Padding(
           padding: const EdgeInsets.only(left: 0, top: 0, bottom: 0),
           child: TextButton.icon(
-            onPressed: () {
+            onPressed: widget.showOnboarding ? () {} : () {
               Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -746,7 +746,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: () {
+                onPressed: widget.showOnboarding ? () {} : () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1016,7 +1016,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: () {
+                onPressed: widget.showOnboarding ? () {} : () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1113,7 +1113,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         Padding(
           padding: const EdgeInsets.only(left: 0, top: 0, bottom: 0),
           child: TextButton.icon(
-            onPressed: () {
+            onPressed: widget.showOnboarding ? () {} : () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -1192,7 +1192,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: () {
+                onPressed: widget.showOnboarding ? () {} : () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
