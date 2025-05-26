@@ -200,39 +200,39 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w300,
+            fontWeight: FontWeight.w400,
             color: black,
           ),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ),
-            border: index != length - 1
-                ? UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender,
-                width: 2.5,
-              ),
-            )
-                : InputBorder.none,
-            enabledBorder: index != 1
-                ? UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender,
-                width: 2.5,
-              ),
-            )
-                : InputBorder.none,
-            focusedBorder: index != 1
-                ? UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: lightDarkenLavender,
-                width: 2.5,
-              ),
-            )
-                : InputBorder.none,
+            contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
+            border:
+                index != length - 1
+                    ? UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: lightDarkenLavender,
+                        width: 2.5,
+                      ),
+                    )
+                    : InputBorder.none,
+            enabledBorder:
+                index != 2
+                    ? UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: lightDarkenLavender,
+                        width: 2.5,
+                      ),
+                    )
+                    : InputBorder.none,
+            focusedBorder:
+                index != 2
+                    ? UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: lightDarkenLavender,
+                        width: 2.5,
+                      ),
+                    )
+                    : InputBorder.none,
           ),
         ),
       ],

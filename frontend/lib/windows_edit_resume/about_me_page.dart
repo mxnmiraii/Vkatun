@@ -128,26 +128,38 @@ class _AboutMePageState extends State<AboutMePage> {
                       color: lavenderBlue,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 4),
                   TextField(
                     controller: _aboutMeController,
                     style: const TextStyle(
                       fontFamily: "NotoSans",
                       fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w400,
                       color: black,
                     ),
                     maxLines: null,
                     keyboardType: TextInputType.multiline,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
-                      contentPadding: EdgeInsets.only(
-                        top: 7,
-                        bottom: 14,
+                      contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
+                      border: const UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: lightDarkenLavender,
+                          width: 2.5,
+                        ),
                       ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: lightDarkenLavender,
+                          width: 2.5,
+                        ),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: lightDarkenLavender,
+                          width: 2.5,
+                        ),
+                      ),
                     ),
                   ),
                 ],

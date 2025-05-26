@@ -197,13 +197,12 @@ class _EducationPageState extends State<EducationPage> {
             color: lavenderBlue,
           ),
         ),
-        index + 1 != length
-            ? TextField(
+        TextField(
           controller: controller,
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: black,
           ),
           decoration: InputDecoration(
@@ -232,23 +231,6 @@ class _EducationPageState extends State<EducationPage> {
             ),
           ),
         )
-            : TextField(
-          controller: controller,
-          style: const TextStyle(
-            fontFamily: "NotoSans",
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: black,
-          ),
-          decoration: const InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ),
-            border: InputBorder.none,
-          ),
-        ),
       ],
     );
   }

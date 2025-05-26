@@ -322,14 +322,14 @@ class _FullNamePageState extends State<FullNamePage>
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: black,
           ),
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
             border:
-                index != 2
+                index != 3
                     ? UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: lightDarkenLavender,
@@ -338,7 +338,7 @@ class _FullNamePageState extends State<FullNamePage>
                     )
                     : InputBorder.none,
             enabledBorder:
-                index != 2
+                index != 3
                     ? UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: lightDarkenLavender,
@@ -347,7 +347,7 @@ class _FullNamePageState extends State<FullNamePage>
                     )
                     : InputBorder.none,
             focusedBorder:
-                index != 2
+                index != 3
                     ? UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: lightDarkenLavender,

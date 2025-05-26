@@ -169,37 +169,31 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w400,
             color: black,
           ),
-          maxLines: null, //
+          maxLines: null,
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
-            border: index + 1 != length
-                ? const UnderlineInputBorder(
+            border: const UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            )
-                : InputBorder.none,
-            enabledBorder: index + 1 != length
-                ? const UnderlineInputBorder(
+            ),
+            enabledBorder: const UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            )
-                : InputBorder.none,
-            focusedBorder: index + 1 != length
-                ? const UnderlineInputBorder(
+            ),
+            focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            )
-                : InputBorder.none,
+            ),
           ),
         ),
       ],
