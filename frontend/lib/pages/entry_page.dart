@@ -1,11 +1,11 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/pages/register_page.dart';
 import 'package:vkatun/pages/resumes_page.dart';
-import 'package:vkatun/pages/start_page.dart';
-
 import '../design/colors.dart';
 import '../design/dimensions.dart';
-import '../design/images.dart';
 
 class EntryPage extends StatefulWidget {
   const EntryPage({super.key});
@@ -18,32 +18,96 @@ class _EntryPageState extends State<EntryPage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
+  final Map<String, String> _fieldErrors = {};
+  final Map<String, bool> _fieldErrorStates = {
+    'login': false,
+    'password': false,
+  };
+
   @override
   void dispose() {
-    // очистка после закрытия страницы (обязательно!)
     _loginController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    void _handleLogin() {
-      final login = _loginController.text;
-      final password = _passwordController.text;
+  void _showFieldError(String field, String message) {
+    setState(() {
+      _fieldErrors[field] = message;
+      _fieldErrorStates[field] = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _fieldErrors.remove(field);
+        _fieldErrorStates[field] = false;
+      });
+    });
+  }
+
+  void _handleLogin() {
+    final emailNumber = _loginController.text.trim();
+    final password = _passwordController.text;
+
+    if (emailNumber.isEmpty) {
+      _showFieldError('login', 'Введите email');
+      return;
+    }
+
+    if (password.isEmpty) {
+      _showFieldError('password', 'Введите пароль');
+      return;
+    }
+
+    _performLogin(emailNumber, password);
+  }
+
+  Future<void> logLoginEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('login_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
+  Future<void> _performLogin(String emailNumber, String password) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      await apiService.login(
+        emailOrPhone: emailNumber,
+        password: password,
+      );
+
+      logLoginEvent();
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => ResumesPage()),
       );
-
-      // реализация авторизации
+    } catch (e) {
+      _showFieldError('password', 'Неверный логин или пароль');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final _textStyle = TextStyle(
       color: midnightPurple,
       fontFamily: 'Playfair',
-      // letterSpacing: -1.1,
       height: 1.5,
     );
 
@@ -51,17 +115,9 @@ class _EntryPageState extends State<EntryPage> {
       filled: true,
       fillColor: Colors.white,
       labelStyle: TextStyle(color: lightGrayText),
-      enabledBorder: OutlineInputBorder(
+      border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
-      ),
-      border: OutlineInputBorder( // Общее fallback-значение
-        borderRadius: BorderRadius.circular(30),
-        borderSide: BorderSide(width: 2, color: vividPeriwinkleBlue),
+        borderSide: const BorderSide(width: 2),
       ),
     );
 
@@ -71,146 +127,169 @@ class _EntryPageState extends State<EntryPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-
       body: Stack(
         children: [
           ClipPath(
             clipper: BottomCurveClipper(),
             child: Container(
-              height: backgroundHeight, // Высота изогнутого фона
-              color: backgroundColorWater, // Цвет фона (как на твоем макете)
+              height: backgroundHeight,
+              color: backgroundColorWater,
             ),
           ),
-
-          SafeArea(child: Column(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(height: 20,),
-                      Text(
-                        'Вход',
-                        style: _textStyle.copyWith(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w800,
-                          color: blue,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      Text(
-                        'С возвращением!',
-                        style: _textStyle.copyWith(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Expanded(
-                flex: 3,
-                child: Padding(
-                  padding: buttonPadding,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TextField(
-                        controller: _loginController,
-                        textAlign: TextAlign.start,
-                        decoration: _inputDecoration.copyWith(
-                          labelText: 'Имя пользователя',
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: _inputDecoration.copyWith(labelText: 'Пароль'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 40,),
-
-              Expanded(
-                flex: 4,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: buttonPaddingHorizontal,
-                    ),
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Center(
                     child: Column(
-                      // mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ElevatedButton(
-                          onPressed: _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: mediumSlateBlue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(17),
-                            ),
-                            minimumSize: const Size(double.infinity, 50),
-                            elevation: 0,
+                        const SizedBox(height: 20),
+                        Text(
+                          'Вход',
+                          style: _textStyle.copyWith(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w800,
+                            color: blue,
                           ),
-                          child: Text(
-                            'Войти',
-                            style: _textStyle.copyWith(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                          textAlign: TextAlign.center,
+                        ),
+                        Text(
+                          'С возвращением!',
+                          style: _textStyle.copyWith(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Padding(
+                    padding: buttonPadding,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextField(
+                          controller: _loginController,
+                          decoration: _inputDecoration.copyWith(
+                            labelText: 'Email',
+                            errorText: _fieldErrorStates['login']! ? _fieldErrors['login'] : null,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
+                            ),
                           ),
                         ),
-
-                        SizedBox(height: 10),
-
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => RegisterPage()),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(borderRadius),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: _inputDecoration.copyWith(
+                            labelText: 'Пароль',
+                            errorText: _fieldErrorStates['password']! ? _fieldErrors['password'] : null,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
                             ),
-                            minimumSize: const Size(double.infinity, 50),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'Зарегистрироваться',
-                            style: _textStyle.copyWith(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black,
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              borderSide: BorderSide(
+                                width: 2,
+                                color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ],
-          ))
+                const SizedBox(height: 40),
+                Expanded(
+                  flex: 4,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: buttonPaddingHorizontal),
+                      child: Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: _isLoading ? null : _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: mediumSlateBlue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(17),
+                              ),
+                              minimumSize: const Size(double.infinity, 50),
+                              elevation: 0,
+                            ),
+                            child: _isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : Text(
+                              'Войти',
+                              style: _textStyle.copyWith(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const RegisterPage()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(borderRadius),
+                              ),
+                              minimumSize: const Size(double.infinity, 50),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Зарегистрироваться',
+                              style: _textStyle.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
-      )
+      ),
     );
   }
 }
@@ -220,12 +299,12 @@ class BottomCurveClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 250);
-
     path.quadraticBezierTo(
-      size.width * 0.6, size.height,
-      size.width, size.height - 70,
+      size.width * 0.6,
+      size.height,
+      size.width,
+      size.height - 70,
     );
-
     path.lineTo(size.width, 0);
     path.close();
     return path;

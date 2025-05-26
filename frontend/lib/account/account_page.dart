@@ -1,24 +1,31 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
+import '../api_service.dart';
 import '../pages/start_page.dart';
+import 'account_main_page.dart';
+import 'account_settings.dart';
 
 class AccountPage extends StatefulWidget {
-  const AccountPage({super.key});
+  final Map<String, dynamic> profileData;
+  const AccountPage({super.key, required this.profileData});
 
   @override
   State<AccountPage> createState() => _AccountMainPageState();
 }
 
 class _AccountMainPageState extends State<AccountPage> {
-  late TextEditingController _fioController = TextEditingController();
+  late TextEditingController _usernameController = TextEditingController();
   late TextEditingController _emailController = TextEditingController();
 
   @override
   void dispose() {
-    _fioController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     super.dispose();
   }
@@ -26,8 +33,8 @@ class _AccountMainPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-    _fioController = TextEditingController(text: 'Петров Иван Натанович');
-    _emailController = TextEditingController(text: 'ivan.petrov@email.com');
+    _usernameController = TextEditingController(text: widget.profileData['username']);
+    _emailController = TextEditingController(text: widget.profileData['email']);
   }
 
   @override
@@ -41,46 +48,44 @@ class _AccountMainPageState extends State<AccountPage> {
       extendBody: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          color: Colors.white,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            toolbarHeight: appBarHeight,
-            centerTitle: false,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: lightArrowBackIcon
+        child: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          automaticallyImplyLeading: false,
+          toolbarHeight: appBarHeight,
+          centerTitle: false,
+          systemOverlayStyle: SystemUiOverlayStyle.dark, // ← важная строка
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: lightArrowBackIcon,
+              ),
+              Text(
+                'Аккаунт',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 32,
+                  fontFamily: 'Playfair',
+                  color: purpleBlue,
                 ),
-
-                Text(
-                  'Аккаунт',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 32,
-                    fontFamily: 'Playfair',
-                    color: purpleBlue,
-                  ),
-                ),
-
-                IconButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => StartPage())
-                      );
-                    },
-                    icon: logOutIcon,
-                )
-              ],
-            ),
+              ),
+              IconButton(
+                onPressed: () async {
+                  final apiService = Provider.of<ApiService>(context, listen: false);
+                  await apiService.clearToken();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => StartPage()),
+                        (Route<dynamic> route) => false,
+                  );
+                },
+                icon: logOutIcon,
+                tooltip: 'Выйти из аккаунта',
+              ),
+            ],
           ),
         ),
       ),
@@ -127,7 +132,7 @@ class _AccountMainPageState extends State<AccountPage> {
                 ],
               ),
               child: Column(children: [
-                _buildTextField(label: 'ФИО', controller: _fioController, onPressed: () {}),
+                _buildTextField(label: 'Имя пользователя', controller: _usernameController, onPressed: () {}),
                 SizedBox(height: 30,),
                 _buildTextField(label: 'Почта', controller: _emailController, onPressed: () {}),
               ]),
@@ -135,6 +140,21 @@ class _AccountMainPageState extends State<AccountPage> {
           ),
         ],
       ),
+
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: bottom35),
+        child: IconButton(
+          icon: circle,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AccountSettingsPage(profileData: widget.profileData,))
+            );
+          },
+          iconSize: 36, // Можно настроить размер иконки
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -160,6 +180,7 @@ class _AccountMainPageState extends State<AccountPage> {
 
         TextField(
           controller: controller,
+          readOnly: true, // ← вот это добавили
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
@@ -171,10 +192,10 @@ class _AccountMainPageState extends State<AccountPage> {
             contentPadding: const EdgeInsets.only(
               top: 7,
               bottom: 14,
-            ), // Уменьшаем отступы сверху и снизу
+            ),
             border: UnderlineInputBorder(
               borderSide: BorderSide(
-                color: lightVioletDivider.withOpacity(0.5), // Цвет полоски
+                color: lightVioletDivider.withOpacity(0.5),
                 width: 1,
               ),
             ),
@@ -192,6 +213,7 @@ class _AccountMainPageState extends State<AccountPage> {
             ),
           ),
         ),
+
       ],
     );
   }

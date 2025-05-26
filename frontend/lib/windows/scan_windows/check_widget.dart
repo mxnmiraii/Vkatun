@@ -9,13 +9,16 @@ class CheckWidget extends StatefulWidget {
   final VoidCallback onClose;
   final Map<String, dynamic> resume;
   final List<Issue> issues;
+  final VoidCallback? onResumeChange;
+
   const CheckWidget(
       {
         super.key,
         required this.availableHeight,
         required this.onClose,
         required this.resume,
-        required this.issues
+        required this.issues,
+        this.onResumeChange,
       }
       );
 
@@ -75,6 +78,7 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                         availableHeight: widget.availableHeight,
                         onClose: widget.onClose,
                         resume: widget.resume,
+                        onResumeChange: widget.onResumeChange,
                       ),
                     );
                   }),
@@ -107,20 +111,16 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                           builder: (context) => ApplyCorrections(
                             originalResume: widget.resume,
                             corrections: widget.issues,
+                            onResumeChange: widget.onResumeChange,
                           ),
                         ),
-                      ).then((correctedResume) {
-                        if (correctedResume != null) {
-                          // Сохраняем исправленное резюме
-                          print('Исправленное резюме: $correctedResume');
-                        }
-                      });
+                      );
                     },
                     child: Text(
                       'Внедрить все',
                       style: TextStyle(
                         fontFamily: 'Playfair',
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         height: 1.0,
                       ),
@@ -143,6 +143,7 @@ class IssueCard extends StatefulWidget {
   final double availableHeight;
   final VoidCallback onClose;
   final Map<String, dynamic> resume;
+  final VoidCallback? onResumeChange;
 
   const IssueCard({
     super.key,
@@ -151,7 +152,8 @@ class IssueCard extends StatefulWidget {
     required this.onToggle,
     required this.availableHeight,
     required this.onClose,
-    required this.resume
+    required this.resume,
+    required this.onResumeChange,
   });
 
   @override
@@ -269,7 +271,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Вариант исправления:',
+                            'Предложенный вариант исправления:',
                             style: textStyleDescription,
                           ),
                           const SizedBox(height: 4),
@@ -303,12 +305,14 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                           originalResume: widget.resume,
                                           corrections: [widget.issue],
                                           singleCorrection: widget.issue,
+                                          onResumeChange: widget.onResumeChange,
                                         ),
                                       ),
                                     ).then((correctedResume) {
                                       if (correctedResume != null) {
                                         // Сохраняем исправленное резюме
                                         print('Исправленное резюме: $correctedResume');
+                                        // endpoint 25.04.2025
                                       }
                                     });
                                   },
@@ -316,7 +320,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                     'Внедрить',
                                     style: TextStyle(
                                       fontFamily: 'Playfair',
-                                      fontSize: 15,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                       height: 1.0,
                                     ),
@@ -324,7 +328,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                   ),
                                 ),
                               )
-                          )
+                          ),
                         ],
                       ),
                     ),

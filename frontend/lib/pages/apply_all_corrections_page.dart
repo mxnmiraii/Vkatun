@@ -1,20 +1,25 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/windows/scan_windows/check_widget.dart';
 
+import '../api_service.dart';
 import '../design/images.dart';
 
 class ApplyCorrections extends StatefulWidget {
   final Map<String, dynamic> originalResume;
   final List<Issue> corrections;
   final Issue? singleCorrection;
+  final VoidCallback? onResumeChange;
 
   const ApplyCorrections({
     super.key,
     required this.originalResume,
     required this.corrections,
     this.singleCorrection,
+    required this.onResumeChange,
   });
 
   @override
@@ -56,6 +61,27 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
         _isSyncingScroll = false;
       }
     });
+  }
+
+  Future<void> logAddRecEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('add_recommendation_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
+  Future<void> _acceptRec() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      await apiService.incrementAcceptedMetric();
+    } catch (e) {
+      print('Ошибка при автоинкременте: $e');
+    }
   }
 
   @override
@@ -211,6 +237,13 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
 
   @override
   Widget build(BuildContext context) {
+    final _textStyle = TextStyle(
+      color: midnightPurple,
+      fontFamily: 'Playfair',
+      // letterSpacing: -1.1,
+      height: 1.0,
+    );
+
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.15 / 2;
 
@@ -225,20 +258,28 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context);
+              },
               icon: backIconWBg,
             ),
+
             Text(
               'Резюме',
-              style: TextStyle(
-                color: midnightPurple,
-                fontFamily: 'Playfair',
+              style: _textStyle.copyWith(
                 fontWeight: FontWeight.w800,
                 fontSize: 24,
               ),
               textAlign: TextAlign.center,
             ),
-            Opacity(opacity: 0, child: backIconWBg),
+
+            IgnorePointer(
+              ignoring: true,
+              child: Opacity(
+                opacity: 0,
+                child: IconButton(onPressed: () {}, icon: backIconWBg),
+              ),
+            ),
           ],
         ),
       ),
@@ -371,15 +412,66 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: bottom35),
         child: IconButton(
-          icon: doneIcon,
-          onPressed: () {
-
+          icon: doneBlueIcon,
+          onPressed: () async {
+            _acceptRec();
+            _editResumeFull();
+            widget.onResumeChange!();
+            logAddRecEvent();
           },
           iconSize: 36, // Можно настроить размер иконки
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
+  }
+
+  Future<void> _editResumeFull() async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      // Показываем индикатор загрузки
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Подготавливаем данные для отправки
+      final dataToUpdate = {
+        'title': _correctedResume['title'],
+        'contacts': _correctedResume['contacts'],
+        'job': _correctedResume['job'],
+        'experience': _correctedResume['experience'],
+        'education': _correctedResume['education'],
+        'skills': _correctedResume['skills'],
+        'about': _correctedResume['about'],
+      };
+
+      // Отправляем изменения
+      await apiService.editResume(
+        widget.originalResume['id'] as int,
+        dataToUpdate,
+      );
+
+      // Успешное обновление - закрываем экран с результатом
+      if (mounted) {
+        Navigator.of(context).pop(); // Закрываем индикатор загрузки
+        Navigator.of(context).pop(true);
+      }
+
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Закрываем индикатор загрузки
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Не удалось сохранить изменения: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildScrollableResumeView({

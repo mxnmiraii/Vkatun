@@ -110,3 +110,75 @@ final SvgPicture timeArrowBack = SvgPicture.asset(
 final SvgPicture timeArrowForward = SvgPicture.asset(
     'assets/images/time_arrow_forward.svg',
 );
+
+final SvgPicture miniPenIcon = SvgPicture.asset(
+  'assets/images/mini_pen_icon.svg',
+);
+
+final SvgPicture miniDownloadIcon = SvgPicture.asset(
+  'assets/images/mini_download_icon.svg',
+);
+
+final SvgPicture miniDeleteIcon = SvgPicture.asset(
+  'assets/images/mini_delete_icon.svg',
+);
+
+final SvgPicture textAIconNoFill = SvgPicture.asset(
+  'assets/images/text_a_icon_no_fill.svg',
+);
+
+final SvgPicture moreIconNoFill = SvgPicture.asset(
+  'assets/images/more_icon_no_fill.svg',
+);
+
+final SvgPicture penIconNoFill = SvgPicture.asset(
+  'assets/images/pen_icon_no_fill.svg',
+);
+
+final SvgPicture miniDoneIcon = SvgPicture.asset(
+  'assets/images/mini_done_icon.svg',
+);
+
+final SvgPicture toggleOnIcon = SvgPicture.asset(
+  'assets/images/toggle_on_icon.svg',
+);
+
+final SvgPicture toggleOffIcon = SvgPicture.asset(
+  'assets/images/toggle_off_icon.svg',
+);
+
+final SvgPicture accessIcon = SvgPicture.asset(
+  'assets/images/access_icon.svg',
+);
+
+final SvgPicture errorIcon = SvgPicture.asset(
+  'assets/images/error_icon.svg',
+);
+
+final SvgPicture warningIcon = SvgPicture.asset(
+  'assets/images/warning_icon.svg',
+);
+
+final SvgPicture cancelIcon2 = SvgPicture.asset(
+  'assets/images/cancel_icon_2.svg',
+);
+
+final SvgPicture pen = SvgPicture.asset(
+  'assets/images/pen.svg',
+);
+
+final SvgPicture circle = SvgPicture.asset(
+  'assets/images/circle.svg',
+);
+
+final SvgPicture accessVioletIcon = SvgPicture.asset(
+  'assets/images/access_violet_icon.svg',
+);
+
+final SvgPicture doneBlueIcon = SvgPicture.asset(
+  'assets/images/done_blue_icon.svg',
+);
+
+final SvgPicture addIconCircle = SvgPicture.asset(
+  'assets/images/add_icon_circle.svg',
+);

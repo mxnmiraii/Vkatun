@@ -1,11 +1,15 @@
+import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:vkatun/pages/resumes_page.dart';
 import 'package:vkatun/pages/start_page.dart';
 
+import '../api_service.dart';
 import '../design/colors.dart';
 import '../design/dimensions.dart';
 import '../design/images.dart';
 import 'entry_page.dart';
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -20,6 +24,30 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordRepeatController =
       TextEditingController();
+  bool _isLoading = false;
+  String _errorMessage = '';
+
+  final Map<String, String> _fieldErrors = {};
+  final Map<String, bool> _fieldErrorStates = {
+    'login': false,
+    'email': false,
+    'password': false,
+    'passwordRepeat': false,
+  };
+
+  void _showFieldError(String field, String message) {
+    setState(() {
+      _fieldErrors[field] = message;
+      _fieldErrorStates[field] = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _fieldErrors.remove(field);
+        _fieldErrorStates[field] = false;
+      });
+    });
+  }
 
   @override
   void dispose() {
@@ -31,21 +59,99 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  Future<void> logRegisterEvent() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final profile = await apiService.getProfile();
+
+      AppMetrica.setUserProfileID(profile['id'].toString());
+      await AppMetrica.reportEvent('registration_success');
+    } catch (e) {
+      print('Ошибка при логине: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    void _handleLogin() {
-      final login = _loginController.text;
-      final emailNumber = _emailNumberController.text;
+    Future<void> _performRegistration(String login, String emailNumber, String password) async {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
+
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+        await apiService.register(
+          username: login,
+          emailOrPhone: emailNumber,
+          password: password,
+        );
+
+        logRegisterEvent();
+
+        // Успешная регистрация
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ResumesPage()),
+        );
+      } catch (e) {
+        // Обработка реальных ошибок
+        final errorMessage = e.toString().contains('User registered successfully')
+            ? 'Регистрация успешна! Выполняется вход...'
+            : 'Ошибка регистрации: ${e.toString().replaceAll('Exception: ', '')}';
+
+        setState(() => _errorMessage = errorMessage);
+
+        // Если регистрация фактически успешна, но была обработана как ошибка
+        if (e.toString().contains('User registered successfully')) {
+          await Future.delayed(Duration(seconds: 2));
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ResumesPage()),
+          );
+        }
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+
+    bool _isValidPassword(String password) {
+      final lengthValid = password.length >= 8 && password.length <= 25;
+      final hasDigit = password.contains(RegExp(r'\d'));
+      final hasSpecialChar = password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'));
+      return lengthValid && hasDigit && hasSpecialChar;
+    }
+
+    void _handleRegister() {
+      final login = _loginController.text.trim();
+      final emailNumber = _emailNumberController.text.trim();
       final password = _passwordController.text;
       final passwordRepeat = _passwordRepeatController.text;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => ResumesPage()),
-      );
+      if (login.isEmpty || login.length < 3 || login.length > 30) {
+        _showFieldError('login', 'Имя: 3–30 символов');
+        return;
+      }
 
-      // реализация регистрации
+      if (emailNumber.isEmpty || emailNumber.length < 3 || emailNumber.length > 100) {
+        _showFieldError('email', 'Email: 3–100 символов');
+        return;
+      }
+
+      if (password.isEmpty || !_isValidPassword(password)) {
+        _showFieldError('password', 'Пароль: 8–25 символов, цифра и символ');
+        return;
+      }
+
+      if (password != passwordRepeat) {
+        _showFieldError('passwordRepeat', 'Пароли не совпадают');
+        return;
+      }
+
+      _performRegistration(login, emailNumber, password);
     }
+
+
 
     final _textStyle = TextStyle(
       color: midnightPurple,
@@ -129,49 +235,113 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 Expanded(
                   flex: 4,
-                  child: Padding(
-                    padding: buttonPadding,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextField(
-                          controller: _loginController,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Имя пользователя',
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: buttonPadding,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextField(
+                            controller: _loginController,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Имя пользователя',
+                              errorText: _fieldErrorStates['login']! ? _fieldErrors['login'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['login']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
+                          const SizedBox(height: 10),
 
-                        TextField(
-                          controller: _emailNumberController,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Телефон или адрес эл.почты',
+                          TextField(
+                            controller: _emailNumberController,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Адрес электронной почты',
+                              errorText: _fieldErrorStates['email']! ? _fieldErrors['email'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['email']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['email']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
 
-                        TextField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Пароль',
+                          const SizedBox(height: 10),
+
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Пароль',
+                              errorText: _fieldErrorStates['password']! ? _fieldErrors['password'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['password']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 10),
 
-                        TextField(
-                          controller: _passwordRepeatController,
-                          obscureText: true,
-                          decoration: _inputDecoration.copyWith(
-                            labelText: 'Подтверждение пароля',
+                          const SizedBox(height: 10),
+
+                          TextField(
+                            controller: _passwordRepeatController,
+                            obscureText: true,
+                            decoration: _inputDecoration.copyWith(
+                              labelText: 'Подтверждение пароля',
+                              errorText: _fieldErrorStates['passwordRepeat']! ? _fieldErrors['passwordRepeat'] : null,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['passwordRepeat']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide(
+                                  width: 2,
+                                  color: _fieldErrorStates['passwordRepeat']! ? Colors.red : vividPeriwinkleBlue,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  )
                 ),
 
                 SizedBox(height: 40),
@@ -187,14 +357,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         // mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ResumesPage(),
-                                ),
-                              );
-                            },
+                            onPressed: _handleRegister,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: mediumSlateBlue,
                               shape: RoundedRectangleBorder(
@@ -203,34 +366,30 @@ class _RegisterPageState extends State<RegisterPage> {
                               minimumSize: const Size(double.infinity, 50),
                               elevation: 0,
                             ),
-                            child: Text(
+                            child: _isLoading
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text(
                               'Создать аккаунт',
                               style: _textStyle.copyWith(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
 
-                          SizedBox(height: 10),
-
+                          // Кнопка входа:
                           ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ResumesPage(),
-                                ),
-                              );
-                            },
+                            onPressed: _isLoading
+                                ? null
+                                : () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => EntryPage()),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                  borderRadius,
-                                ),
+                                borderRadius: BorderRadius.circular(borderRadius),
                               ),
                               minimumSize: const Size(double.infinity, 50),
                               elevation: 0,
@@ -242,7 +401,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                           ),
                         ],
@@ -280,3 +438,5 @@ class BottomCurveClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+
+

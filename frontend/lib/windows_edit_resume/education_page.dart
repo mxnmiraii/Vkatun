@@ -14,14 +14,13 @@ class EducationPage extends StatefulWidget {
 class _EducationPageState extends State<EducationPage> {
   late TextEditingController _institutionController;
   late TextEditingController _specializationController;
-  late TextEditingController _facultyController;
   late TextEditingController _graduationYearController;
+
 
   @override
   void dispose() {
     _institutionController.dispose();
     _specializationController.dispose();
-    _facultyController.dispose();
     _graduationYearController.dispose();
     super.dispose();
   }
@@ -35,20 +34,13 @@ class _EducationPageState extends State<EducationPage> {
     _institutionController = TextEditingController(
       text: data.isNotEmpty ? data[0] : '',
     );
-    _facultyController = TextEditingController(
+    _specializationController = TextEditingController(
       text: data.length > 1 ? data[1] : '',
     );
-    _specializationController = TextEditingController(
+    _graduationYearController = TextEditingController(
       text: data.length > 2 ? data[2] : '',
     );
-    _graduationYearController = TextEditingController(
-      text: data.length > 3 ? _extractYear(data[3]) : '',
-    );
-  }
 
-  String _extractYear(String input) {
-    final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);
-    return match?.group(0) ?? '';
   }
 
   @override
@@ -60,52 +52,50 @@ class _EducationPageState extends State<EducationPage> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
-        child: Container(
-          color: Colors.white,
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            automaticallyImplyLeading: false,
-            toolbarHeight: appBarHeight,
-            centerTitle: false,
-            title: Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      SizedBox(width: space),
-                      IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: lightArrowBackIcon,
-                      ),
-                    ],
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    'Образование',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 24,
-                      fontFamily: 'Playfair',
-                      color: purpleBlue,
+        child: SafeArea(
+          bottom: false,
+          child: Container(
+            color: Colors.white,
+            child: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              automaticallyImplyLeading: false,
+              toolbarHeight: appBarHeight,
+              centerTitle: false,
+              title: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: lightArrowBackIcon,
                     ),
                   ),
-                ),
-              ],
+                  Center(
+                    child: Text(
+                      'Образование',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 24,
+                        fontFamily: 'Playfair',
+                        color: purpleBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
       body: Stack(
         children: [
+          // Градиент на фоне
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -139,7 +129,7 @@ class _EducationPageState extends State<EducationPage> {
                     color: Colors.black.withOpacity(0.30),
                     blurRadius: 2,
                     spreadRadius: 0.2,
-                    offset: Offset(0, 1),
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
@@ -151,15 +141,6 @@ class _EducationPageState extends State<EducationPage> {
                     index: 0,
                     length: widget.data.length,
                   ),
-
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Факультет',
-                    controller: _facultyController,
-                    index: 2,
-                    length: widget.data.length,
-                  ),
-
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Специализация',
@@ -167,12 +148,11 @@ class _EducationPageState extends State<EducationPage> {
                     index: 1,
                     length: widget.data.length,
                   ),
-
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: 'Год окончания',
+                    label: 'Годы окончания',
                     controller: _graduationYearController,
-                    index: 3,
+                    index: 2,
                     length: widget.data.length,
                   ),
                 ],
@@ -217,8 +197,7 @@ class _EducationPageState extends State<EducationPage> {
             color: lavenderBlue,
           ),
         ),
-        index + 1 != length
-            ? TextField(
+        TextField(
           controller: controller,
           style: const TextStyle(
             fontFamily: "NotoSans",
@@ -252,23 +231,6 @@ class _EducationPageState extends State<EducationPage> {
             ),
           ),
         )
-            : TextField(
-          controller: controller,
-          style: const TextStyle(
-            fontFamily: "NotoSans",
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: black,
-          ),
-          decoration: const InputDecoration(
-            isDense: true,
-            contentPadding: EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ),
-            border: InputBorder.none,
-          ),
-        ),
       ],
     );
   }
