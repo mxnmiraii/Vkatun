@@ -59,3 +59,5 @@ const Color electricLavender = Color(0xFF674FBE);
 const Color backgroundOnboarding = Color(0xFF111111);
 const Color onboardingButtonColorViolet = Color(0xFFD4D1FF);
 const Color onboardingButtonColorBlue = Color(0xFF655AFF);
+
+const Color buttonLightLavender = Color(0xFF4126A1);

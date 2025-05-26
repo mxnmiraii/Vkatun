@@ -736,6 +736,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     color: midnightPurple,
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
+                    fontFamily: 'Playfair'
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -774,7 +775,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: borderWindowColor,
+              color: buttonLightLavender.withOpacity(0.53),
               width: widthBorderRadius,
             ),
           ),
@@ -975,7 +976,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            side: BorderSide(color: midnightPurple, width: widthBorderRadius),
+            side: BorderSide(color: buttonLightLavender.withOpacity(0.53), width: widthBorderRadius),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
