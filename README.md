@@ -43,6 +43,9 @@
 - Презентация (Текущий статус проекта) [(PPTX)](Презентация/presentation_сurrent_status_2_milestone.pptx) [(PDF)](Презентация/presentation_сurrent_status_2_milestone.pdf)
 - Видеопрезентация (Текущий статус проекта) [(RUTUBE)](https://rutube.ru/video/5585456d0addcc794fc80c5556a2448d/) [(Yandex Disk)](https://disk.yandex.ru/i/Ql-HMEgtCRt99A)
 - Демонстрация работы ключевых сценариев приложения Vkatun [(RUTUBE)](https://rutube.ru/video/5d0440362f0346ec00c9997639fd6d86/) [(Yandex Disk)](https://disk.yandex.ru/i/oo3H5rzVZuOixw)
+#### Предзащита проекта (3 этап)
+- Презентация (предзащита) [(PPTX)](Презентация/presentation_3_milestone.pptx) [(PDF)](Презентация/presentation_3_milestone.pdf)
+
 ### 🎨 Дизайн
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
 - [UI-kit](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=254-73&p=f&t=XRd87ECZqD4rgfUQ-0)
