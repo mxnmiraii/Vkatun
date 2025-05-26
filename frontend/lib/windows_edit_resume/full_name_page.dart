@@ -329,7 +329,7 @@ class _FullNamePageState extends State<FullNamePage>
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
             border:
-                index != length - 1
+                index != 2
                     ? UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: lightDarkenLavender,
@@ -338,7 +338,7 @@ class _FullNamePageState extends State<FullNamePage>
                     )
                     : InputBorder.none,
             enabledBorder:
-                index != length - 1
+                index != 2
                     ? UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: lightDarkenLavender,
@@ -347,7 +347,7 @@ class _FullNamePageState extends State<FullNamePage>
                     )
                     : InputBorder.none,
             focusedBorder:
-                index != length - 1
+                index != 2
                     ? UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: lightDarkenLavender,

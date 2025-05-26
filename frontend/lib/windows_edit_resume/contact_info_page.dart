@@ -200,7 +200,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w300,
             color: black,
           ),
           decoration: InputDecoration(
@@ -217,7 +217,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
               ),
             )
                 : InputBorder.none,
-            enabledBorder: index != length - 1
+            enabledBorder: index != 1
                 ? UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
@@ -225,7 +225,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
               ),
             )
                 : InputBorder.none,
-            focusedBorder: index != length - 1
+            focusedBorder: index != 1
                 ? UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,

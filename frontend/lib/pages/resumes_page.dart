@@ -600,6 +600,13 @@ class _ResumesPageState extends State<ResumesPage>
     _animateSort();
   }
 
+  int _getResumeNumber(Map<String, dynamic> resume, List<Map<String, dynamic>> allResumes) {
+    final sorted = List<Map<String, dynamic>>.from(allResumes);
+    sorted.sort((a, b) => (a['created_at'] ?? '').compareTo(b['created_at'] ?? ''));
+
+    return sorted.indexWhere((r) => r['id'] == resume['id']);
+  }
+
   void _animateSort() {
     _sortAnimationController.reset();
     _sortAnimationController.forward().then((_) {
@@ -621,7 +628,7 @@ class _ResumesPageState extends State<ResumesPage>
     );
   }
 
-  Widget _buildResumeCard(Map<String, dynamic> resume) {
+  Widget _buildResumeCard(Map<String, dynamic> resume, int index) {
     return GestureDetector(
       onTap: () async {
         showDialog(
@@ -688,7 +695,7 @@ class _ResumesPageState extends State<ResumesPage>
                   color: Colors.white,
                 ),
                 child: Text(
-                  'Резюме',
+                  'Резюме ${index + 1}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Playfair',
@@ -891,13 +898,13 @@ class _ResumesPageState extends State<ResumesPage>
                     offset: Offset(xOffset, yOffset),
                     child: Opacity(
                       opacity: _isSorting ? 0.5 + 0.5 * animationValue : 1.0,
-                      child: _buildResumeCard(resume),
+                      child: _buildResumeCard(resume, _getResumeNumber(resume, _resumes)),
                     ),
                   );
                 },
               );
             } else {
-              return _buildResumeCard(resume);
+              return _buildResumeCard(resume, _getResumeNumber(resume, _resumes));
             }
           },
         ),
