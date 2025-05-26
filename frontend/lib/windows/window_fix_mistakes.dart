@@ -988,6 +988,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               color: midnightPurple,
               fontSize: 24,
               fontWeight: FontWeight.w600,
+              fontFamily: 'Playfair'
             ),
             textAlign: TextAlign.center,
           ),

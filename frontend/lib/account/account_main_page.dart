@@ -17,6 +17,8 @@ class AccountMainPage extends StatefulWidget {
 }
 
 class _AccountMainPageState extends State<AccountMainPage> {
+  String? userEmail;
+
   @override
   void dispose() {
     super.dispose();
@@ -25,13 +27,26 @@ class _AccountMainPageState extends State<AccountMainPage> {
   @override
   void initState() {
     super.initState();
+    _loadUserEmail();
+  }
+
+  Future<void> _loadUserEmail() async {
+    try {
+      final response = await _getProfileData();
+      if (mounted) {
+        setState(() {
+          userEmail = response['email'];
+        });
+      }
+    } catch (e) {
+      print('Ошибка при загрузке email: $e');
+    }
   }
 
   Future<Map<String, dynamic>> _getProfileData() async {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.getProfile();
-
       return response;
     } catch (e) {
       print('Ошибка при анализе $e');
@@ -60,9 +75,8 @@ class _AccountMainPageState extends State<AccountMainPage> {
               toolbarHeight: appBarHeight,
               centerTitle: false,
               title: Stack(
-                alignment: Alignment.center, // Центрируем детей
+                alignment: Alignment.center,
                 children: [
-                  // Кнопка "назад" (прижата к левому краю)
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
@@ -70,7 +84,6 @@ class _AccountMainPageState extends State<AccountMainPage> {
                       icon: lightArrowBackIcon,
                     ),
                   ),
-                  // Текст по центру
                   Text(
                     'Администратор',
                     style: TextStyle(
@@ -88,7 +101,6 @@ class _AccountMainPageState extends State<AccountMainPage> {
       ),
       body: Stack(
         children: [
-          // Градиентный фон на весь экран
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -105,7 +117,6 @@ class _AccountMainPageState extends State<AccountMainPage> {
               ),
             ),
           ),
-          // Прокручиваемый контент
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.only(top: 24, bottom: 40),
@@ -149,16 +160,18 @@ class _AccountMainPageState extends State<AccountMainPage> {
                         }
                       },
                     ),
-                    const SizedBox(height: 30),
-                    _buildTextField(
-                      label: 'Метрики',
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MetricsPage()),
-                        );
-                      },
-                    ),
+                    if (userEmail == 'admin@mail.ru') ...[
+                      const SizedBox(height: 30),
+                      _buildTextField(
+                        label: 'Метрики',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => MetricsPage()),
+                          );
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
