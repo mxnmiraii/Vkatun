@@ -602,7 +602,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
   Widget _buildExperienceSection() {
     final experienceData = _parseExperience(widget.resume['experience'] ?? '');
-    final totalExperience = _calculateTotalExperience(experienceData);
+    // final totalExperience = _calculateTotalExperience(experienceData);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +614,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             children: [
               Expanded(
                 child: Text(
-                  'Опыт работы${totalExperience.isNotEmpty ? ' • $totalExperience' : ''}',
+                  'Опыт работы',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -665,8 +665,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   Widget _buildExperienceCard(Map<String, String> experience) {
     final company = experience['company'] ?? '';
     final position = experience['position'] ?? '';
-    final period = _formatPeriod(experience['startDate'], experience['endDate']);
-    final duration = _calculateDuration(experience['startDate'], experience['endDate']);
+    // final period = _formatPeriod(experience['startDate'], experience['endDate']);
+    // final duration = _calculateDuration(experience['startDate'], experience['endDate']);
+    final period = experience['period'] ?? '';
+    final duration = experience['duration'] ?? '';
+
 
     return Column(
       children: [
@@ -678,7 +681,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  // Always show all 4 lines, even if some fields are empty
+
                   Text(
                     company.isNotEmpty ? company : 'Название компании',
                     style: TextStyle(
@@ -691,6 +694,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 4),
+
                   Text(
                     position.isNotEmpty ? position : 'Название должности',
                     style: TextStyle(
@@ -703,6 +707,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 4),
+
                   Text(
                     period.isNotEmpty ? period : 'Период работы не указан',
                     style: TextStyle(
@@ -714,6 +719,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 4),
+
                   Text(
                     duration.isNotEmpty ? duration : 'Срок не указан',
                     style: TextStyle(
@@ -724,7 +730,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       height: 1.0,
                     ),
                   ),
-                  SizedBox(height: 10,),
+
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
@@ -742,7 +749,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                           experience['company'] ?? '',
                           experience['position'] ?? '',
                           experience['duties'] ?? '',
-                          (experience['isCurrent'] ?? 'false') == 'true' ? 'true' : 'false',
+                          (experience['endDate']?.toLowerCase().contains('настоящее') ?? false).toString(),
                         ],
                       ),
                     ),
@@ -757,121 +764,175 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
+
   List<Map<String, String>> _parseExperience(String raw) {
-    if (raw.trim().isEmpty) return [];
+    final lines = raw.split('\n').map((e) => e.trim()).toList();
 
     final List<Map<String, String>> result = [];
-    final entries = raw.split('\n\n'); // Разделяем по пустым строкам
+    final dateRegex = RegExp(r'^[А-Яа-я]+\s\d{4}\s[—-]\s(настоящее время|[А-Яа-я]+\s\d{4})$');
+    final durationRegex = RegExp(r'^\d+\s(год|года|лет|\d+\sмесяц|месяца|месяцев)$');
+    final skipMetaRegex = RegExp(r'(Санкт-Петербург|\.ru|интеграция|интернет|технологии|отрасль)', caseSensitive: false);
 
-    for (var entry in entries) {
-      final lines = entry.split('\n').where((line) => line.trim().isNotEmpty).toList();
-      if (lines.isEmpty) continue;
+    Map<String, String> current = {};
+    List<String> dutiesBuffer = [];
+    int i = 0;
 
-      final experience = <String, String>{};
+    while (i < lines.length) {
+      final line = lines[i];
 
-      // Парсим даты (первые две строки могут быть датами)
-      int index = 0;
-      if (lines.length > index && _isDate(lines[index])) {
-        experience['startDate'] = lines[index];
-        index++;
+      // Начало нового блока
+      if (dateRegex.hasMatch(line)) {
+        if (current.isNotEmpty && (current['company']?.isNotEmpty ?? false)) {
+          current['duties'] = dutiesBuffer.join('\n').trim();
+          result.add(current);
+          current = {};
+          dutiesBuffer = [];
+        }
+
+        final parts = line.split(RegExp(r'\s[—-]\s'));
+        current['startDate'] = parts[0];
+        current['endDate'] = parts[1];
+        current['period'] = line;
+        i++;
+        continue;
       }
-      if (lines.length > index && _isDate(lines[index])) {
-        experience['endDate'] = lines[index];
-        index++;
-      } else if (index > 0) {
-        experience['endDate'] = '';
-        experience['isCurrent'] = 'true';
+
+      // Пропустить строку с длительностью
+      if (durationRegex.hasMatch(line) || RegExp(r'\d+\sгод.*').hasMatch(line)) {
+        current['duration'] = line;
+        i++;
+        continue;
       }
 
-      // Остальные данные
-      if (lines.length > index) experience['company'] = lines[index++];
-      if (lines.length > index) experience['position'] = lines[index++];
-      if (lines.length > index) experience['duties'] = lines.skip(index).join('\n');
+      // Название компании
+      if (current['company'] == null && line.isNotEmpty) {
+        current['company'] = line;
+        i++;
+        continue;
+      }
 
-      result.add(experience);
+      // Пропустить мета-описание (город, сайт, отрасль)
+      if (skipMetaRegex.hasMatch(line)) {
+        i++;
+        continue;
+      }
+
+      // Должность — пропускаем строки, начинающиеся с маркера "•"
+      if (current['position'] == null && line.isNotEmpty && !line.startsWith('•')) {
+        current['position'] = line;
+        i++;
+        continue;
+      } else if (current['position'] == null && line.startsWith('•')) {
+        // если сразу пошли обязанности — оставим должность пустой, но начнем копить duties
+        dutiesBuffer.add(line);
+        i++;
+        continue;
+      }
+
+
+      // Остальное — обязанности
+      dutiesBuffer.add(line);
+      i++;
+    }
+
+    if (current.isNotEmpty) {
+      current['duties'] = dutiesBuffer.join('\n').trim();
+      result.add(current);
     }
 
     return result;
   }
 
-  String _calculateTotalExperience(List<Map<String, String>> experiences) {
-    if (experiences.isEmpty) return '';
 
-    int totalMonths = 0;
-    final now = DateTime.now();
 
-    for (var exp in experiences) {
-      final startDate = _parseDate(exp['startDate'] ?? '');
-      if (startDate == null) continue;
 
-      DateTime? endDate;
-      if (exp['isCurrent'] == 'true') {
-        endDate = now;
-      } else {
-        endDate = _parseDate(exp['endDate'] ?? '');
-      }
+  // String _calculateTotalExperience(List<Map<String, String>> experiences) {
+  //   if (experiences.isEmpty) return '';
+  //
+  //   int totalMonths = 0;
+  //   final now = DateTime.now();
+  //
+  //   for (var exp in experiences) {
+  //     final startDate = _parseDate(exp['startDate'] ?? '');
+  //     if (startDate == null) continue;
+  //
+  //     DateTime? endDate;
+  //     if (exp['isCurrent'] == 'true') {
+  //       endDate = now;
+  //     } else {
+  //       endDate = _parseDate(exp['endDate'] ?? '');
+  //     }
+  //
+  //     if (endDate == null) continue;
+  //
+  //     final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
+  //     totalMonths += months;
+  //   }
+  //
+  //   if (totalMonths == 0) return '';
+  //
+  //   final years = totalMonths ~/ 12;
+  //   final months = totalMonths % 12;
+  //
+  //   if (years > 0 && months > 0) {
+  //     return '$years ${_getYearWord(years)} $months ${_getMonthWord(months)}';
+  //   } else if (years > 0) {
+  //     return '$years ${_getYearWord(years)}';
+  //   } else {
+  //     return '$months ${_getMonthWord(months)}';
+  //   }
+  // }
 
-      if (endDate == null) continue;
-
-      final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
-      totalMonths += months;
-    }
-
-    if (totalMonths == 0) return '';
-
-    final years = totalMonths ~/ 12;
-    final months = totalMonths % 12;
-
-    if (years > 0 && months > 0) {
-      return '$years ${_getYearWord(years)} $months ${_getMonthWord(months)}';
-    } else if (years > 0) {
-      return '$years ${_getYearWord(years)}';
-    } else {
-      return '$months ${_getMonthWord(months)}';
-    }
-  }
-
+  // String _formatPeriod(String? start, String? end) {
+  //   if (start == null || start.isEmpty) return '';
+  //
+  //   final startDate = _parseDate(start);
+  //   if (startDate == null) return '';
+  //
+  //   final formattedStart = '${_getMonthName(startDate.month)} ${startDate.year}';
+  //
+  //   if (end == null || end.isEmpty) {
+  //     return 'с $formattedStart по настоящее время';
+  //   }
+  //
+  //   final endDate = _parseDate(end);
+  //   if (endDate == null) return 'с $formattedStart';
+  //
+  //   return 'с $formattedStart по ${_getMonthName(endDate.month)} ${endDate.year}';
+  // }
   String _formatPeriod(String? start, String? end) {
     if (start == null || start.isEmpty) return '';
-
-    final startDate = _parseDate(start);
-    if (startDate == null) return '';
-
-    final formattedStart = '${_getMonthName(startDate.month)} ${startDate.year}';
-
-    if (end == null || end.isEmpty) {
-      return 'с $formattedStart по настоящее время';
+    if (end == null || end.isEmpty || end.toLowerCase().contains('настоящее')) {
+      return 'с $start по настоящее время';
     }
-
-    final endDate = _parseDate(end);
-    if (endDate == null) return 'с $formattedStart';
-
-    return 'с $formattedStart по ${_getMonthName(endDate.month)} ${endDate.year}';
+    return 'с $start по $end';
   }
 
-  String _calculateDuration(String? start, String? end) {
-    if (start == null || start.isEmpty) return '';
 
-    final startDate = _parseDate(start);
-    if (startDate == null) return '';
+  // String _calculateDuration(String? start, String? end) {
+  //   if (start == null || start.isEmpty) return '';
+  //
+  //   final startDate = _parseDate(start);
+  //   if (startDate == null) return '';
+  //
+  //   final endDate = end?.isEmpty ?? true ? DateTime.now() : _parseDate(end!);
+  //   if (endDate == null) return '';
+  //
+  //   final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
+  //   if (months <= 0) return '';
+  //
+  //   final years = months ~/ 12;
+  //   final remainingMonths = months % 12;
+  //
+  //   if (years > 0 && remainingMonths > 0) {
+  //     return '$years ${_getYearWord(years)} $remainingMonths ${_getMonthWord(remainingMonths)}';
+  //   } else if (years > 0) {
+  //     return '$years ${_getYearWord(years)}';
+  //   } else {
+  //     return '$remainingMonths ${_getMonthWord(remainingMonths)}';
+  //   }
+  // }
 
-    final endDate = end?.isEmpty ?? true ? DateTime.now() : _parseDate(end!);
-    if (endDate == null) return '';
-
-    final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
-    if (months <= 0) return '';
-
-    final years = months ~/ 12;
-    final remainingMonths = months % 12;
-
-    if (years > 0 && remainingMonths > 0) {
-      return '$years ${_getYearWord(years)} $remainingMonths ${_getMonthWord(remainingMonths)}';
-    } else if (years > 0) {
-      return '$years ${_getYearWord(years)}';
-    } else {
-      return '$remainingMonths ${_getMonthWord(remainingMonths)}';
-    }
-  }
 
   DateTime? _parseDate(String dateStr) {
     final parts = dateStr.split('.');
@@ -895,29 +956,30 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     return months[month - 1];
   }
 
-  String _getYearWord(int years) {
-    if (years % 100 >= 11 && years % 100 <= 14) return 'лет';
+  // String _getYearWord(int years) {
+  //   if (years % 100 >= 11 && years % 100 <= 14) return 'лет';
+  //
+  //   switch (years % 10) {
+  //     case 1: return 'год';
+  //     case 2:
+  //     case 3:
+  //     case 4: return 'года';
+  //     default: return 'лет';
+  //   }
+  // }
 
-    switch (years % 10) {
-      case 1: return 'год';
-      case 2:
-      case 3:
-      case 4: return 'года';
-      default: return 'лет';
-    }
-  }
 
-  String _getMonthWord(int months) {
-    if (months % 100 >= 11 && months % 100 <= 14) return 'месяцев';
-
-    switch (months % 10) {
-      case 1: return 'месяц';
-      case 2:
-      case 3:
-      case 4: return 'месяца';
-      default: return 'месяцев';
-    }
-  }
+  // String _getMonthWord(int months) {
+  //   if (months % 100 >= 11 && months % 100 <= 14) return 'месяцев';
+  //
+  //   switch (months % 10) {
+  //     case 1: return 'месяц';
+  //     case 2:
+  //     case 3:
+  //     case 4: return 'месяца';
+  //     default: return 'месяцев';
+  //   }
+  // }
 
   String _formatContacts(String? contacts) {
     if (contacts == null || contacts.trim().isEmpty) return 'Не указано';
@@ -1229,32 +1291,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
 
-List<String> _parseExperienceData(String? raw) {
-  if (raw == null || raw.trim().isEmpty) return ['', '', '', '', '', 'false'];
 
-  final lines =
-  raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
-  String start = lines.isNotEmpty && _isDate(lines[0]) ? lines[0] : '';
-  String end = lines.length > 1 && _isDate(lines[1]) ? lines[1] : '';
-  int index = (start.isNotEmpty ? 1 : 0) + (end.isNotEmpty ? 1 : 0);
-
-  final company = lines.length > index ? lines[index] : '';
-  final position = lines.length > index + 1 ? lines[index + 1] : '';
-  final duties = lines.length > index + 2 ? lines[index + 2] : '';
-  final isCurrent = 'false'; // всегда по умолчанию false
-
-  return [start, end, company, position, duties, isCurrent];
-}
-
-String _parseExperienceShort(String? raw) {
-  final data = _parseExperienceData(raw);
-  final start = data[0];
-  final end = data[1];
-  final company = data[2];
-  final position = data[3];
-  return '$company\n$position\n${start.isNotEmpty ? start : ''}${end.isNotEmpty ? ' — $end' : ' — настоящее время'}';
-}
 
 bool _isDate(String str) {
   final regex = RegExp(r'^\d{1,2}\.\d{1,2}\.\d{4}$');

@@ -13,36 +13,22 @@ class WorkExperiencePage extends StatefulWidget {
 }
 
 class _WorkExperiencePageState extends State<WorkExperiencePage> {
-
   late TextEditingController _startDateController = TextEditingController();
   late TextEditingController _endDateController = TextEditingController();
   late TextEditingController _companyController = TextEditingController();
   late TextEditingController _positionController = TextEditingController();
   late TextEditingController _dutiesController = TextEditingController();
-  bool _currentlyWorking = false;
 
   @override
   void initState() {
     super.initState();
-
     final data = widget.data;
 
-    _startDateController = TextEditingController(
-      text: data.isNotEmpty ? data[0] : '',
-    );
-    _endDateController = TextEditingController(
-      text: data.length > 1 ? data[1] : '',
-    );
-    _companyController = TextEditingController(
-      text: data.length > 2 ? data[2] : '',
-    );
-    _positionController = TextEditingController(
-      text: data.length > 3 ? data[3] : '',
-    );
-    _dutiesController = TextEditingController(
-      text: data.length > 4 ? data[4] : '',
-    );
-    _currentlyWorking = data.length > 5 ? data[5].toLowerCase() == 'true' : false;
+    _startDateController = TextEditingController(text: data.isNotEmpty ? data[0] : '');
+    _endDateController = TextEditingController(text: data.length > 1 ? data[1] : '');
+    _companyController = TextEditingController(text: data.length > 2 ? data[2] : '');
+    _positionController = TextEditingController(text: data.length > 3 ? data[3] : '');
+    _dutiesController = TextEditingController(text: data.length > 4 ? data[4] : '');
   }
 
   @override
@@ -60,22 +46,18 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
       _showError('Введите дату начала работы');
       return false;
     }
-
-    if (!_currentlyWorking && _endDateController.text.trim().isEmpty) {
+    if (_endDateController.text.trim().isEmpty) {
       _showError('Введите дату окончания работы');
       return false;
     }
-
     if (_companyController.text.trim().isEmpty) {
       _showError('Введите название компании');
       return false;
     }
-
     if (_positionController.text.trim().isEmpty) {
       _showError('Введите должность');
       return false;
     }
-
     return true;
   }
 
@@ -93,7 +75,6 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
     final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -140,7 +121,6 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
       ),
       body: Stack(
         children: [
-          // Градиент на фоне
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -185,20 +165,11 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
                     controller: _startDateController,
                   ),
                   const SizedBox(height: 16),
-
-                  if (_currentlyWorking) ...[
-                    _buildSwitchRow(),
-                    const SizedBox(height: 16),
-                  ] else ...[
-                    _buildTextField(
-                      label: 'Окончание',
-                      controller: _endDateController,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSwitchRow(),
-                    const SizedBox(height: 16),
-                  ],
-
+                  _buildTextField(
+                    label: 'Окончание',
+                    controller: _endDateController,
+                  ),
+                  const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Название компании',
                     controller: _companyController,
@@ -253,8 +224,10 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
             color: lavenderBlue,
           ),
         ),
-        TextField(
+        TextFormField(
           controller: controller,
+          keyboardType: TextInputType.multiline,
+          maxLines: null,
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
@@ -294,39 +267,4 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
     );
   }
 
-  Widget _buildSwitchRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'По настоящее время',
-          style: TextStyle(
-            fontFamily: 'Playfair',
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: lavenderBlue,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _currentlyWorking = !_currentlyWorking;
-              if (_currentlyWorking) _endDateController.clear();
-            });
-          },
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            transitionBuilder: (child, animation) =>
-                FadeTransition(opacity: animation, child: child),
-            child: SvgPicture.asset(
-              _currentlyWorking
-                  ? 'assets/images/toggle_on_icon.svg'
-                  : 'assets/images/toggle_off_icon.svg',
-              key: ValueKey(_currentlyWorking),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
