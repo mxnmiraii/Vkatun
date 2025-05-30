@@ -92,6 +92,11 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
     }
   }
 
+  bool isGuest() {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    return apiService.isGuest;
+  }
+
   void _showFullScreenOnboarding(isFirst, isSeventh, isEight) {
     showGeneralDialog(
       context: context,
@@ -180,24 +185,69 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
 
   Future<List<Issue>> _analyzeResumeStructure(int id) async {
     try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.checkStructure(id);
+      final issues = <Issue>[];
 
-      // Преобразуем ответ в List<Issue>
-      final structure = response['missing_sections'] as List<dynamic>? ?? [];
+      // Проверяем наличие обязательных разделов
+      final requiredSections = {
+        'contacts': 'Контактные данные',
+        'job': 'Желаемая должность',
+        'experience': 'Опыт работы',
+        'skills': 'Навыки',
+        'about': 'О себе',
+      };
 
-      return structure
-          .map(
-            (skill) => Issue(
-              errorText: skill.toString(),
-              suggestion: '',
+      for (final entry in requiredSections.entries) {
+        if (widget.resume[entry.key] == null ||
+            (widget.resume[entry.key] is String &&
+                widget.resume[entry.key].isEmpty)) {
+          issues.add(
+            Issue(
+              errorText: entry.value,
+              suggestion: 'Добавьте раздел "${entry.value}" в резюме',
               description: 'Пропущенный раздел',
             ),
-          )
-          .toList();
+          );
+        }
+      }
+
+      // Проверяем длинные блоки текста в разделах
+      final textSections = {
+        'experience': 'Опыт работы',
+        'education': 'Образование',
+        'skills': 'Навыки',
+        'about': 'О себе',
+      };
+
+      for (final entry in textSections.entries) {
+        final sectionText = widget.resume[entry.key] as String? ?? '';
+        if (sectionText.isNotEmpty) {
+          // Разбиваем на абзацы (если есть переносы строк)
+          final paragraphs = sectionText.split('\n');
+
+          for (final paragraph in paragraphs) {
+            if (paragraph.trim().isEmpty) continue;
+
+            // Считаем примерное количество предложений (по точкам)
+            final sentenceCount = paragraph.split('.').length - 1;
+            if (sentenceCount > 5) {
+              issues.add(
+                Issue(
+                  errorText: '${entry.value}',
+                  suggestion:
+                      'Разбейте текст на абзацы для улучшения восприятия',
+                  description:
+                      'Длинный блок текста в разделе "${entry.value}" - более 5 предложений без разделения',
+                ),
+              );
+            }
+          }
+        }
+      }
+
+      return issues;
     } catch (e) {
       print('Ошибка при анализе структуры: $e');
-      return []; // Возвращаем пустой список при ошибке
+      return [];
     }
   }
 
@@ -216,9 +266,10 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             (issue) => Issue(
               errorText: issue['text'] ?? '',
               suggestion: issue['suggestion'] ?? '',
-              description: requiredType.contains('spelling')
-                  ? 'Ошибка в написании слова. Верный вариант - "${issue['suggestion']}".'
-                  : 'Ошибка в написании. Верный вариант - "${issue['suggestion']}".'
+              description:
+                  requiredType.contains('spelling')
+                      ? 'Ошибка в написании слова. Верный вариант - "${issue['suggestion']}".'
+                      : 'Ошибка в написании. Верный вариант - "${issue['suggestion']}".',
             ),
           )
           .toList();
@@ -685,42 +736,100 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: ElevatedButton(
-                onPressed:
-                    widget.showOnboarding
-                        ? () {
-                          widget.onClose;
-                          Navigator.pop(context);
-                          setState(() {
-                            isEighthBigStep = true;
-                          });
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            _showFullScreenOnboarding(false, false, true);
-                          });
-                        }
-                        : () async {
-                          // Добавьте async здесь
-                          try {
-                            logScanEvent();
+                onPressed: widget.showOnboarding
+                    ? () {
+                  widget.onClose;
+                  Navigator.pop(context);
+                  setState(() {
+                    isEighthBigStep = true;
+                  });
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _showFullScreenOnboarding(false, false, true);
+                  });
+                }
+                    : (!isGuest() || index == 0)
+                    ? () async {
+                  try {
+                    logScanEvent();
 
-                            switch (index) {
-                              case 0:
-                                setState(() {
-                                  isScanningFix = true;
-                                });
-                                break;
-                              case 1:
-                                scanningStructureState();
-                                break;
-                              case 2:
-                                setState(() {
-                                  isScanningContent = true;
-                                });
-                                break;
-                            }
-                          } catch (e) {
-                            debugPrint('Ошибка отправки события: $e');
-                          }
-                        },
+                    switch (index) {
+                      case 0:
+                        setState(() {
+                          isScanningFix = true;
+                        });
+                        break;
+                      case 1:
+                        scanningStructureState();
+                        break;
+                      case 2:
+                        setState(() {
+                          isScanningContent = true;
+                        });
+                        break;
+                    }
+                  } catch (e) {
+                    debugPrint('Ошибка отправки события: $e');
+                  }
+                }
+                    : () async {
+                  if (isGuest()) {
+                    final overlay = Overlay.of(context);
+                    final overlayEntry = OverlayEntry(
+                      builder: (context) => Positioned(
+                        top: MediaQuery.of(context).padding.top + 20,
+                        left: 24,
+                        right: 24,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: mediumSlateBlue.withOpacity(0.3),
+                                width: 2,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.info_outline_rounded,
+                                    color: mediumSlateBlue, size: 24),
+                                SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'Доступно только авторизованным пользователям',
+                                    style: TextStyle(
+                                      fontFamily: 'Playfair',
+                                      color: midnightPurple,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+
+                    overlay.insert(overlayEntry);
+
+                    await Future.delayed(const Duration(seconds: 2));
+                    overlayEntry.remove();
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
@@ -736,7 +845,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     color: midnightPurple,
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'Playfair'
+                    fontFamily: 'Playfair',
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -976,7 +1085,10 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            side: BorderSide(color: buttonLightLavender.withOpacity(0.53), width: widthBorderRadius),
+            side: BorderSide(
+              color: buttonLightLavender.withOpacity(0.53),
+              width: widthBorderRadius,
+            ),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -991,7 +1103,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               color: midnightPurple,
               fontSize: 24,
               fontWeight: FontWeight.w600,
-              fontFamily: 'Playfair'
+              fontFamily: 'Playfair',
             ),
             textAlign: TextAlign.center,
           ),
