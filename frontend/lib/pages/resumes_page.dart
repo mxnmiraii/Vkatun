@@ -122,8 +122,12 @@ class _ResumesPageState extends State<ResumesPage>
     );
     _checkFirstLaunch();
 
-    _syncResumes();
-    _loadResumes();
+    _syncAndLoadResumes();
+  }
+
+  Future<void> _syncAndLoadResumes() async {
+    await _syncResumes();
+    await _loadResumes();
   }
 
   void _showFullScreenOnboarding(isFirst, isFifth) {
