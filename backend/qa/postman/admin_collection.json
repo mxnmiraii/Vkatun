@@ -164,7 +164,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxNjEsImV4cCI6MTc0ODUyNDc0OX0.NN-ghk5eqLpmqCiPju3ba0lU4S8oxL6QgALSDaRbW4k",
+							"value": "{{auth_token}}",
 							"type": "string"
 						}
 					]
