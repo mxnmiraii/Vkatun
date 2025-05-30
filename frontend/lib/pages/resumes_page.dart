@@ -297,7 +297,7 @@ class _ResumesPageState extends State<ResumesPage>
           },
           showOnboarding: _showOnboarding,
           stopOnboarding: _stopOnboarding,
-          onUpdateResumeChange: _handleResumeUpdate,
+          onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume),
         );
       },
     ).then((_) {
@@ -435,7 +435,7 @@ class _ResumesPageState extends State<ResumesPage>
                             _showFullScreenOnboarding(false, _isFifthBigStep);
                           });
                         }
-                        : null, onUpdateResumeChange: _handleResumeUpdate,
+                        : null, onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume)
               ),
         ),
       );
@@ -649,8 +649,19 @@ class _ResumesPageState extends State<ResumesPage>
     );
   }
 
-  void _handleResumeUpdate() {
-    _loadResumes();
+  void _handleResumeUpdate({Map<String, dynamic>? updatedResume}) {
+    if (updatedResume != null) {
+      // Локальное обновление конкретного резюме
+      setState(() {
+        final index = _resumes.indexWhere((r) => r['id'] == updatedResume['id']);
+        if (index != -1) {
+          _resumes[index] = updatedResume;
+        }
+      });
+    } else {
+      // Полная перезагрузка только если не передано конкретное резюме
+      _loadResumes();
+    }
   }
 
   Widget _buildResumeCard(Map<String, dynamic> resume, int index) {
@@ -677,12 +688,12 @@ class _ResumesPageState extends State<ResumesPage>
                             showOnboarding: true,
                             iconKey: addIconKey,
                             isSixthBigStep: true,
-                            onUpdateResumeChange: _handleResumeUpdate,
+                          onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume)
                           )
                           : ResumeViewPage(
                             resume: loadedResume,
                             onDelete: () {},
-                            onUpdateResumeChange: _handleResumeUpdate,
+                          onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume)
                           ),
             ),
           );

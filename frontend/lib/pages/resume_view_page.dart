@@ -31,7 +31,7 @@ class ResumeViewPage extends StatefulWidget {
   final GlobalKey? iconKey;
   final VoidCallback? onReturnFromOnboarding;
   final bool isSixthBigStep;
-  final VoidCallback onUpdateResumeChange;
+  final ValueChanged<Map<String, dynamic>> onUpdateResumeChange;
 
   const ResumeViewPage({
     super.key,
@@ -293,7 +293,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       }
                       : () {
                         if (_hasResumeChanged) {
-                          widget.onUpdateResumeChange();
+                          widget.onUpdateResumeChange(widget.resume);
                         }
                         Navigator.pop(context);
                       },
