@@ -479,6 +479,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: spellingIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : isScanningPunctuation
                 ? Scan(
@@ -493,6 +494,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: punctuationIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : isScanningGrammar
                 ? Scan(
@@ -507,6 +509,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: grammarIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : isScanningStyle
                 ? Scan(
@@ -521,6 +524,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: styleIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : _scan(index, 'Исправление ошибок'))
             : _buildPage(index, 'Исправление ошибок', [
@@ -566,6 +570,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               issues: structureIssues,
               isLoading: isLoading,
               onResumeChange: widget.onResumeChange,
+              isStructure: true,
             )
             : _buildPage(index, 'Структура', [
               _buildText(
@@ -599,6 +604,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: skillsIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : isScanningAboutMe
                 ? Scan(
@@ -613,6 +619,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   issues: aboutMeIssues,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : isScanningExperience
                 ? Scan(
@@ -627,6 +634,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: experienceIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [
@@ -736,100 +744,114 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: ElevatedButton(
-                onPressed: widget.showOnboarding
-                    ? () {
-                  widget.onClose;
-                  Navigator.pop(context);
-                  setState(() {
-                    isEighthBigStep = true;
-                  });
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _showFullScreenOnboarding(false, false, true);
-                  });
-                }
-                    : (!isGuest() || index == 0)
-                    ? () async {
-                  try {
-                    logScanEvent();
+                onPressed:
+                    widget.showOnboarding
+                        ? () {
+                          widget.onClose;
+                          Navigator.pop(context);
+                          setState(() {
+                            isEighthBigStep = true;
+                          });
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _showFullScreenOnboarding(false, false, true);
+                          });
+                        }
+                        : (!isGuest() || index == 0)
+                        ? () async {
+                          try {
+                            logScanEvent();
 
-                    switch (index) {
-                      case 0:
-                        setState(() {
-                          isScanningFix = true;
-                        });
-                        break;
-                      case 1:
-                        scanningStructureState();
-                        break;
-                      case 2:
-                        setState(() {
-                          isScanningContent = true;
-                        });
-                        break;
-                    }
-                  } catch (e) {
-                    debugPrint('Ошибка отправки события: $e');
-                  }
-                }
-                    : () async {
-                  if (isGuest()) {
-                    final overlay = Overlay.of(context);
-                    final overlayEntry = OverlayEntry(
-                      builder: (context) => Positioned(
-                        top: MediaQuery.of(context).padding.top + 20,
-                        left: 24,
-                        right: 24,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                              border: Border.all(
-                                color: mediumSlateBlue.withOpacity(0.3),
-                                width: 2,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.info_outline_rounded,
-                                    color: mediumSlateBlue, size: 24),
-                                SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    'Доступно только авторизованным пользователям',
-                                    style: TextStyle(
-                                      fontFamily: 'Playfair',
-                                      color: midnightPurple,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.3,
+                            switch (index) {
+                              case 0:
+                                setState(() {
+                                  isScanningFix = true;
+                                });
+                                break;
+                              case 1:
+                                scanningStructureState();
+                                break;
+                              case 2:
+                                setState(() {
+                                  isScanningContent = true;
+                                });
+                                break;
+                            }
+                          } catch (e) {
+                            debugPrint('Ошибка отправки события: $e');
+                          }
+                        }
+                        : () async {
+                          if (isGuest()) {
+                            final overlay = Overlay.of(context);
+                            final overlayEntry = OverlayEntry(
+                              builder:
+                                  (context) => Positioned(
+                                    top:
+                                        MediaQuery.of(context).padding.top,
+                                    left: 24,
+                                    right: 24,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
+                                              blurRadius: 10,
+                                              offset: Offset(0, 4),
+                                            ),
+                                          ],
+                                          border: Border.all(
+                                            color: mediumSlateBlue.withOpacity(
+                                              0.3,
+                                            ),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.info_outline_rounded,
+                                              color: mediumSlateBlue,
+                                              size: 24,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Flexible(
+                                              child: Text(
+                                                'Доступно только авторизованным пользователям',
+                                                style: TextStyle(
+                                                  fontFamily: 'Playfair',
+                                                  color: midnightPurple,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
+                            );
 
-                    overlay.insert(overlayEntry);
+                            overlay.insert(overlayEntry);
 
-                    await Future.delayed(const Duration(seconds: 2));
-                    overlayEntry.remove();
-                  }
-                },
+                            await Future.delayed(const Duration(seconds: 2));
+                            overlayEntry.remove();
+                          }
+                        },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
