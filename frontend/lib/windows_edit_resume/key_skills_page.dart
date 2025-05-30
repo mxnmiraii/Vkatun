@@ -1,23 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class KeySkillsPage extends StatefulWidget {
   final String data;
-  const KeySkillsPage({super.key, required this.data});
+  final int resumeId;
+  final VoidCallback? onResumeChange;
+
+  const KeySkillsPage({
+    super.key,
+    required this.data,
+    required this.resumeId,
+    required this.onResumeChange,
+  });
 
   @override
   State<KeySkillsPage> createState() => _KeySkillsPageState();
 }
 
 class _KeySkillsPageState extends State<KeySkillsPage> {
-  late TextEditingController _keySkillsController = TextEditingController();
+  late TextEditingController _keySkillsController;
 
   @override
   void dispose() {
     _keySkillsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveChanges() async {
+    final newSkills = _keySkillsController.text.trim();
+    final currentSkills = widget.data;
+
+    // Проверяем, были ли изменения
+    if (newSkills != currentSkills) {
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+
+        // Обновляем секцию "key_skills"
+        await apiService.editResumeSection(
+          id: widget.resumeId,
+          section: 'skills',
+          content: newSkills,
+        );
+
+        // Возвращаем новые данные
+        Navigator.pop(context, newSkills);
+        widget.onResumeChange?.call();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Если изменений не было, просто закрываем страницу
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -30,8 +70,6 @@ class _KeySkillsPageState extends State<KeySkillsPage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -138,22 +176,22 @@ class _KeySkillsPageState extends State<KeySkillsPage> {
                       color: black,
                     ),
                     maxLines: null,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       isDense: true,
-                      contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
-                      border: const UnderlineInputBorder(
+                      contentPadding: EdgeInsets.only(top: 7, bottom: 14),
+                      border: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: lightDarkenLavender,
                           width: 2.5,
                         ),
                       ),
-                      enabledBorder: const UnderlineInputBorder(
+                      enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: lightDarkenLavender,
                           width: 2.5,
                         ),
                       ),
-                      focusedBorder: const UnderlineInputBorder(
+                      focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: lightDarkenLavender,
                           width: 2.5,
@@ -172,10 +210,7 @@ class _KeySkillsPageState extends State<KeySkillsPage> {
         child: SizedBox(
           child: IconButton(
             icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
-              Navigator.pop(context);
-            },
+            onPressed: _saveChanges,
             padding: EdgeInsets.zero,
             splashRadius: 36,
           ),

@@ -1,23 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class AboutMePage extends StatefulWidget {
   final String data;
-  const AboutMePage({super.key, required this.data});
+  final int resumeId;
+  final VoidCallback? onResumeChange;
+
+  const AboutMePage({
+    super.key,
+    required this.data,
+    required this.resumeId,
+    required this.onResumeChange,
+  });
 
   @override
   State<AboutMePage> createState() => _AboutMePageState();
 }
 
 class _AboutMePageState extends State<AboutMePage> {
-  late TextEditingController _aboutMeController = TextEditingController();
+  late TextEditingController _aboutMeController;
 
   @override
   void dispose() {
     _aboutMeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveChanges() async {
+    final newAboutMe = _aboutMeController.text.trim();
+    final currentAboutMe = widget.data;
+
+    // Проверяем, были ли изменения
+    if (newAboutMe != currentAboutMe) {
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+
+        // Обновляем секцию "about_me"
+        await apiService.editResumeSection(
+          id: widget.resumeId,
+          section: 'about',
+          content: newAboutMe,
+        );
+
+        // Возвращаем новые данные
+        Navigator.pop(context, newAboutMe);
+        widget.onResumeChange?.call();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Если изменений не было, просто закрываем страницу
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -30,8 +70,6 @@ class _AboutMePageState extends State<AboutMePage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -139,22 +177,22 @@ class _AboutMePageState extends State<AboutMePage> {
                     ),
                     maxLines: null,
                     keyboardType: TextInputType.multiline,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       isDense: true,
-                      contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
-                      border: const UnderlineInputBorder(
+                      contentPadding: EdgeInsets.only(top: 7, bottom: 14),
+                      border: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: lightDarkenLavender,
                           width: 2.5,
                         ),
                       ),
-                      enabledBorder: const UnderlineInputBorder(
+                      enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: lightDarkenLavender,
                           width: 2.5,
                         ),
                       ),
-                      focusedBorder: const UnderlineInputBorder(
+                      focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(
                           color: lightDarkenLavender,
                           width: 2.5,
@@ -173,10 +211,7 @@ class _AboutMePageState extends State<AboutMePage> {
         child: SizedBox(
           child: IconButton(
             icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
-              Navigator.pop(context);
-            },
+            onPressed: _saveChanges,
             padding: EdgeInsets.zero,
             splashRadius: 36,
           ),

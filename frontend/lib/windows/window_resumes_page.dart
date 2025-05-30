@@ -407,6 +407,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
       setState(() {
         _isExporting = false;
       });
+      print(e);
       _showWarningDialog(context);
     }
   }

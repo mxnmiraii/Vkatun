@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class DesiredPositionPage extends StatefulWidget {
   final List<String> data;
-  const DesiredPositionPage({super.key, required this.data});
+  final int resumeId;
+  final VoidCallback? onResumeChange;
+
+  const DesiredPositionPage({
+    super.key,
+    required this.data,
+    required this.resumeId,
+    required this.onResumeChange,
+  });
 
   @override
   State<DesiredPositionPage> createState() => _DesiredPositionPageState();
@@ -18,6 +28,36 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
   void dispose() {
     _positionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveChanges() async {
+    final newPosition = _positionController.text.trim();
+    final currentPosition = widget.data.isNotEmpty ? widget.data[0] : '';
+
+    // Проверяем, были ли изменения
+    if (newPosition != currentPosition) {
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+
+        // Обновляем секцию "desired_position"
+        await apiService.editResumeSection(
+          id: widget.resumeId,
+          section: 'job',
+          content: newPosition,
+        );
+
+        // Возвращаем новые данные
+        Navigator.pop(context, [newPosition]);
+        widget.onResumeChange?.call();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Если изменений не было, просто закрываем страницу
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -34,7 +74,6 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
     final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -133,10 +172,7 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
         padding: const EdgeInsets.only(bottom: bottom35),
         child: IconButton(
           icon: darkerBiggerDoneIcon,
-          onPressed: () {
-            // Здесь можно сохранить данные
-            Navigator.pop(context);
-          },
+          onPressed: _saveChanges,
           padding: EdgeInsets.zero,
           splashRadius: 36,
         ),
