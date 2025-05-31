@@ -89,6 +89,20 @@ flutter:
         - asset: assets/fonts/NotoSans-Regular.ttf
           weight: 600
 
+    - family: NotoSansHebrew
+      fonts:
+        - asset: assets/fonts/NotoSansHebrew-VariableFont_wdth,wght.ttf
+          weight: 300
+        - asset: assets/fonts/NotoSansHebrew-VariableFont_wdth,wght.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansHebrew-VariableFont_wdth,wght.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansHebrew-VariableFont_wdth,wght.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSansHebrew-VariableFont_wdth,wght.ttf
+          weight: 700
+
+
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto-Regular.ttf

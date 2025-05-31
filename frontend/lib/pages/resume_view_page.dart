@@ -1059,10 +1059,17 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     final phone = parsed[0];
     final email = parsed[1];
 
-    return [
-      if (phone.isNotEmpty) phone,
-      if (email.isNotEmpty) email,
-    ].join('\n');
+    final List<String> parts = [];
+
+    if (phone.isNotEmpty) {
+      parts.add('· Телефон: $phone');
+    }
+
+    if (email.isNotEmpty) {
+      parts.add('· Email: $email');
+    }
+
+    return parts.join('\n');
   }
 
   Widget _buildSkillsSection() {
