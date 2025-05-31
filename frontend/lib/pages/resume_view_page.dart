@@ -87,6 +87,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   void initState() {
     super.initState();
 
+
+    // Здесь он ищет по первой строчке слово опыт работы и обрабатывает
     final expRaw = widget.resume['experience'];
     if (expRaw != null && expRaw.toString().trim().isNotEmpty) {
       final firstLine = expRaw.toString().trim().split('\n').firstWhere(
@@ -98,6 +100,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         experienceSummary = match.group(1)?.trim();
       }
     }
+    //
 
     _rotationController = AnimationController(
       vsync: this,
