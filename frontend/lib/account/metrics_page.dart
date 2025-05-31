@@ -213,7 +213,7 @@ class _MetricsPageState extends State<MetricsPage> {
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: 'NotoSans',
+              fontFamily: 'NotoSansBengali',
               fontWeight: FontWeight.w400,
               fontSize: 16.4,
               color: cosmicBlue,

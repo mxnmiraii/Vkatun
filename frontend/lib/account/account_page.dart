@@ -182,7 +182,7 @@ class _AccountMainPageState extends State<AccountPage> {
           controller: controller,
           readOnly: true, // ← вот это добавили
           style: const TextStyle(
-            fontFamily: "NotoSans",
+            fontFamily: "NotoSansBengali",
             fontSize: 14,
             fontWeight: FontWeight.w300,
             color: black,

@@ -322,7 +322,7 @@ class _FullNamePageState extends State<FullNamePage>
           style: const TextStyle(
             fontFamily: "NotoSans",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w300,
             color: black,
           ),
           decoration: InputDecoration(

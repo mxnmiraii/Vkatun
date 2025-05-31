@@ -200,9 +200,9 @@ class _EducationPageState extends State<EducationPage> {
         TextField(
           controller: controller,
           style: const TextStyle(
-            fontFamily: "NotoSans",
+            fontFamily: "NotoSansBengali",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w300,
             color: black,
           ),
           decoration: InputDecoration(

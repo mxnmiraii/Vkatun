@@ -236,9 +236,9 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           style: const TextStyle(
-            fontFamily: "NotoSans",
+            fontFamily: "NotoSansBengali",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w300,
             color: black,
           ),
           decoration: InputDecoration(

@@ -170,9 +170,9 @@ class _AboutMePageState extends State<AboutMePage> {
                   TextField(
                     controller: _aboutMeController,
                     style: const TextStyle(
-                      fontFamily: "NotoSans",
+                      fontFamily: "NotoSansBengali",
                       fontSize: 14,
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w300,
                       color: black,
                     ),
                     maxLines: null,

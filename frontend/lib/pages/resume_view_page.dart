@@ -402,7 +402,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             // Контактные данные с красивым форматированием
             _buildSection(
               title: 'Контактные данные',
-              content: _formatContacts(widget.resume['contacts']),
+              contentWidget: _buildContactsRichText(widget.resume['contacts']),
               hasCheck: true,
               targetPage: ContactInfoPage(
                 data: _parseContacts(widget.resume['contacts'] ?? ''),
@@ -444,6 +444,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           ],
         ),
       ),
+
+
 
       floatingActionButton:
           widget.isLoadResume
@@ -542,7 +544,10 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
   Widget _buildSection({
     required String title,
-    required String content,
+    // required String content,
+    String? content,
+    Widget? contentWidget,
+
     required bool hasCheck,
     Widget? targetPage,
   }) {
@@ -567,16 +572,18 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
-                      color: Colors.black,
-                      height: 1.0,
-                    ),
-                  ),
+                  contentWidget ??
+                      Text(
+                        content ?? 'Не указано',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: 'NotoSansVariable',
+                          color: Colors.black,
+                          height: 1.0,
+                        ),
+                      ),
+
                   const SizedBox(height: 12),
                 ],
               ),
@@ -697,7 +704,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w300,
-                fontFamily: 'NotoSans',
+                fontFamily: 'NotoSansBengali',
                 color: midnightPurple,
                 height: 1.0,
               ),
@@ -709,6 +716,59 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       ],
     );
   }
+
+  Widget _buildContactsRichText(String? contacts) {
+    if (contacts == null || contacts.trim().isEmpty) {
+      return const Text('Не указано');
+    }
+
+    final parsed = _parseContacts(contacts);
+    final phone = parsed[0];
+    final email = parsed[1];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (phone.isNotEmpty)
+          Text(
+            '· Телефон: $phone',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w300,
+              fontFamily: 'NotoSansVariable',
+              color: Colors.black,
+              height: 1.0,
+            ),
+          ),
+        if (phone.isNotEmpty && email.isNotEmpty)
+          const SizedBox(height: 4), // ← вот тут интервал между ними
+        if (email.isNotEmpty)
+          RichText(
+            text: TextSpan(
+              text: '· Email: ',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                fontFamily: 'NotoSansVariable',
+                color: Colors.black,
+                height: 1.0,
+              ),
+              children: [
+                TextSpan(
+                  text: email,
+                  style: const TextStyle(
+                    decoration: TextDecoration.underline,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+
 
   Widget _buildExperienceCard(Map<String, String> experience) {
     final company = experience['company'] ?? '';
@@ -734,7 +794,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: company.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                       fontStyle:
@@ -748,7 +808,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: position.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                       fontStyle:
@@ -764,7 +824,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: period.isNotEmpty ? mediumGray : lightGray,
                       height: 1.0,
                     ),
@@ -776,7 +836,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: duration.isNotEmpty ? mediumGray : lightGray,
                       height: 1.0,
                     ),
@@ -1105,7 +1165,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w300,
-                        fontFamily: 'NotoSans',
+                        fontFamily: 'NotoSansBengali',
                         color: Colors.black,
                         height: 1.0,
                       ),
@@ -1131,7 +1191,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
-                                      fontFamily: 'NotoSans',
+                                      fontFamily: 'NotoSansBengali',
                                       height: 1.0,
                                     ),
                                   ),
@@ -1271,7 +1331,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w300,
-                fontFamily: 'NotoSans',
+                fontFamily: 'NotoSansBengali',
                 color: midnightPurple,
                 height: 1.0,
               ),
@@ -1304,7 +1364,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: institution.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
@@ -1316,8 +1376,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                         : 'Специализация не указана',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontWeight: FontWeight.w400,
+                      fontFamily: 'NotoSansBengali',
                       color:
                           specialization.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
@@ -1328,8 +1388,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     years.isNotEmpty ? years : 'Годы обучения не указаны',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontWeight: FontWeight.w400,
+                      fontFamily: 'NotoSansBengali',
                       color: years.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),

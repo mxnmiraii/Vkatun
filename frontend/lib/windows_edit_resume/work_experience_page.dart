@@ -229,9 +229,9 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
           keyboardType: TextInputType.multiline,
           maxLines: null,
           style: const TextStyle(
-            fontFamily: "NotoSans",
+            fontFamily: "NotoSansBengali",
             fontSize: 14,
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w300,
             color: black,
           ),
           decoration: InputDecoration(
