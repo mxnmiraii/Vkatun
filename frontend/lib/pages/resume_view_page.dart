@@ -53,6 +53,9 @@ class ResumeViewPage extends StatefulWidget {
 
 class _ResumeViewPageState extends State<ResumeViewPage>
     with TickerProviderStateMixin {
+
+  String? experienceSummary;
+
   late AnimationController _rotationController;
   bool _isDialogOpen = false;
   final GlobalKey magicIconKey = GlobalKey();
@@ -83,6 +86,19 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   @override
   void initState() {
     super.initState();
+
+    final expRaw = widget.resume['experience'];
+    if (expRaw != null && expRaw.toString().trim().isNotEmpty) {
+      final firstLine = expRaw.toString().trim().split('\n').firstWhere(
+            (line) => line.toLowerCase().startsWith('опыт работы'),
+        orElse: () => '',
+      );
+      final match = RegExp(r'[-—–]?\s*(.+)$').firstMatch(firstLine);
+      if (match != null) {
+        experienceSummary = match.group(1)?.trim();
+      }
+    }
+
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: timeShowAnimation),
@@ -635,7 +651,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             children: [
               Expanded(
                 child: Text(
-                  'Опыт работы',
+                  experienceSummary != null
+                      ? '$experienceSummary'
+                      : 'Опыт работы',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
