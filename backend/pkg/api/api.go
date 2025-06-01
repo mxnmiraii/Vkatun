@@ -58,6 +58,7 @@ func (api *API) endpoints() {
 	api.router.HandleFunc("/metrics/update", api.updateMetrics).Methods(http.MethodPost)
 	api.router.HandleFunc("/metrics/increment/recommendations", api.incrementRecommendations).Methods(http.MethodPost)
 	api.router.HandleFunc("/metrics/increment/accepted", api.incrementAcceptedRecommendations).Methods(http.MethodPost)
+	api.router.HandleFunc("/metrics/history/{range}", api.getMetricsHistory).Methods(http.MethodGet)
 
 	// Guest
 	api.router.HandleFunc("/guest/upload", api.uploadResumeGuest).Methods(http.MethodPost)

@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 	"vkatun/pkg/models"
 )
 
@@ -81,6 +83,8 @@ func (api *API) updateMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 	api.logger.Info("metrics update", zap.String("source", input.Source))
 
+	_ = api.db.SaveMetricsSnapshot(r.Context())
+
 	json.NewEncoder(w).Encode(map[string]string{"message": "Metrics updated successfully"})
 }
 
@@ -100,4 +104,40 @@ func (api *API) incrementAcceptedRecommendations(w http.ResponseWriter, r *http.
 		return
 	}
 	json.NewEncoder(w).Encode(map[string]string{"message": "Accepted recommendations incremented"})
+}
+
+func (api *API) getMetricsHistory(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	rangeParam := vars["range"] // "day", "week", "month"
+
+	var days int
+	switch rangeParam {
+	case "day":
+		days = 1
+	case "week":
+		days = 7
+	case "month":
+		days = 30
+	default:
+		http.Error(w, "invalid range", http.StatusBadRequest)
+		return
+	}
+
+	from := time.Now().AddDate(0, 0, -days)
+
+	history, err := api.db.GetMetricsDelta(r.Context(), from)
+	if err != nil {
+		api.logger.Error("failed to fetch metrics history", zap.Error(err))
+		http.Error(w, "error getting history", http.StatusInternalServerError)
+		return
+	}
+
+	if history.TotalChangesApp > 0 {
+		ratio := float64(history.AcceptedRecommendations) / float64(history.TotalChangesApp)
+		history.TotalChangesApp = int(ratio * 100)
+	} else {
+		history.TotalChangesApp = 0
+	}
+
+	json.NewEncoder(w).Encode(history)
 }

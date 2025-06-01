@@ -2,6 +2,7 @@ package mock_db
 
 import (
 	"context"
+	"time"
 	"vkatun/pkg/models"
 )
 
@@ -32,4 +33,12 @@ func (d *MockDB) IncrementRecommendations(ctx context.Context) error {
 }
 func (d *MockDB) IncrementAcceptedRecommendations(ctx context.Context) error {
 	return nil
+}
+
+func (d *MockDB) SaveMetricsSnapshot(ctx context.Context) error {
+	return nil
+}
+
+func (d *MockDB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metrics, error) {
+	return &models.Metrics{}, nil
 }

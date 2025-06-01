@@ -14,7 +14,10 @@ func (d *DB) UploadResume(ctx context.Context, resume models.ResumeInput, userID
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id
     `, userID, resume.Title, resume.Contacts, resume.Job, resume.Experience, resume.Education, resume.Skills, resume.About).Scan(&id)
-	return id, err
+	if err != nil {
+		return id, err
+	}
+	return id, nil
 }
 
 // GetResumeByID возвращает резюме по ID

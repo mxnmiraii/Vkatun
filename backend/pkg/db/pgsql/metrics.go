@@ -46,7 +46,10 @@ func (d *DB) IncrementTotalUsers(ctx context.Context) error {
         SET total_users = total_users + 1,
             last_updated_at = NOW()
     `)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *DB) IncrementTotalResumes(ctx context.Context) error {
@@ -55,7 +58,10 @@ func (d *DB) IncrementTotalResumes(ctx context.Context) error {
         SET total_resumes = total_resumes + 1,
             last_updated_at = NOW()
     `)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
@@ -114,4 +120,38 @@ func (d *DB) IncrementAcceptedRecommendations(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (d *DB) SaveMetricsSnapshot(ctx context.Context) error {
+	_, err := d.pool.Exec(ctx, `
+		INSERT INTO metrics_history (snapshot_date, total_users, total_resumes, total_changes_app, accepted_recommendations)
+		SELECT CURRENT_DATE, total_users, total_resumes, total_changes_app, accepted_recommendations
+		FROM metrics
+	`)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metrics, error) {
+	var m models.Metrics
+	err := d.pool.QueryRow(ctx, `
+		SELECT 
+			MAX(total_users) - MIN(total_users),
+			MAX(total_resumes) - MIN(total_resumes),
+			MAX(total_changes_app) - MIN(total_changes_app),
+			MAX(accepted_recommendations) - MIN(accepted_recommendations)
+		FROM metrics_history
+		WHERE snapshot_date >= $1
+	`, from.Format("2006-01-02")).Scan(
+		&m.TotalUsers,
+		&m.TotalResumes,
+		&m.TotalChangesApp,
+		&m.AcceptedRecommendations,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &m, nil
 }

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"time"
 	"vkatun/pkg/models"
 )
 
@@ -21,6 +22,8 @@ type DB interface {
 	IncrementActiveUsersToday(ctx context.Context, userID int) error
 	IncrementRecommendations(ctx context.Context) error
 	IncrementAcceptedRecommendations(ctx context.Context) error
+	SaveMetricsSnapshot(ctx context.Context) error
+	GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metrics, error)
 
 	RegisterUser(ctx context.Context, email, passwordHash, username string) error
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
