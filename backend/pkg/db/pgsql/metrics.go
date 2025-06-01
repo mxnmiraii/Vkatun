@@ -124,8 +124,8 @@ func (d *DB) IncrementAcceptedRecommendations(ctx context.Context) error {
 
 func (d *DB) SaveMetricsSnapshot(ctx context.Context) error {
 	_, err := d.pool.Exec(ctx, `
-		INSERT INTO metrics_history (snapshot_date, total_users, total_resumes, total_changes_app, accepted_recommendations)
-		SELECT CURRENT_DATE, total_users, total_resumes, total_changes_app, accepted_recommendations
+		INSERT INTO metrics_history (snapshot_date, total_users, active_users_today, total_resumes, total_changes_app, accepted_recommendations)
+		SELECT CURRENT_DATE, total_users, active_users_today, total_resumes, total_changes_app, accepted_recommendations
 		FROM metrics
 	`)
 	if err != nil {
@@ -141,7 +141,8 @@ func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metri
 			MAX(total_users) - MIN(total_users),
 			MAX(total_resumes) - MIN(total_resumes),
 			MAX(total_changes_app) - MIN(total_changes_app),
-			MAX(accepted_recommendations) - MIN(accepted_recommendations)
+			MAX(accepted_recommendations) - MIN(accepted_recommendations),
+			ROUND(AVG(active_users_today))
 		FROM metrics_history
 		WHERE snapshot_date >= $1
 	`, from.Format("2006-01-02")).Scan(
@@ -149,6 +150,7 @@ func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metri
 		&m.TotalResumes,
 		&m.TotalChangesApp,
 		&m.AcceptedRecommendations,
+		&m.ActiveUsersToday,
 	)
 	if err != nil {
 		return nil, err
