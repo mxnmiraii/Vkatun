@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vkatun/account/account_page.dart';
 import 'package:vkatun/account/period_selector.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
-
 import '../api_service.dart';
 
 class MetricsPage extends StatefulWidget {
@@ -17,34 +15,23 @@ class MetricsPage extends StatefulWidget {
 
 class _MetricsPageState extends State<MetricsPage> {
   Map<String, dynamic> metrics = {
-    "total_users": 16,
-    "active_users_today": 5,
-    "total_resumes": 25,
-    "total_changes_app": 83,
-    "last_updated_at": "2025-05-01T00:37:12.723Z",
+    "total_users": 0,
+    "active_users_today": 0,
+    "total_resumes": 0,
+    "total_changes_app": 0,
   };
 
-  DateTime? selectedFrom;
-  DateTime? selectedTo;
   bool isLoading = true;
   String errorMessage = '';
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  String selectedPeriod = 'week'; // По умолчанию день
 
   @override
   void initState() {
     super.initState();
-    _loadMetrics();
+    _loadMetrics(selectedPeriod);
   }
 
-  String _format(DateTime date) {
-    return "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
-  }
-
-  Future<void> _loadMetrics() async {
+  Future<void> _loadMetrics(String period) async {
     if (!mounted) return;
 
     setState(() {
@@ -53,9 +40,8 @@ class _MetricsPageState extends State<MetricsPage> {
     });
 
     try {
-      // Получаем ApiService через Provider
       final apiService = Provider.of<ApiService>(context, listen: false);
-      final data = await apiService.getMetrics();
+      final data = await apiService.getMetricsHistory(period);
 
       if (!mounted) return;
 
@@ -63,7 +49,6 @@ class _MetricsPageState extends State<MetricsPage> {
         metrics = data;
         isLoading = false;
       });
-      print(metrics);
     } catch (e) {
       if (!mounted) return;
 
@@ -79,7 +64,6 @@ class _MetricsPageState extends State<MetricsPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
     final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -96,7 +80,7 @@ class _MetricsPageState extends State<MetricsPage> {
               toolbarHeight: appBarHeight,
               centerTitle: false,
               title: Stack(
-                alignment: Alignment.center, // Центрируем детей
+                alignment: Alignment.center,
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
@@ -105,7 +89,6 @@ class _MetricsPageState extends State<MetricsPage> {
                       icon: lightArrowBackIcon,
                     ),
                   ),
-                  // Текст по центру
                   Text(
                     'Метрики',
                     style: TextStyle(
@@ -121,27 +104,24 @@ class _MetricsPageState extends State<MetricsPage> {
           ),
         ),
       ),
-
       body: Stack(
         children: [
-          // Градиент на фоне
           Container(
             width: double.infinity,
             height: double.infinity,
             decoration: const BoxDecoration(
               gradient: RadialGradient(
-                center: Alignment(0.8, -0.1), // правый край, чуть выше центра
+                center: Alignment(0.8, -0.1),
                 radius: 1.6,
                 colors: [
-                  Color(0xFFD8D7FF), // начало
-                  Color(0xFFE9F7FA), // середина
-                  Color(0xFFFFFFFF), // конец
+                  Color(0xFFD8D7FF),
+                  Color(0xFFE9F7FA),
+                  Color(0xFFFFFFFF),
                 ],
                 stops: [0.0, 0.75, 0.95],
               ),
             ),
           ),
-
           SingleChildScrollView(
             padding: const EdgeInsets.only(top: 24),
             child: Container(
@@ -151,7 +131,7 @@ class _MetricsPageState extends State<MetricsPage> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: vividPeriwinkleBlue.withOpacity(0.8), // прозрачность
+                  color: vividPeriwinkleBlue.withOpacity(0.8),
                   width: 1.6,
                 ),
                 boxShadow: [
@@ -159,42 +139,46 @@ class _MetricsPageState extends State<MetricsPage> {
                     color: Colors.black.withOpacity(0.30),
                     blurRadius: 2,
                     spreadRadius: 0.2,
-                    offset: Offset(0, 1),
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
               child: Column(
                 children: [
                   PeriodSelector(
-                    onPeriodChanged: (from, to) {
+                    selectedPeriod: selectedPeriod,
+                    onPeriodSelected: (period) {
                       setState(() {
-                        selectedFrom = from;
-                        selectedTo = to;
+                        selectedPeriod = period;
                       });
+                      _loadMetrics(period);
                     },
                   ),
-
-                  SizedBox(height: 50,),
-
-                  _buildTextField(
-                    label:
-                    'Количество загруженных резюме – ${metrics['total_resumes']}',
-                  ),
-                  SizedBox(height: 20),
-                  _buildTextField(
-                    label:
-                    'Количество активных пользователей в день – ${metrics['active_users_today']}',
-                  ),
-                  SizedBox(height: 20),
-                  _buildTextField(
-                    label:
-                    'Общее количество зарегистрированных пользователей – ${metrics['total_users']}',
-                  ),
-                  SizedBox(height: 20),
-                  _buildTextField(
-                    label:
-                    'Процент принятых рекомендаций – ${metrics['total_changes_app']}%',
-                  ),
+                  const SizedBox(height: 50),
+                  if (isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (errorMessage.isNotEmpty)
+                    Text(errorMessage, style: const TextStyle(color: Colors.red))
+                  else
+                    Column(
+                      children: [
+                        _buildTextField(
+                          label: 'Количество загруженных резюме – ${metrics['total_resumes']}',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          label: '${selectedPeriod == 'day' ? 'Количество активных пользователей' : 'Среднее количество активных пользователей в день'} – ${metrics['active_users_today']}',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          label: 'Общее количество зарегистрированных пользователей – ${metrics['total_users']}',
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTextField(
+                          label: 'Процент принятых рекомендаций – ${metrics['total_changes_app']}%',
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -209,7 +193,7 @@ class _MetricsPageState extends State<MetricsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 8, right: 8),
+          padding: const EdgeInsets.only(left: 8, right: 8),
           child: Text(
             label,
             style: TextStyle(
@@ -220,8 +204,7 @@ class _MetricsPageState extends State<MetricsPage> {
             ),
           ),
         ),
-        SizedBox(height: 10),
-
+        const SizedBox(height: 10),
         Divider(color: lightVioletDivider.withOpacity(0.5), thickness: 1),
       ],
     );

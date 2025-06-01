@@ -427,6 +427,24 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getMetricsHistory(String range) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/metrics/history/$range'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Ошибка получения метрик: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Ошибка получения истории метрик: $e');
+      rethrow;
+    }
+  }
+
   Future<void> updateMetrics({
     required String source,
     required Map<String, dynamic> updates,
