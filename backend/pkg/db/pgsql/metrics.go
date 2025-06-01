@@ -142,7 +142,8 @@ func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metri
 			MAX(total_resumes) - MIN(total_resumes),
 			MAX(total_changes_app) - MIN(total_changes_app),
 			MAX(accepted_recommendations) - MIN(accepted_recommendations),
-			ROUND(AVG(active_users_today))
+			ROUND(AVG(active_users_today)),
+			MAX(snapshot_date)
 		FROM metrics_history
 		WHERE snapshot_date >= $1
 	`, from.Format("2006-01-02")).Scan(
@@ -151,6 +152,7 @@ func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metri
 		&m.TotalChangesApp,
 		&m.AcceptedRecommendations,
 		&m.ActiveUsersToday,
+		&m.LastUpdatedAt,
 	)
 	if err != nil {
 		return nil, err
