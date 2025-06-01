@@ -36,6 +36,7 @@ class _ResumesPageState extends State<ResumesPage>
   bool _isDialogOpen = false;
   List<Map<String, dynamic>> _resumes = [];
   List<Map<String, dynamic>> _displayedResumes = [];
+  List<Map<String, String>> _resumesExperience = [];
   bool _isSorting = false;
   bool _sortNewestFirst = true;
 
@@ -62,6 +63,39 @@ class _ResumesPageState extends State<ResumesPage>
     setState(() {
       _showOnboarding = false;
     });
+  }
+
+  Future<String> getExperienceByResumeId(resumeId) async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final expRaw = (await apiService.getResumeById(resumeId))['experience'];
+
+    if (expRaw == null || expRaw.toString().trim().isEmpty) {
+      return 'Опыт не указан';
+    }
+
+    final expText = expRaw.toString().trim();
+
+    final experienceLine = expText.split('\n').firstWhere(
+          (line) => line.toLowerCase().contains('опыт работы'),
+      orElse: () => '',
+    );
+
+    if (experienceLine.isEmpty) {
+      return 'Опыт не указан';
+    }
+
+    // Ищем первое вхождение цифры в строке
+    final digitMatch = RegExp(r'\d+').firstMatch(experienceLine);
+
+    if (digitMatch == null) {
+      return 'Опыт не указан';
+    }
+
+    // Берем подстроку начиная с первой цифры
+    final startIndex = digitMatch.start;
+    final result = experienceLine.substring(startIndex).trim();
+
+    return result.isNotEmpty ? result : 'Опыт не указан';
   }
 
   Future<void> _checkFirstLaunch() async {
@@ -162,8 +196,19 @@ class _ResumesPageState extends State<ResumesPage>
       final apiService = Provider.of<ApiService>(context, listen: false);
       final resumes = await apiService.getResumes();
 
+      final experiences = await Future.wait(
+        resumes.map((resume) async {
+          final exp = await getExperienceByResumeId(resume['id']); // Ожидаем Future
+          return {
+            'id': resume['id'].toString(),
+            'experience': exp,
+          };
+        }),
+      );
+
       setState(() {
         _resumes = resumes;
+        _resumesExperience = experiences;
         _resumes.sort(
           (a, b) => (b['updated_at'] ?? b['created_at']).compareTo(
             a['updated_at'] ?? a['created_at'],
@@ -404,9 +449,15 @@ class _ResumesPageState extends State<ResumesPage>
       final apiService = Provider.of<ApiService>(context, listen: false);
       final resume = await apiService.uploadResume(file);
 
+      final experience = await getExperienceByResumeId(resume['id']);
+
       Navigator.pop(context);
       setState(() {
         _resumes.insert(0, resume);
+        _resumesExperience.insert(0, {
+          'id': resume['id'].toString(),
+          'experience': experience,
+        });
         _reachedLimit =
             apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
       });
@@ -665,6 +716,11 @@ class _ResumesPageState extends State<ResumesPage>
   }
 
   Widget _buildResumeCard(Map<String, dynamic> resume, int index) {
+    final experienceData = _resumesExperience.firstWhere(
+          (e) => e['id'] == resume['id'].toString(),
+      orElse: () => {'experience': 'Опыт не указан'},
+    );
+
     return GestureDetector(
       onTap: () async {
         showDialog(
@@ -761,9 +817,7 @@ class _ResumesPageState extends State<ResumesPage>
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
-                  resume['experince']?.isNotEmpty == true
-                      ? resume['experince']!
-                      : 'Опыт не указан',
+                  experienceData['experience'] ?? 'Опыт не указан',
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
