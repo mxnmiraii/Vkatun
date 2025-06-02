@@ -73,7 +73,7 @@
 ## 📚 Документация
 - Техническое задание [(DOCX)](Документация/tz.docx) [(PDF)](Документация/tz.pdf)
 - Курсовая работа (1.2) [(DOCX)](Документация/course_work_(1.2).docx) [(PDF)](Документация/course_work_(1.2).pdf)
-- [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/0dc416f13252e115b91e168d2a67910a/raw/ddc28b0785cc623da98b8b4f4007a20ef700a6b2/swagger-v1.0.3.yaml)
+- [Схема API](https://editor.swagger.io/?url=https://gist.githubusercontent.com/mxnmiraii/c6ce0d993ed8623f69cc31e487d85667/raw/33c340879eb9e618d6897fe879865dcaf685776d/swagger-v1.0.4.yaml)
 > **Важно!**  
 > Если схема API не загружается автоматически через ссылку (в некоторых браузерах это происходит из-за ограничений CORS):
 >
@@ -82,7 +82,7 @@
 > 3. Вставьте туда следующую ссылку:
 >
 > ```
-> https://gist.githubusercontent.com/mxnmiraii/0dc416f13252e115b91e168d2a67910a/raw/ddc28b0785cc623da98b8b4f4007a20ef700a6b2/swagger-v1.0.3.yaml
+> https://gist.githubusercontent.com/mxnmiraii/c6ce0d993ed8623f69cc31e487d85667/raw/33c340879eb9e618d6897fe879865dcaf685776d/swagger-v1.0.4.yaml
 > ```
 ### Состояние проекта
 - Отчет о текущем статусе проекта Vkatun (Этап 2 - Отчет PM) [(DOCX)](Документация/current_status_of_project_report.docx) [(PDF)](Документация/current_status_of_project_report.pdf)
