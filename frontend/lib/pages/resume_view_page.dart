@@ -887,19 +887,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   }
 
   List<Map<String, String>> _parseExperience(String raw) {
-    final lines = raw.split('\n').map((e) => e.trim()).toList();
-
+    final lines = raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     final List<Map<String, String>> result = [];
-    final dateRegex = RegExp(
-      r'^[А-Яа-я]+\s\d{4}\s[—-]\s(настоящее время|[А-Яа-я]+\s\d{4})$',
-    );
-    final durationRegex = RegExp(
-      r'^\d+\s(год|года|лет|\d+\sмесяц|месяца|месяцев)$',
-    );
-    final skipMetaRegex = RegExp(
-      r'(Санкт-Петербург|\.ru|интеграция|интернет|технологии|отрасль)',
-      caseSensitive: false,
-    );
+    final dateRegex = RegExp(r'^[А-Яа-я]+\s\d{4}\s[—-]\s(настоящее время|[А-Яа-я]+\s\d{4})$');
+    final durationRegex = RegExp(r'^\d+\s(год|года|лет|\d+\sмесяц|месяца|месяцев)$');
+    final skipMetaRegex = RegExp(r'(Санкт-Петербург|\.ru|интеграция|интернет|технологии|отрасль)', caseSensitive: false);
 
     Map<String, String> current = {};
     List<String> dutiesBuffer = [];
@@ -908,26 +900,27 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     while (i < lines.length) {
       final line = lines[i];
 
-      // Начало нового блока
-      if (dateRegex.hasMatch(line)) {
+      // Начало нового блока (дата или пустая строка)
+      if (dateRegex.hasMatch(line) || (current.isNotEmpty && line.isEmpty)) {
         if (current.isNotEmpty && (current['company']?.isNotEmpty ?? false)) {
           current['duties'] = dutiesBuffer.join('\n').trim();
           result.add(current);
-          current = {};
           dutiesBuffer = [];
+          current = {};
         }
 
-        final parts = line.split(RegExp(r'\s[—-]\s'));
-        current['startDate'] = parts[0];
-        current['endDate'] = parts[1];
-        current['period'] = line;
+        if (dateRegex.hasMatch(line)) {
+          final parts = line.split(RegExp(r'\s[—-]\s'));
+          current['startDate'] = parts[0];
+          current['endDate'] = parts[1];
+          current['period'] = line;
+        }
         i++;
         continue;
       }
 
       // Пропустить строку с длительностью
-      if (durationRegex.hasMatch(line) ||
-          RegExp(r'\d+\sгод.*').hasMatch(line)) {
+      if (durationRegex.hasMatch(line) || RegExp(r'\d+\sгод.*').hasMatch(line)) {
         current['duration'] = line;
         i++;
         continue;
@@ -946,26 +939,25 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         continue;
       }
 
-      // Должность — пропускаем строки, начинающиеся с маркера "•"
-      if (current['position'] == null &&
-          line.isNotEmpty &&
-          !line.startsWith('•')) {
+      // Должность - пропускаем строки, начинающиеся с маркера "•"
+      if (current['position'] == null && line.isNotEmpty && !line.startsWith('•')) {
         current['position'] = line;
         i++;
         continue;
       } else if (current['position'] == null && line.startsWith('•')) {
-        // если сразу пошли обязанности — оставим должность пустой, но начнем копить duties
+        // если сразу пошли обязанности - оставим должность пустой, но начнем копить duties
         dutiesBuffer.add(line);
         i++;
         continue;
       }
 
-      // Остальное — обязанности
+      // Остальное - обязанности
       dutiesBuffer.add(line);
       i++;
     }
 
-    if (current.isNotEmpty) {
+    // Добавляем последний блок, если он есть
+    if (current.isNotEmpty || dutiesBuffer.isNotEmpty) {
       current['duties'] = dutiesBuffer.join('\n').trim();
       result.add(current);
     }

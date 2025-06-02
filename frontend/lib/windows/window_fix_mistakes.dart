@@ -619,7 +619,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   issues: aboutMeIssues,
                   onResumeChange: widget.onResumeChange,
-                  isStructure: false,
+                  isStructure: true,
                 )
                 : isScanningExperience
                 ? Scan(
@@ -634,7 +634,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: experienceIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
-                  isStructure: false,
+                  isStructure: true,
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [

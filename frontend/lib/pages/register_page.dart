@@ -81,34 +81,52 @@ class _RegisterPageState extends State<RegisterPage> {
 
       try {
         final apiService = Provider.of<ApiService>(context, listen: false);
+
+        // 1. Выполняем регистрацию
         await apiService.register(
           username: login,
           emailOrPhone: emailNumber,
           password: password,
         );
 
+        // 2. После успешной регистрации выполняем вход
+        await apiService.login(
+          emailOrPhone: emailNumber,
+          password: password,
+        );
+
         logRegisterEvent();
 
-        // Успешная регистрация
+        // 3. Успешная регистрация и вход
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => ResumesPage()),
         );
       } catch (e) {
-        // Обработка реальных ошибок
+        // Обработка ошибок
         final errorMessage = e.toString().contains('User registered successfully')
             ? 'Регистрация успешна! Выполняется вход...'
             : 'Ошибка регистрации: ${e.toString().replaceAll('Exception: ', '')}';
 
         setState(() => _errorMessage = errorMessage);
 
-        // Если регистрация фактически успешна, но была обработана как ошибка
+        // Если регистрация успешна, но возникла проблема с входом
         if (e.toString().contains('User registered successfully')) {
-          await Future.delayed(Duration(seconds: 2));
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => ResumesPage()),
-          );
+          try {
+            // Пробуем войти еще раз
+            final apiService = Provider.of<ApiService>(context, listen: false);
+            await apiService.login(
+              emailOrPhone: emailNumber,
+              password: password,
+            );
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ResumesPage()),
+            );
+          } catch (loginError) {
+            setState(() => _errorMessage = 'Регистрация успешна, но вход не удался. Пожалуйста, войдите вручную.');
+          }
         }
       } finally {
         setState(() => _isLoading = false);

@@ -290,12 +290,12 @@ ${widget.data.length > 4 ? widget.data[4] : ''}
               child: Column(
                 children: [
                   _buildTextField(
-                    label: 'Начало работы (например: Октябрь 2019)',
+                    label: 'Начало работы',
                     controller: _startDateController,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: 'Окончание (например: Ноябрь 2019)',
+                    label: 'Окончание',
                     controller: _endDateController,
                   ),
                   const SizedBox(height: 16),
