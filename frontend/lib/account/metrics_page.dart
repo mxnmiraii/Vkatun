@@ -154,7 +154,7 @@ class _MetricsPageState extends State<MetricsPage> {
                       _loadMetrics(period);
                     },
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 20),
                   if (isLoading)
                     const Center(child: CircularProgressIndicator())
                   else if (errorMessage.isNotEmpty)

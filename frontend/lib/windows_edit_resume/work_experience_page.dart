@@ -231,7 +231,7 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
           style: const TextStyle(
             fontFamily: "NotoSansBengali",
             fontSize: 14,
-            fontWeight: FontWeight.w300,
+            fontWeight: FontWeight.w400,
             color: black,
           ),
           decoration: InputDecoration(

@@ -172,7 +172,7 @@ class _KeySkillsPageState extends State<KeySkillsPage> {
                     style: const TextStyle(
                       fontFamily: "NotoSansBengali",
                       fontSize: 14,
-                      fontWeight: FontWeight.w300,
+                      fontWeight: FontWeight.w400,
                       color: black,
                     ),
                     maxLines: null,
