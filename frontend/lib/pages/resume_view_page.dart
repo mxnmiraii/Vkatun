@@ -692,9 +692,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (_) =>
-                                  WorkExperiencePage(data: List.filled(6, '')),
+                          builder: (_) => WorkExperiencePage(
+                            data: List.filled(6, ''),
+                            resumeId: widget.resume['id'],
+                            onResumeChange: _updateResumeData,
+                          ),
                         ),
                       );
                     },
@@ -856,21 +858,22 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder:
-                                  (_) => WorkExperiencePage(
-                                    data: [
-                                      experience['startDate'] ?? '',
-                                      experience['endDate'] ?? '',
-                                      experience['company'] ?? '',
-                                      experience['position'] ?? '',
-                                      experience['duties'] ?? '',
-                                      (experience['endDate']
-                                                  ?.toLowerCase()
-                                                  .contains('настоящее') ??
-                                              false)
-                                          .toString(),
-                                    ],
-                                  ),
+                              builder: (_) => WorkExperiencePage(
+                                data: [
+                                  experience['startDate'] ?? '',
+                                  experience['endDate'] ?? '',
+                                  experience['company'] ?? '',
+                                  experience['position'] ?? '',
+                                  experience['duties'] ?? '',
+                                  (experience['endDate']
+                                      ?.toLowerCase()
+                                      .contains('настоящее') ??
+                                      false)
+                                      .toString(),
+                                ],
+                                resumeId: widget.resume['id'],
+                                onResumeChange: _updateResumeData,
+                              ),
                             ),
                           );
                         },

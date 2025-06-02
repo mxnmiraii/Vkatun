@@ -1,3 +1,4 @@
+// EducationPage.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:vkatun/api_service.dart';
@@ -81,34 +82,31 @@ class _EducationPageState extends State<EducationPage> {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
 
-      // Формируем текст образования в нужном формате
-      final educationText = '''
+      final newEducationBlock = '''
 ${_institutionController.text}
 ${_specializationController.text}
 ${_yearsController.text}
-''';
+'''.trim();
 
-      // Получаем текущее образование из резюме
       final currentResume = await apiService.getResumeById(widget.resumeId);
       String currentEducation = currentResume['education'] ?? '';
 
-      // Если это редактирование существующей записи, находим и заменяем
       if (widget.data.isNotEmpty && widget.data[0].isNotEmpty) {
-        final oldEducation = '''
+        // Находим старый блок для замены
+        final oldEducationBlock = '''
 ${widget.data[0]}
 ${widget.data.length > 1 ? widget.data[1] : ''}
 ${widget.data.length > 2 ? widget.data[2] : ''}
-''';
+'''.trim();
 
-        currentEducation = currentEducation.replaceAll(oldEducation, educationText);
+        currentEducation = currentEducation.replaceFirst(oldEducationBlock, newEducationBlock);
       } else {
-        // Если это новая запись, добавляем в конец с отступом
+        // Добавляем новую запись
         currentEducation = currentEducation.isEmpty
-            ? educationText
-            : '$currentEducation\n\n$educationText';
+            ? newEducationBlock
+            : '$currentEducation\n\n$newEducationBlock';
       }
 
-      // Обновляем секцию education
       await apiService.editResumeSection(
         id: widget.resumeId,
         section: 'education',
@@ -116,11 +114,13 @@ ${widget.data.length > 2 ? widget.data[2] : ''}
       );
 
       widget.onResumeChange();
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+        );
+      }
     }
   }
 
@@ -128,7 +128,6 @@ ${widget.data.length > 2 ? widget.data[2] : ''}
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       extendBody: true,
