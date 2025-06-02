@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class EducationPage extends StatefulWidget {
   final List<String> data;
-  const EducationPage({super.key, required this.data});
+  final int resumeId;
+  final VoidCallback onResumeChange;
+
+  const EducationPage({
+    super.key,
+    required this.data,
+    required this.resumeId,
+    required this.onResumeChange,
+  });
 
   @override
   State<EducationPage> createState() => _EducationPageState();
@@ -14,21 +24,11 @@ class EducationPage extends StatefulWidget {
 class _EducationPageState extends State<EducationPage> {
   late TextEditingController _institutionController;
   late TextEditingController _specializationController;
-  late TextEditingController _graduationYearController;
-
-
-  @override
-  void dispose() {
-    _institutionController.dispose();
-    _specializationController.dispose();
-    _graduationYearController.dispose();
-    super.dispose();
-  }
+  late TextEditingController _yearsController;
 
   @override
   void initState() {
     super.initState();
-
     final data = widget.data;
 
     _institutionController = TextEditingController(
@@ -37,10 +37,91 @@ class _EducationPageState extends State<EducationPage> {
     _specializationController = TextEditingController(
       text: data.length > 1 ? data[1] : '',
     );
-    _graduationYearController = TextEditingController(
+    _yearsController = TextEditingController(
       text: data.length > 2 ? data[2] : '',
     );
+  }
 
+  @override
+  void dispose() {
+    _institutionController.dispose();
+    _specializationController.dispose();
+    _yearsController.dispose();
+    super.dispose();
+  }
+
+  bool _validateInputs() {
+    if (_institutionController.text.trim().isEmpty) {
+      _showError('Введите название учебного заведения');
+      return false;
+    }
+    if (_specializationController.text.trim().isEmpty) {
+      _showError('Введите специализацию');
+      return false;
+    }
+    if (_yearsController.text.trim().isEmpty) {
+      _showError('Введите годы обучения');
+      return false;
+    }
+    return true;
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+  }
+
+  Future<void> _saveEducation() async {
+    if (!_validateInputs()) return;
+
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+
+      // Формируем текст образования в нужном формате
+      final educationText = '''
+${_institutionController.text}
+${_specializationController.text}
+${_yearsController.text}
+''';
+
+      // Получаем текущее образование из резюме
+      final currentResume = await apiService.getResumeById(widget.resumeId);
+      String currentEducation = currentResume['education'] ?? '';
+
+      // Если это редактирование существующей записи, находим и заменяем
+      if (widget.data.isNotEmpty && widget.data[0].isNotEmpty) {
+        final oldEducation = '''
+${widget.data[0]}
+${widget.data.length > 1 ? widget.data[1] : ''}
+${widget.data.length > 2 ? widget.data[2] : ''}
+''';
+
+        currentEducation = currentEducation.replaceAll(oldEducation, educationText);
+      } else {
+        // Если это новая запись, добавляем в конец с отступом
+        currentEducation = currentEducation.isEmpty
+            ? educationText
+            : '$currentEducation\n\n$educationText';
+      }
+
+      // Обновляем секцию education
+      await apiService.editResumeSection(
+        id: widget.resumeId,
+        section: 'education',
+        content: currentEducation,
+      );
+
+      widget.onResumeChange();
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+      );
+    }
   }
 
   @override
@@ -48,7 +129,6 @@ class _EducationPageState extends State<EducationPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
     final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -95,7 +175,6 @@ class _EducationPageState extends State<EducationPage> {
       ),
       body: Stack(
         children: [
-          // Градиент на фоне
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -138,22 +217,16 @@ class _EducationPageState extends State<EducationPage> {
                   _buildTextField(
                     label: 'Название учебного заведения',
                     controller: _institutionController,
-                    index: 0,
-                    length: widget.data.length,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Специализация',
                     controller: _specializationController,
-                    index: 1,
-                    length: widget.data.length,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: 'Годы окончания',
-                    controller: _graduationYearController,
-                    index: 2,
-                    length: widget.data.length,
+                    label: 'Годы обучения',
+                    controller: _yearsController,
                   ),
                 ],
               ),
@@ -163,16 +236,11 @@ class _EducationPageState extends State<EducationPage> {
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: bottom35),
-        child: SizedBox(
-          child: IconButton(
-            icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
-              Navigator.pop(context);
-            },
-            padding: EdgeInsets.zero,
-            splashRadius: 36,
-          ),
+        child: IconButton(
+          icon: darkerBiggerDoneIcon,
+          onPressed: _saveEducation,
+          padding: EdgeInsets.zero,
+          splashRadius: 36,
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -182,8 +250,6 @@ class _EducationPageState extends State<EducationPage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
-    required int index,
-    required int length,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,8 +263,10 @@ class _EducationPageState extends State<EducationPage> {
             color: lavenderBlue,
           ),
         ),
-        TextField(
+        TextFormField(
           controller: controller,
+          keyboardType: TextInputType.multiline,
+          maxLines: null,
           style: const TextStyle(
             fontFamily: "NotoSansBengali",
             fontSize: 14,
@@ -207,10 +275,7 @@ class _EducationPageState extends State<EducationPage> {
           ),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.only(
-              top: 7,
-              bottom: 14,
-            ),
+            contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
             border: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
@@ -230,7 +295,7 @@ class _EducationPageState extends State<EducationPage> {
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }

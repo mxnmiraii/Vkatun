@@ -1320,8 +1320,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder:
-                              (_) => EducationPage(data: List.filled(5, '')),
+                          builder: (_) => EducationPage(
+                            data: List.filled(3, ''),
+                            resumeId: widget.resume['id'],
+                            onResumeChange: _updateResumeData,
+                          ),
                         ),
                       );
                     },
@@ -1408,7 +1411,11 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => EducationPage(data: education),
+                              builder: (_) => EducationPage(
+                                data: education.isEmpty ? List.filled(3, '') : education,
+                                resumeId: widget.resume['id'],
+                                onResumeChange: _updateResumeData,
+                              ),
                             ),
                           );
                         },
