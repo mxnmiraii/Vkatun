@@ -87,7 +87,8 @@
 > ```
 ### Состояние проекта
 - Отчет о текущем статусе проекта Vkatun (Этап 2 - Отчет PM) [(DOCX)](Документация/current_status_of_project_report.docx) [(PDF)](Документация/current_status_of_project_report.pdf)
-- Отчет о текущем статусе проекта Vkatun (Этап 3 - Отчет PM) [(DOCX)](Документация/current_status_of_project_report(3_milestone).docx) [(PDF)](Документация/current_status_of_project_report(3_milestone).pdf)
+- Отчет о текущем статусе проекта Vkatun (Этап 3 (Предзащита) - Отчет PM) [(DOCX)](Документация/current_status_of_project_report(3_milestone).docx) [(PDF)](Документация/current_status_of_project_report(3_milestone).pdf)
+- Отчет о статусе проекта Vkatun (Этап 4 (Защита) - Отчет PM) [(DOCX)](Документация/status_of_project_final.docx) [(PDF)](Документация/status_of_project_final.pdf)
 - Аналитический отчет по проекту Vkatun [(PDF)](Документация/analytical_report.pdf)
 ### Тестирование
 - Отчет о тестировании Vkatun API [(DOCX)](Документация/отчёт-о-тестировании-Vkatun-API.docx) [(PDF)](Документация/отчёт-о-тестировании-Vkatun-API.pdf)
@@ -136,3 +137,4 @@
 - [Отчет 9 недели (5 - 11 мая)](Еженедельные%20отчёты/отчет_9_недели_(5-11_мая).pdf)
 - [Отчет 10 недели (12 - 18 мая)](Еженедельные%20отчёты/отчет_10_недели_(12-18_мая).pdf)
 - [Отчет 11 недели (19 - 25 мая)](Еженедельные%20отчёты/отчет_11_недели_(19-25_мая).pdf)
+- [Отчет 12 недели (26 мая - 1 июня)](Еженедельные%20отчёты/отчет_12_недели_(26_мая-1_июня).pdf)
