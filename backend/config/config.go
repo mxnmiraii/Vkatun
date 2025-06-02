@@ -38,7 +38,7 @@ func InitConfig() {
 		viper.SetConfigType("env")
 
 		if err := viper.ReadInConfig(); err != nil {
-			log.Fatalf("ошибка чтения .env конфигурации: %v", err)
+			log.Fatalf("error reading .env configuration: %v", err)
 		}
 	}
 

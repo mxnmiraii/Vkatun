@@ -146,7 +146,7 @@ func (api *API) getMetricsHistory(w http.ResponseWriter, r *http.Request) {
 	history, err := api.db.GetMetricsDelta(r.Context(), from)
 	if err != nil {
 		api.logger.Error("failed to fetch metrics history", zap.Error(err))
-		http.Error(w, "error getting history", http.StatusInternalServerError)
+		http.Error(w, "Error getting history", http.StatusInternalServerError)
 		return
 	}
 

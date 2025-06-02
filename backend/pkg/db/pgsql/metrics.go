@@ -40,6 +40,7 @@ func (d *DB) UpdateMetrics(ctx context.Context, updates models.MetricsUpdateRequ
 	return nil
 }
 
+// IncrementTotalUsers увеличивает общее число пользователей на 1
 func (d *DB) IncrementTotalUsers(ctx context.Context) error {
 	_, err := d.pool.Exec(ctx, `
         UPDATE metrics
@@ -52,6 +53,7 @@ func (d *DB) IncrementTotalUsers(ctx context.Context) error {
 	return nil
 }
 
+// IncrementTotalResumes увеличивает общее число резюме на 1
 func (d *DB) IncrementTotalResumes(ctx context.Context) error {
 	_, err := d.pool.Exec(ctx, `
         UPDATE metrics
@@ -64,6 +66,7 @@ func (d *DB) IncrementTotalResumes(ctx context.Context) error {
 	return nil
 }
 
+// IncrementActiveUsersToday увеличивает количество активных пользователей за сегодня, если пользователь ещё не учитывался
 func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 	userKey := strconv.Itoa(userID)
 	today := time.Now().Format("2006-01-02")
@@ -98,6 +101,7 @@ func (d *DB) IncrementActiveUsersToday(ctx context.Context, userID int) error {
 	return nil
 }
 
+// IncrementRecommendations увеличивает счётчик изменений по рекомендациям
 func (d *DB) IncrementRecommendations(ctx context.Context) error {
 	_, err := d.pool.Exec(ctx, `
         UPDATE metrics
@@ -110,6 +114,7 @@ func (d *DB) IncrementRecommendations(ctx context.Context) error {
 	return nil
 }
 
+// IncrementAcceptedRecommendations увеличивает счётчик принятых рекомендаций
 func (d *DB) IncrementAcceptedRecommendations(ctx context.Context) error {
 	_, err := d.pool.Exec(ctx, `
         UPDATE metrics
@@ -122,6 +127,7 @@ func (d *DB) IncrementAcceptedRecommendations(ctx context.Context) error {
 	return nil
 }
 
+// SaveMetricsSnapshot сохраняет текущие значения метрик в историю за текущую дату
 func (d *DB) SaveMetricsSnapshot(ctx context.Context) error {
 	_, err := d.pool.Exec(ctx, `
 		INSERT INTO metrics_history (snapshot_date, total_users, active_users_today, total_resumes, total_changes_app, accepted_recommendations)
@@ -134,6 +140,7 @@ func (d *DB) SaveMetricsSnapshot(ctx context.Context) error {
 	return nil
 }
 
+// GetMetricsDelta возвращает разницу метрик за период с указанной даты
 func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metrics, error) {
 	var m models.Metrics
 	err := d.pool.QueryRow(ctx, `

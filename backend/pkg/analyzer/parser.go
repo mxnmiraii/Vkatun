@@ -19,17 +19,17 @@ func ParseResumeFromPDF(data []byte) (models.ResumeInput, string, error) {
 	reader := bytes.NewReader(data)
 	pdfReader, err := pdf.NewReader(reader, int64(len(data)))
 	if err != nil {
-		return models.ResumeInput{}, "", fmt.Errorf("ошибка чтения PDF: %v", err)
+		return models.ResumeInput{}, "", fmt.Errorf("error reading PDF: %v", err)
 	}
 
 	content, err := pdfReader.GetPlainText()
 	buf := new(bytes.Buffer)
 	if _, err = io.Copy(buf, content); err != nil {
-		return models.ResumeInput{}, "", fmt.Errorf("ошибка копирования текста: %v", err)
+		return models.ResumeInput{}, "", fmt.Errorf("error copying text: %v", err)
 	}
 
 	fullText := buf.String()
-	log.Printf("текст резюме до ллм: %s", fullText)
+	log.Printf("resume text before LLM: %s", fullText)
 
 	resume, resumeStr, err := restoreTextStructure(fullText)
 
@@ -42,7 +42,7 @@ func restoreTextStructure(text string) (models.ResumeInput, string, error) {
 	if err != nil {
 		return models.ResumeInput{}, "", err
 	}
-	log.Printf("резюме после парсинга: %s", jsonResume)
+	log.Printf("resume after parsing: %s", jsonResume)
 
 	if strings.HasPrefix(jsonResume, "```json") || strings.HasPrefix(jsonResume, "```") {
 		jsonResume = utils.StripMarkdownCodeBlock(jsonResume)
@@ -51,7 +51,7 @@ func restoreTextStructure(text string) (models.ResumeInput, string, error) {
 	var resume models.ResumeInput
 	err = json.Unmarshal([]byte(jsonResume), &resume)
 	if err != nil {
-		return models.ResumeInput{}, jsonResume, fmt.Errorf("ошибка парсинга json: %v", err)
+		return models.ResumeInput{}, jsonResume, fmt.Errorf("error parsing JSON: %v", err)
 	}
 
 	return resume, jsonResume, nil
@@ -120,12 +120,12 @@ func checkAndExtractResumeWithAI(text string) (string, error) {
 
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		return "", fmt.Errorf("ошибка сериализации запроса: %v", err)
+		return "", fmt.Errorf("error serializing request: %v", err)
 	}
 
 	req, err := http.NewRequest("POST", config.DeepSeekURL, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", fmt.Errorf("ошибка создания запроса: %v", err)
+		return "", fmt.Errorf("error creating request: %v", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+config.DeepSeekAPIKey)
@@ -134,27 +134,27 @@ func checkAndExtractResumeWithAI(text string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("ошибка при запросе к DeepSeek: %v", err)
+		return "", fmt.Errorf("error making request to DeepSeek: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("ошибка чтения ответа: %v", err)
+		return "", fmt.Errorf("error reading response: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("неуспешный ответ от DeepSeek (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("unsuccessful response from DeepSeek (%d): %s", resp.StatusCode, string(body))
 	}
 
 	var result models.DeepSeekResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		return "", fmt.Errorf("ошибка парсинга ответ: %v", err)
+		return "", fmt.Errorf("error parsing response: %v", err)
 	}
 
 	if len(result.Choices) > 0 {
 		return result.Choices[0].Message.Content, nil
 	}
 
-	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
+	return "", fmt.Errorf("DeepSeek model returned no responses")
 }

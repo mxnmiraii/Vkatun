@@ -49,7 +49,6 @@ func (d *DB) UpdateResume(ctx context.Context, id int, resume models.Resume) err
 	if rowsAffected == 0 {
 		return sql.ErrNoRows
 	}
-
 	return nil
 }
 
@@ -65,7 +64,6 @@ func (d *DB) UpdateResumeSection(ctx context.Context, id int, section string, co
 	if rowsAffected == 0 {
 		return sql.ErrNoRows
 	}
-
 	return nil
 }
 
@@ -80,7 +78,6 @@ func (d *DB) DeleteResume(ctx context.Context, id int) error {
 	if rowsAffected == 0 {
 		return sql.ErrNoRows
 	}
-
 	return nil
 }
 

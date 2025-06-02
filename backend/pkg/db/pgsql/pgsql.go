@@ -33,7 +33,6 @@ func New(connString string) (*DB, error) {
 			fmt.Printf("Retry %d: waiting for DB... (%v)\n", n+1, err)
 		}),
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}

@@ -43,7 +43,7 @@ func GrammarCheck(text string) ([]issueGrammar, error) {
 
 	var issues []issueGrammar
 	if err := json.Unmarshal([]byte(resp), &issues); err != nil {
-		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
+		return nil, fmt.Errorf("error parsing JSON: %v", err)
 	}
 	return issues, nil
 }
@@ -59,7 +59,7 @@ func AboutCheck(text string) (Recommendation, error) {
 
 	var result ValidationResult
 	if err := json.Unmarshal([]byte(resp), &result); err != nil {
-		return Recommendation{}, fmt.Errorf("ошибка парсинга JSON: %v", err)
+		return Recommendation{}, fmt.Errorf("error parsing JSON: %v", err)
 	}
 
 	if !result.IsValid {
@@ -84,7 +84,7 @@ func ExperienceCheck(text string) (Recommendation, error) {
 
 	var result ValidationResult
 	if err := json.Unmarshal([]byte(resp), &result); err != nil {
-		return Recommendation{}, fmt.Errorf("ошибка парсинга JSON: %v", err)
+		return Recommendation{}, fmt.Errorf("error parsing JSON: %v", err)
 	}
 
 	if !result.IsValid {
@@ -109,7 +109,7 @@ func SkillsCheck(text string) ([]Issue, error) {
 
 	var rawSkills []string
 	if err := json.Unmarshal([]byte(resp), &rawSkills); err != nil {
-		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
+		return nil, fmt.Errorf("error parsing JSON: %v", err)
 	}
 
 	issues := make([]Issue, 0, len(rawSkills))
@@ -134,12 +134,12 @@ func requestRawFromAI(systemPrompt, userText string) (string, error) {
 
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		return "", fmt.Errorf("ошибка сериализации запроса: %v", err)
+		return "", fmt.Errorf("error serializing request: %v", err)
 	}
 
 	req, err := http.NewRequest("POST", config.DeepSeekURL, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", fmt.Errorf("ошибка создания запроса: %v", err)
+		return "", fmt.Errorf("error creating request: %v", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+config.DeepSeekAPIKey)
@@ -148,32 +148,32 @@ func requestRawFromAI(systemPrompt, userText string) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("ошибка при запросе к DeepSeek: %v", err)
+		return "", fmt.Errorf("error making request to DeepSeek: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("ошибка чтения ответа: %v", err)
+		return "", fmt.Errorf("error reading response: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("неуспешный ответ от DeepSeek (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("unsuccessful response from DeepSeek (%d): %s", resp.StatusCode, string(body))
 	}
 
 	var result models.DeepSeekResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		return "", fmt.Errorf("ошибка парсинга ответа: %v", err)
+		return "", fmt.Errorf("error parsing response: %v", err)
 	}
 
 	if len(result.Choices) > 0 {
 		content := result.Choices[0].Message.Content
-		log.Printf("результат анализа от ллм: %s", content)
+		log.Printf("analysis result from LLM: %s", content)
 
 		cleaned := utils.StripMarkdownCodeBlock(result.Choices[0].Message.Content)
-		log.Printf("после форматирования %s", cleaned)
+		log.Printf("after formatting: %s", cleaned)
 		return cleaned, nil
 	}
 
-	return "", fmt.Errorf("модель DeepSeek не вернула ни одного ответа")
+	return "", fmt.Errorf("DeepSeek model returned no responses")
 }
