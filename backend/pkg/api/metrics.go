@@ -107,6 +107,24 @@ func (api *API) incrementAcceptedRecommendations(w http.ResponseWriter, r *http.
 }
 
 func (api *API) getMetricsHistory(w http.ResponseWriter, r *http.Request) {
+	userID, ok := getUserIDFromContext(r)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := api.db.GetUserByID(r.Context(), userID)
+	if err != nil {
+		api.logger.Error("user not found for metrics", zap.Int("user_id", userID), zap.Error(err))
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if !isAdmin(user.Email) {
+		http.Error(w, "Forbidden: admin only", http.StatusForbidden)
+		return
+	}
+
 	vars := mux.Vars(r)
 	rangeParam := vars["range"] // "day", "week", "month"
 
