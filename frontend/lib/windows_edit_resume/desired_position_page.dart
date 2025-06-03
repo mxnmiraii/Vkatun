@@ -34,6 +34,25 @@ class _DesiredPositionPageState extends State<DesiredPositionPage> {
     final newPosition = _positionController.text.trim();
     final currentPosition = widget.data.isNotEmpty ? widget.data[0] : '';
 
+    final position = _positionController.text.trim();
+
+    // Проверка длины
+    if (position.length > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Название должности должно быть не длиннее 100 символов')),
+      );
+      return;
+    }
+
+    // Проверка символов (русские буквы, пробелы, дефис)
+    final validChars = RegExp(r'^[а-яА-ЯёЁ\s\-,:]+$'); // разрешены пробелы, дефисы, запятые, двоеточия
+    if (!validChars.hasMatch(position)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Должность может содержать только русские буквы, пробелы, дефисы, запятые и двоеточия')),
+      );
+      return;
+    }
+
     // Проверяем, были ли изменения
     if (newPosition != currentPosition) {
       try {

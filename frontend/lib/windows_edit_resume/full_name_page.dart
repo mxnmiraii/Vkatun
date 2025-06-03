@@ -71,6 +71,29 @@ class _FullNamePageState extends State<FullNamePage>
       }
     }
 
+    final surname = _surnameController.text.trim();
+    final name = _nameController.text.trim();
+    final patronymic = _patronymicController.text.trim();
+
+    // Проверка длины
+    if (surname.length > 100 || name.length > 100 || patronymic.length > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Каждое поле ФИО должно быть не длиннее 100 символов')),
+      );
+      return;
+    }
+
+    // Проверка символов (русские буквы и пробелы)
+    final russianLetters = RegExp(r'^[а-яА-ЯёЁ\s]+$');
+    if (!russianLetters.hasMatch(surname) ||
+        !russianLetters.hasMatch(name) ||
+        (patronymic.isNotEmpty && !russianLetters.hasMatch(patronymic))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ФИО может содержать только русские буквы и пробелы')),
+      );
+      return;
+    }
+
     if (hasChanges) {
       try {
         final apiService = Provider.of<ApiService>(context, listen: false);

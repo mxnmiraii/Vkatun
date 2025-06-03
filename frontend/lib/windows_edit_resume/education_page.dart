@@ -64,6 +64,26 @@ class _EducationPageState extends State<EducationPage> {
       _showError('Введите годы обучения');
       return false;
     }
+
+    // Проверка учебного заведения
+    if (_institutionController.text.trim().length > 300) {
+      _showError('Название учебного заведения должно быть не длиннее 300 символов');
+      return false;
+    }
+
+  // Проверка специальности
+    if (_specializationController.text.trim().length > 100) {
+      _showError('Специальность должна быть не длиннее 100 символов');
+      return false;
+    }
+
+  // Проверка формата годов обучения
+    final yearsRegex = RegExp(r'^\d{4}\s*-\s*\d{4}$');
+    if (!yearsRegex.hasMatch(_yearsController.text.trim())) {
+      _showError('Годы обучения должны быть в формате ГГГГ - ГГГГ');
+      return false;
+    }
+
     return true;
   }
 

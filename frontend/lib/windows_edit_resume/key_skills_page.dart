@@ -34,6 +34,27 @@ class _KeySkillsPageState extends State<KeySkillsPage> {
     final newSkills = _keySkillsController.text.trim();
     final currentSkills = widget.data;
 
+    final skillsText = _keySkillsController.text.trim();
+    final skills = skillsText.split(RegExp(r'[,;\n]')).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+
+    // Проверка количества навыков
+    if (skills.length > 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Можно указать не более 20 навыков')),
+      );
+      return;
+    }
+
+    // Проверка длины каждого навыка
+    for (final skill in skills) {
+      if (skill.isEmpty || skill.length > 50) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Каждый навык должен быть от 1 до 50 символов')),
+        );
+        return;
+      }
+    }
+
     // Проверяем, были ли изменения
     if (newSkills != currentSkills) {
       try {

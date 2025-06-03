@@ -68,6 +68,44 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
       _showError('Введите должность');
       return false;
     }
+
+    // Проверка названия компании
+    if (_companyController.text.trim().length > 100) {
+      _showError('Название компании должно быть не длиннее 100 символов');
+      return false;
+    }
+
+    // Проверка должности
+    if (_positionController.text.trim().length > 100) {
+      _showError('Название должности должно быть не длиннее 100 символов');
+      return false;
+    }
+
+    // Проверка описания обязанностей
+    if (_dutiesController.text.trim().length > 1000) {
+      _showError('Описание обязанностей должно быть не длиннее 1000 символов');
+      return false;
+    }
+
+    // Проверка формата дат
+    final monthYearRegex = RegExp(
+      r'^(январь|февраль|март|апрель|май|июнь|июль|август|сентябрь|октябрь|ноябрь|декабрь)\s\d{4}$',
+      caseSensitive: false,
+    );
+
+    final startDate = _startDateController.text.trim();
+    final endDate = _endDateController.text.trim();
+
+    if (!monthYearRegex.hasMatch(startDate)) {
+      _showError('Дата начала должна быть в формате "Название месяца год"');
+      return false;
+    }
+
+    if (!monthYearRegex.hasMatch(endDate) && endDate.toLowerCase() != 'по настоящее время') {
+      _showError('Дата окончания должна быть в формате "Январь 2021" или "по настоящее время"');
+      return false;
+    }
+
     return true;
   }
 

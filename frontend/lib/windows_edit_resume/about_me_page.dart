@@ -34,6 +34,16 @@ class _AboutMePageState extends State<AboutMePage> {
     final newAboutMe = _aboutMeController.text.trim();
     final currentAboutMe = widget.data;
 
+    final aboutMe = _aboutMeController.text.trim();
+
+    // Проверка длины
+    if (aboutMe.length > 500) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Раздел "О себе" должен быть не длиннее 500 символов')),
+      );
+      return;
+    }
+
     // Проверяем, были ли изменения
     if (newAboutMe != currentAboutMe) {
       try {
