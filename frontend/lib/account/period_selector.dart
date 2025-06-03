@@ -17,9 +17,9 @@ class PeriodSelector extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildPeriodButton('День', 'day'),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
         _buildPeriodButton('Неделя', 'week'),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
         _buildPeriodButton('Месяц', 'month'),
       ],
     );

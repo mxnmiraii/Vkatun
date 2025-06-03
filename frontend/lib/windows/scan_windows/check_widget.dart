@@ -11,6 +11,7 @@ class CheckWidget extends StatefulWidget {
   final List<Issue> issues;
   final VoidCallback? onResumeChange;
   final bool isStructure;
+  final bool isEmptyError;
 
   const CheckWidget({
     super.key,
@@ -20,6 +21,7 @@ class CheckWidget extends StatefulWidget {
     required this.issues,
     this.onResumeChange,
     required this.isStructure,
+    required this.isEmptyError,
   });
 
   @override
@@ -84,6 +86,7 @@ class _CheckWidgetState extends State<CheckWidget>
                                 resume: widget.resume,
                                 onResumeChange: widget.onResumeChange,
                                 isStructure: widget.isStructure,
+                                isEmptyError: widget.isEmptyError,
                               ),
                     );
                   }),
@@ -118,6 +121,7 @@ class _CheckWidgetState extends State<CheckWidget>
                                 originalResume: widget.resume,
                                 corrections: widget.issues,
                                 onResumeChange: widget.onResumeChange,
+                                isEmptyError: widget.isEmptyError,
                               ),
                         ),
                       );
@@ -151,6 +155,7 @@ class IssueCard extends StatefulWidget {
   final Map<String, dynamic> resume;
   final VoidCallback? onResumeChange;
   final bool isStructure;
+  final bool isEmptyError;
 
   const IssueCard({
     super.key,
@@ -162,6 +167,7 @@ class IssueCard extends StatefulWidget {
     required this.resume,
     required this.onResumeChange,
     required this.isStructure,
+    required this.isEmptyError,
   });
 
   @override
@@ -298,7 +304,7 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   const Spacer(),
-                                  if (!widget.isStructure)
+                                  if (!widget.isStructure || widget.issue.flag)
                                     Center(
                                       child: FractionallySizedBox(
                                         widthFactor: 3 / 4,
@@ -338,6 +344,8 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                                                           widget.issue,
                                                       onResumeChange:
                                                           widget.onResumeChange,
+                                                      isEmptyError:
+                                                          widget.isEmptyError,
                                                     ),
                                               ),
                                             ).then((correctedResume) {
@@ -380,10 +388,12 @@ class Issue {
   final String errorText;
   final String suggestion;
   final String description;
+  final bool flag;
 
   const Issue({
     required this.errorText,
     required this.suggestion,
     required this.description,
+    this.flag = false,
   });
 }

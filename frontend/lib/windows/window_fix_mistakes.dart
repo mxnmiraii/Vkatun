@@ -144,17 +144,20 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.analyzeAbout(id);
 
-      final issues = response['comment'] as List<dynamic>? ?? [];
+      final comment = response['comment'] as String?;
 
-      return issues
-          .map(
-            (issue) => Issue(
-              errorText: issue.toString(),
-              suggestion: '',
-              description: 'Рекомендуем исключить данный навык',
-            ),
-          )
-          .toList();
+      if (comment != null && comment.isNotEmpty) {
+        return [
+          Issue(
+            errorText: 'О себе',
+            suggestion: comment,
+            description:
+                'В разделе "О себе" отсутствуют контактные данные, что затрудняет связь с вами. '
+                'Контактная информация является важной частью резюме и упрощает процесс коммуникации с работодателем.',
+          ),
+        ];
+      }
+      return [];
     } catch (e) {
       print('Ошибка при анализе $e');
       return [];
@@ -166,19 +169,22 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.analyzeExperience(id);
 
-      final issues = response['experience'] as List<dynamic>? ?? [];
+      final comment = response['comment'] as String?;
 
-      return issues
-          .map(
-            (issue) => Issue(
-              errorText: issue.toString(),
-              suggestion: '',
-              description: 'Рекомендуем исключить данный навык',
-            ),
-          )
-          .toList();
+      if (comment != null && comment.isNotEmpty) {
+        return [
+          Issue(
+            errorText: 'Опыт работы',
+            suggestion: comment,
+            description:
+                'Описание опыта слишком краткое, что делает его недостаточно информативным. '
+                'Важно детально описывать обязанности и достижения, чтобы работодатель мог оценить ваш вклад в компанию.',
+          ),
+        ];
+      }
+      return [];
     } catch (e) {
-      print('Ошибка при анализе $e');
+      print('Ошибка при анализе опыта работы: $e');
       return [];
     }
   }
@@ -237,6 +243,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                       'Разбейте текст на абзацы для улучшения восприятия',
                   description:
                       'Длинный блок текста в разделе "${entry.value}" - более 5 предложений без разделения',
+                  flag: true,
                 ),
               );
             }
@@ -480,6 +487,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
                   isStructure: false,
+                  isEmptyError: false,
                 )
                 : isScanningPunctuation
                 ? Scan(
@@ -495,6 +503,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
                   isStructure: false,
+                  isEmptyError: false,
                 )
                 : isScanningGrammar
                 ? Scan(
@@ -510,6 +519,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
                   isStructure: false,
+                  isEmptyError: false,
                 )
                 : isScanningStyle
                 ? Scan(
@@ -525,6 +535,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
                   isStructure: false,
+                  isEmptyError: false,
                 )
                 : _scan(index, 'Исправление ошибок'))
             : _buildPage(index, 'Исправление ошибок', [
@@ -571,6 +582,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               isLoading: isLoading,
               onResumeChange: widget.onResumeChange,
               isStructure: true,
+              isEmptyError: true,
             )
             : _buildPage(index, 'Структура', [
               _buildText(
@@ -605,6 +617,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
                   isStructure: false,
+                  isEmptyError: true,
                 )
                 : isScanningAboutMe
                 ? Scan(
@@ -620,6 +633,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: aboutMeIssues,
                   onResumeChange: widget.onResumeChange,
                   isStructure: true,
+                  isEmptyError: true,
                 )
                 : isScanningExperience
                 ? Scan(
@@ -635,6 +649,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
                   isStructure: true,
+                  isEmptyError: true,
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [
@@ -786,8 +801,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             final overlayEntry = OverlayEntry(
                               builder:
                                   (context) => Positioned(
-                                    top:
-                                        MediaQuery.of(context).padding.top,
+                                    top: MediaQuery.of(context).padding.top,
                                     left: 24,
                                     right: 24,
                                     child: Material(

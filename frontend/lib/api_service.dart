@@ -208,7 +208,7 @@ class ApiService {
           .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
-        if (json.decode(response.body)['issues'].length != 0) {
+        if (json.decode(response.body)['comment'].toString().isNotEmpty) {
           await incrementRecommendationsMetric();
         }
         print(json.decode(response.body));
@@ -232,7 +232,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         print(json.decode(response.body));
-        if (json.decode(response.body)['issues'].length != 0) {
+        if (json.decode(response.body)['comment'].toString().isNotEmpty) {
           await incrementRecommendationsMetric();
         }
         return json.decode(response.body);
