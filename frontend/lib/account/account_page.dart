@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
+import 'package:vkatun/pages/resumes_page.dart';
 
 import '../api_service.dart';
 import '../pages/start_page.dart';
@@ -60,7 +61,9 @@ class _AccountMainPageState extends State<AccountPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => widget.profileData['email'] == 'admin@mail.ru' ? AccountMainPage() : ResumesPage())),
                 icon: lightArrowBackIcon,
               ),
               Text(

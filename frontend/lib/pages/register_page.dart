@@ -1,9 +1,11 @@
 import 'package:appmetrica_plugin/appmetrica_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vkatun/account/account_main_page.dart';
 import 'package:vkatun/pages/resumes_page.dart';
 import 'package:vkatun/pages/start_page.dart';
 
+import '../account/account_page.dart';
 import '../api_service.dart';
 import '../design/colors.dart';
 import '../design/dimensions.dart';
@@ -71,6 +73,17 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  Future<Map<String, dynamic>> _getProfileData() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.getProfile();
+      return response;
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return {"id": null, "email": null};
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Future<void> _performRegistration(String login, String emailNumber, String password) async {
@@ -98,9 +111,10 @@ class _RegisterPageState extends State<RegisterPage> {
         logRegisterEvent();
 
         // 3. Успешная регистрация и вход
+        Map<String, dynamic> profileData = await _getProfileData();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ResumesPage()),
+          MaterialPageRoute(builder: (context) => AccountPage(profileData: profileData,)),
         );
       } catch (e) {
         // Обработка ошибок

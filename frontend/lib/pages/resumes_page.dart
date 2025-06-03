@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vkatun/account/account_page.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/dialogs/error_dialog.dart';
@@ -433,6 +434,17 @@ class _ResumesPageState extends State<ResumesPage>
             ],
           ),
     );
+  }
+
+  Future<Map<String, dynamic>> _getProfileData() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.getProfile();
+      return response;
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return {"id": null, "email": null};
+    }
   }
 
   Future<void> _uploadResume(File file) async {
@@ -1049,11 +1061,12 @@ class _ResumesPageState extends State<ResumesPage>
                               }
                               : _showOnboarding
                               ? null
-                              : () {
+                              : () async {
+                                Map<String, dynamic> profileData = await _getProfileData();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AccountMainPage(),
+                                    builder: (context) => profileData['email'] == 'admin@mail.ru' ? AccountMainPage() : AccountPage(profileData: profileData),
                                   ),
                                 );
                               },

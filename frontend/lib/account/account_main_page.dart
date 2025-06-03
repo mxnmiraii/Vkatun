@@ -4,6 +4,7 @@ import 'package:vkatun/account/account_page.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
+import 'package:vkatun/pages/resumes_page.dart';
 
 import '../api_service.dart';
 import '../windows/scan_windows/indicator.dart';
@@ -80,7 +81,7 @@ class _AccountMainPageState extends State<AccountMainPage> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ResumesPage())),
                       icon: lightArrowBackIcon,
                     ),
                   ),
