@@ -142,7 +142,11 @@ func (d *DB) SaveMetricsSnapshot(ctx context.Context) error {
 
 // GetMetricsDelta возвращает разницу метрик за период с указанной даты
 func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metrics, error) {
-	var m models.Metrics
+	var (
+		totalUsers, totalResumes, totalChangesApp, acceptedRecommendations, activeUsersToday sql.NullInt64
+		lastUpdatedAt                                                                        sql.NullTime
+	)
+
 	err := d.pool.QueryRow(ctx, `
 		SELECT 
 			MAX(total_users) - MIN(total_users),
@@ -154,15 +158,36 @@ func (d *DB) GetMetricsDelta(ctx context.Context, from time.Time) (*models.Metri
 		FROM metrics_history
 		WHERE snapshot_date >= $1
 	`, from.Format("2006-01-02")).Scan(
-		&m.TotalUsers,
-		&m.TotalResumes,
-		&m.TotalChangesApp,
-		&m.AcceptedRecommendations,
-		&m.ActiveUsersToday,
-		&m.LastUpdatedAt,
+		&totalUsers,
+		&totalResumes,
+		&totalChangesApp,
+		&acceptedRecommendations,
+		&activeUsersToday,
+		&lastUpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &m, nil
+
+	m := &models.Metrics{}
+	if totalUsers.Valid {
+		m.TotalUsers = int(totalUsers.Int64)
+	}
+	if totalResumes.Valid {
+		m.TotalResumes = int(totalResumes.Int64)
+	}
+	if totalChangesApp.Valid {
+		m.TotalChangesApp = int(totalChangesApp.Int64)
+	}
+	if acceptedRecommendations.Valid {
+		m.AcceptedRecommendations = int(acceptedRecommendations.Int64)
+	}
+	if activeUsersToday.Valid {
+		m.ActiveUsersToday = int(activeUsersToday.Int64)
+	}
+	if lastUpdatedAt.Valid {
+		m.LastUpdatedAt = lastUpdatedAt.Time
+	}
+
+	return m, nil
 }
