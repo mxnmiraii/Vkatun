@@ -98,8 +98,10 @@
 - [Git Flow](https://codenest.youtrack.cloud/articles/VN-A-20/Git-Flow)
 - [Правила ведения и отслеживания задач в проекте в YouTrack](https://codenest.youtrack.cloud/articles/VN-A-4/Pravila-vedeniya-i-otslezhivaniya-zadach-v-proekte)
 
-## 📱 Приложение (Демо-версия)
-Мобильное приложение: [Vkatun.apk](https://disk.yandex.ru/d/Xn9VgukfquYT8Q)
+## 📱 Приложение
+Скачать мобильное приложение Vkatun:  
+- [GitHub Release (v1.0.0)](https://github.com/mxnmiraii/Vkatun/releases/tag/v1.0.0)  
+- [Яндекс Диск](https://disk.yandex.ru/d/yD56GwPp5xCSPQ)
 ### Тестовые данные для входа в мобильное приложение
 |                     | Логин            | Пароль |
 |---------------------|------------------|--------|
