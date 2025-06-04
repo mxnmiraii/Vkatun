@@ -64,7 +64,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"admin@mail.ru\",\r\n  \"password\": \"admin\"\r\n}\r\n"
+					"raw": "{\r\n  \"email\": \"admin@mail.ru\",\r\n  \"password\": \"admin11!\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "https://87.228.38.184/login",
