@@ -47,6 +47,7 @@
 - Презентация (предзащита) [(PPTX)](Презентация/presentation_3_milestone.pptx) [(PDF)](Презентация/presentation_3_milestone.pdf)
 ### Защита проекта (4 этап)
 - Презентация (защита) [(PPTX)](Презентация/presentation_final.pptx) [(PDF)](Презентация/presentation_final.pdf)
+- Демонстрация и обзор Vkatun [(RUTUBE)](https://rutube.ru/video/private/4b9cb7cf33094c80cc4df666d17fcd04/?p=t7Kk3bsmnMRxFxC3sRVv6Q) [(Yandex Disk)](https://disk.yandex.ru/i/sBESKs6BmN3PYQ)
 
 ## 🎨 Дизайн
 - [Макеты](https://www.figma.com/design/0OOxRgldXLFqAwFYJGFBdw/Vkatun-Design?node-id=0-1&p=f&t=iyzrD3cHKnuMCknF-0)
