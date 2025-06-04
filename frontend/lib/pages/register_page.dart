@@ -134,9 +134,10 @@ class _RegisterPageState extends State<RegisterPage> {
               password: password,
             );
 
+            Map<String, dynamic> profileData = await _getProfileData();
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => ResumesPage()),
+              MaterialPageRoute(builder: (context) => AccountPage(profileData: profileData,)),
             );
           } catch (loginError) {
             setState(() => _errorMessage = 'Регистрация успешна, но вход не удался. Пожалуйста, войдите вручную.');

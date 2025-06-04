@@ -146,7 +146,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
 
       final comment = response['comment'] as String?;
 
-      if (comment != null && comment.isNotEmpty) {
+      if (comment != null && comment.isNotEmpty && !comment.contains('Контактные данные указаны корректно: '
+          'будущий работодатель может с вами связаться.')) {
         return [
           Issue(
             errorText: 'О себе',
@@ -171,7 +172,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
 
       final comment = response['comment'] as String?;
 
-      if (comment != null && comment.isNotEmpty) {
+      if (comment != null && comment.isNotEmpty && !comment.contains('Раздел «Опыт работы» выглядит хорошо.')) {
         return [
           Issue(
             errorText: 'Опыт работы',
