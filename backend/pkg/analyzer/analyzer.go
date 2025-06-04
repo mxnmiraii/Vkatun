@@ -68,9 +68,7 @@ func AboutCheck(text string) (Recommendation, error) {
 		}, nil
 	}
 
-	return Recommendation{
-		Comment: "Контактные данные указаны корректно: будущий работодатель может с вами связаться.",
-	}, nil
+	return Recommendation{}, nil
 }
 
 func ExperienceCheck(text string) (Recommendation, error) {
@@ -93,9 +91,7 @@ func ExperienceCheck(text string) (Recommendation, error) {
 		}, nil
 	}
 
-	return Recommendation{
-		Comment: "Раздел «Опыт работы» выглядит хорошо.",
-	}, nil
+	return Recommendation{}, nil
 }
 
 func SkillsCheck(text string) ([]Issue, error) {
