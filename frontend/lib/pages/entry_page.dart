@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:vkatun/api_service.dart';
 import 'package:vkatun/pages/register_page.dart';
 import 'package:vkatun/pages/resumes_page.dart';
+import '../account/account_page.dart';
 import '../design/colors.dart';
 import '../design/dimensions.dart';
 
@@ -76,6 +77,17 @@ class _EntryPageState extends State<EntryPage> {
     }
   }
 
+  Future<Map<String, dynamic>> _getProfileData() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.getProfile();
+      return response;
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return {"id": null, "email": null};
+    }
+  }
+
   Future<void> _performLogin(String emailNumber, String password) async {
     setState(() {
       _isLoading = true;
@@ -90,9 +102,10 @@ class _EntryPageState extends State<EntryPage> {
 
       logLoginEvent();
 
+      Map<String, dynamic> profileData = await _getProfileData();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => ResumesPage()),
+        MaterialPageRoute(builder: (context) => AccountPage(profileData: profileData,)),
       );
     } catch (e) {
       _showFieldError('password', 'Неверный логин или пароль');

@@ -302,7 +302,7 @@ class _AccountSettingsPageState extends State<AccountSettingsPage> {
             controller: controller,
             obscureText: label.contains("пароль"), // скрываем для паролей
             style: const TextStyle(
-              fontFamily: "NotoSans",
+              fontFamily: "NotoSansBengali",
               fontSize: 14,
               fontWeight: FontWeight.w300,
               color: black,

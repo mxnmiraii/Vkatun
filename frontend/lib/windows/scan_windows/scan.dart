@@ -14,6 +14,8 @@ class Scan extends StatelessWidget {
   final List<Issue> issues;
   final bool isLoading;
   final VoidCallback? onResumeChange;
+  final bool isStructure;
+  final bool isEmptyError;
 
   const Scan({
     super.key,
@@ -24,6 +26,8 @@ class Scan extends StatelessWidget {
     required this.issues,
     this.isLoading = false,
     required this.onResumeChange,
+    required this.isStructure,
+    required this.isEmptyError,
   });
 
   @override
@@ -124,6 +128,8 @@ class Scan extends StatelessWidget {
                             resume: resume,
                             issues: issues,
                             onResumeChange: onResumeChange,
+                            isStructure: isStructure,
+                            isEmptyError: isEmptyError,
                           );
                         },
                       ),

@@ -92,6 +92,11 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
     }
   }
 
+  bool isGuest() {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    return apiService.isGuest;
+  }
+
   void _showFullScreenOnboarding(isFirst, isSeventh, isEight) {
     showGeneralDialog(
       context: context,
@@ -139,17 +144,21 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.analyzeAbout(id);
 
-      final issues = response['comment'] as List<dynamic>? ?? [];
+      final comment = response['comment'] as String?;
 
-      return issues
-          .map(
-            (issue) => Issue(
-              errorText: issue.toString(),
-              suggestion: '',
-              description: 'Рекомендуем исключить данный навык',
-            ),
-          )
-          .toList();
+      if (comment != null && comment.isNotEmpty && !comment.contains('Контактные данные указаны корректно: '
+          'будущий работодатель может с вами связаться.')) {
+        return [
+          Issue(
+            errorText: 'О себе',
+            suggestion: comment,
+            description:
+                'В разделе "О себе" отсутствуют контактные данные, что затрудняет связь с вами. '
+                'Контактная информация является важной частью резюме и упрощает процесс коммуникации с работодателем.',
+          ),
+        ];
+      }
+      return [];
     } catch (e) {
       print('Ошибка при анализе $e');
       return [];
@@ -161,43 +170,92 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final response = await apiService.analyzeExperience(id);
 
-      final issues = response['experience'] as List<dynamic>? ?? [];
+      final comment = response['comment'] as String?;
 
-      return issues
-          .map(
-            (issue) => Issue(
-              errorText: issue.toString(),
-              suggestion: '',
-              description: 'Рекомендуем исключить данный навык',
-            ),
-          )
-          .toList();
+      if (comment != null && comment.isNotEmpty && !comment.contains('Раздел «Опыт работы» выглядит хорошо.')) {
+        return [
+          Issue(
+            errorText: 'Опыт работы',
+            suggestion: comment,
+            description:
+                'Описание опыта слишком краткое, что делает его недостаточно информативным. '
+                'Важно детально описывать обязанности и достижения, чтобы работодатель мог оценить ваш вклад в компанию.',
+          ),
+        ];
+      }
+      return [];
     } catch (e) {
-      print('Ошибка при анализе $e');
+      print('Ошибка при анализе опыта работы: $e');
       return [];
     }
   }
 
   Future<List<Issue>> _analyzeResumeStructure(int id) async {
     try {
-      final apiService = Provider.of<ApiService>(context, listen: false);
-      final response = await apiService.checkStructure(id);
+      final issues = <Issue>[];
 
-      // Преобразуем ответ в List<Issue>
-      final structure = response['missing_sections'] as List<dynamic>? ?? [];
+      // Проверяем наличие обязательных разделов
+      final requiredSections = {
+        'contacts': 'Контактные данные',
+        'job': 'Желаемая должность',
+        'experience': 'Опыт работы',
+        'skills': 'Навыки',
+        'about': 'О себе',
+      };
 
-      return structure
-          .map(
-            (skill) => Issue(
-              errorText: skill.toString(),
-              suggestion: '',
+      for (final entry in requiredSections.entries) {
+        if (widget.resume[entry.key] == null ||
+            (widget.resume[entry.key] is String &&
+                widget.resume[entry.key].isEmpty)) {
+          issues.add(
+            Issue(
+              errorText: entry.value,
+              suggestion: 'Добавьте раздел "${entry.value}" в резюме',
               description: 'Пропущенный раздел',
             ),
-          )
-          .toList();
+          );
+        }
+      }
+
+      // Проверяем длинные блоки текста в разделах
+      final textSections = {
+        'experience': 'Опыт работы',
+        'education': 'Образование',
+        'skills': 'Навыки',
+        'about': 'О себе',
+      };
+
+      for (final entry in textSections.entries) {
+        final sectionText = widget.resume[entry.key] as String? ?? '';
+        if (sectionText.isNotEmpty) {
+          // Разбиваем на абзацы (если есть переносы строк)
+          final paragraphs = sectionText.split('\n');
+
+          for (final paragraph in paragraphs) {
+            if (paragraph.trim().isEmpty) continue;
+
+            // Считаем примерное количество предложений (по точкам)
+            final sentenceCount = paragraph.split('.').length - 1;
+            if (sentenceCount > 5) {
+              issues.add(
+                Issue(
+                  errorText: '${entry.value}',
+                  suggestion:
+                      'Разбейте текст на абзацы для улучшения восприятия',
+                  description:
+                      'Длинный блок текста в разделе "${entry.value}" - более 5 предложений без разделения',
+                  flag: true,
+                ),
+              );
+            }
+          }
+        }
+      }
+
+      return issues;
     } catch (e) {
       print('Ошибка при анализе структуры: $e');
-      return []; // Возвращаем пустой список при ошибке
+      return [];
     }
   }
 
@@ -216,9 +274,10 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             (issue) => Issue(
               errorText: issue['text'] ?? '',
               suggestion: issue['suggestion'] ?? '',
-              description: requiredType.contains('spelling')
-                  ? 'Ошибка в написании слова. Верный вариант - "${issue['suggestion']}".'
-                  : 'Ошибка в написании. Верный вариант - "${issue['suggestion']}".'
+              description:
+                  requiredType.contains('spelling')
+                      ? 'Ошибка в написании слова. Верный вариант - "${issue['suggestion']}".'
+                      : 'Ошибка в написании. Верный вариант - "${issue['suggestion']}".',
             ),
           )
           .toList();
@@ -428,6 +487,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: spellingIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
+                  isEmptyError: false,
                 )
                 : isScanningPunctuation
                 ? Scan(
@@ -442,6 +503,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: punctuationIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
+                  isEmptyError: false,
                 )
                 : isScanningGrammar
                 ? Scan(
@@ -456,6 +519,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: grammarIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
+                  isEmptyError: false,
                 )
                 : isScanningStyle
                 ? Scan(
@@ -470,6 +535,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: styleIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
+                  isEmptyError: false,
                 )
                 : _scan(index, 'Исправление ошибок'))
             : _buildPage(index, 'Исправление ошибок', [
@@ -515,6 +582,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               issues: structureIssues,
               isLoading: isLoading,
               onResumeChange: widget.onResumeChange,
+              isStructure: true,
+              isEmptyError: true,
             )
             : _buildPage(index, 'Структура', [
               _buildText(
@@ -548,6 +617,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: skillsIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: false,
+                  isEmptyError: true,
                 )
                 : isScanningAboutMe
                 ? Scan(
@@ -562,6 +633,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   isLoading: isLoading,
                   issues: aboutMeIssues,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: true,
+                  isEmptyError: true,
                 )
                 : isScanningExperience
                 ? Scan(
@@ -576,6 +649,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                   issues: experienceIssues,
                   isLoading: isLoading,
                   onResumeChange: widget.onResumeChange,
+                  isStructure: true,
+                  isEmptyError: true,
                 )
                 : _scan(index, 'Содержание'))
             : _buildPage(index, 'Содержание', [
@@ -697,8 +772,8 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                             _showFullScreenOnboarding(false, false, true);
                           });
                         }
-                        : () async {
-                          // Добавьте async здесь
+                        : (!isGuest() || index == 0)
+                        ? () async {
                           try {
                             logScanEvent();
 
@@ -720,6 +795,77 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                           } catch (e) {
                             debugPrint('Ошибка отправки события: $e');
                           }
+                        }
+                        : () async {
+                          if (isGuest()) {
+                            final overlay = Overlay.of(context);
+                            final overlayEntry = OverlayEntry(
+                              builder:
+                                  (context) => Positioned(
+                                    top: MediaQuery.of(context).padding.top,
+                                    left: 24,
+                                    right: 24,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
+                                              blurRadius: 10,
+                                              offset: Offset(0, 4),
+                                            ),
+                                          ],
+                                          border: Border.all(
+                                            color: mediumSlateBlue.withOpacity(
+                                              0.3,
+                                            ),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.info_outline_rounded,
+                                              color: mediumSlateBlue,
+                                              size: 24,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Flexible(
+                                              child: Text(
+                                                'Доступно только авторизованным пользователям',
+                                                style: TextStyle(
+                                                  fontFamily: 'Playfair',
+                                                  color: midnightPurple,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                            );
+
+                            overlay.insert(overlayEntry);
+
+                            await Future.delayed(const Duration(seconds: 2));
+                            overlayEntry.remove();
+                          }
                         },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -736,6 +882,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
                     color: midnightPurple,
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
+                    fontFamily: 'Playfair',
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -774,7 +921,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color: borderWindowColor,
+              color: buttonLightLavender.withOpacity(0.53),
               width: widthBorderRadius,
             ),
           ),
@@ -975,7 +1122,10 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
         ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            side: BorderSide(color: midnightPurple, width: widthBorderRadius),
+            side: BorderSide(
+              color: buttonLightLavender.withOpacity(0.53),
+              width: widthBorderRadius,
+            ),
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -990,7 +1140,7 @@ class _WindowFixMistakesState extends State<WindowFixMistakes> {
               color: midnightPurple,
               fontSize: 24,
               fontWeight: FontWeight.w600,
-              fontFamily: 'Playfair'
+              fontFamily: 'Playfair',
             ),
             textAlign: TextAlign.center,
           ),

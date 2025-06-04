@@ -19,7 +19,7 @@ class WindowResumesPage extends StatefulWidget {
   final VoidCallback onDelete;
   final bool showOnboarding;
   final VoidCallback? stopOnboarding;
-  final VoidCallback onUpdateResumeChange;
+  final Function(Map<String, dynamic>)? onUpdateResumeChange;
 
   const WindowResumesPage({
     super.key,
@@ -188,8 +188,11 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
                                             (context) => ResumeViewPage(
                                               resume: widget.resume,
                                               onDelete: widget.onDelete,
-                                              onUpdateResumeChange:
-                                                  widget.onUpdateResumeChange,
+                                              onUpdateResumeChange: (updatedResume) {
+                                                if (widget.onUpdateResumeChange != null) {
+                                                  widget.onUpdateResumeChange!(updatedResume);
+                                                }
+                                              },
                                             ),
                                       ),
                                     );
@@ -407,6 +410,7 @@ class _WindowResumesPageState extends State<WindowResumesPage> {
       setState(() {
         _isExporting = false;
       });
+      print(e);
       _showWarningDialog(context);
     }
   }

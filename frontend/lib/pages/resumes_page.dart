@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vkatun/account/account_page.dart';
 import 'package:vkatun/design/images.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/dialogs/error_dialog.dart';
@@ -36,6 +37,7 @@ class _ResumesPageState extends State<ResumesPage>
   bool _isDialogOpen = false;
   List<Map<String, dynamic>> _resumes = [];
   List<Map<String, dynamic>> _displayedResumes = [];
+  List<Map<String, String>> _resumesExperience = [];
   bool _isSorting = false;
   bool _sortNewestFirst = true;
 
@@ -62,6 +64,56 @@ class _ResumesPageState extends State<ResumesPage>
     setState(() {
       _showOnboarding = false;
     });
+  }
+
+  Future<String> getExperienceByResumeId(resumeId) async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final expRaw = (await apiService.getResumeById(resumeId))['experience'];
+
+    if (expRaw == null || expRaw.toString().trim().isEmpty) {
+      return 'Опыт не указан';
+    }
+
+    final expText = expRaw.toString().trim();
+
+    final experienceLine = expText.split('\n').firstWhere(
+          (line) => line.toLowerCase().contains('опыт работы'),
+      orElse: () => '',
+    );
+
+    if (experienceLine.isEmpty) {
+      return 'Опыт не указан';
+    }
+
+    // Ищем первое вхождение цифры в строке
+    final digitMatch = RegExp(r'\d+').firstMatch(experienceLine);
+
+    if (digitMatch == null) {
+      return 'Опыт не указан';
+    }
+
+    // Берем подстроку начиная с первой цифры
+    final startIndex = digitMatch.start;
+    final result = experienceLine.substring(startIndex).trim();
+
+    return result.isNotEmpty ? result : 'Опыт не указан';
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showFullScreenOnboarding(_isFirstBigStep, _isFifthBigStep);
+      });
+
+      await prefs.setBool('isFirstLaunch', false);
+    } else {
+      setState(() {
+        _showOnboarding = false;
+      });
+    }
   }
 
   void _hideOverlay() {
@@ -103,11 +155,14 @@ class _ResumesPageState extends State<ResumesPage>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding(_isFirstBigStep, _isFifthBigStep);
-    });
-    _syncResumes();
-    _loadResumes();
+    _checkFirstLaunch();
+
+    _syncAndLoadResumes();
+  }
+
+  Future<void> _syncAndLoadResumes() async {
+    await _syncResumes();
+    await _loadResumes();
   }
 
   void _showFullScreenOnboarding(isFirst, isFifth) {
@@ -142,8 +197,19 @@ class _ResumesPageState extends State<ResumesPage>
       final apiService = Provider.of<ApiService>(context, listen: false);
       final resumes = await apiService.getResumes();
 
+      final experiences = await Future.wait(
+        resumes.map((resume) async {
+          final exp = await getExperienceByResumeId(resume['id']); // Ожидаем Future
+          return {
+            'id': resume['id'].toString(),
+            'experience': exp,
+          };
+        }),
+      );
+
       setState(() {
         _resumes = resumes;
+        _resumesExperience = experiences;
         _resumes.sort(
           (a, b) => (b['updated_at'] ?? b['created_at']).compareTo(
             a['updated_at'] ?? a['created_at'],
@@ -277,7 +343,7 @@ class _ResumesPageState extends State<ResumesPage>
           },
           showOnboarding: _showOnboarding,
           stopOnboarding: _stopOnboarding,
-          onUpdateResumeChange: _handleResumeUpdate,
+          onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume),
         );
       },
     ).then((_) {
@@ -370,6 +436,17 @@ class _ResumesPageState extends State<ResumesPage>
     );
   }
 
+  Future<Map<String, dynamic>> _getProfileData() async {
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+      final response = await apiService.getProfile();
+      return response;
+    } catch (e) {
+      print('Ошибка при анализе $e');
+      return {"id": null, "email": null};
+    }
+  }
+
   Future<void> _uploadResume(File file) async {
     showDialog(
       context: context,
@@ -384,9 +461,15 @@ class _ResumesPageState extends State<ResumesPage>
       final apiService = Provider.of<ApiService>(context, listen: false);
       final resume = await apiService.uploadResume(file);
 
+      final experience = await getExperienceByResumeId(resume['id']);
+
       Navigator.pop(context);
       setState(() {
         _resumes.insert(0, resume);
+        _resumesExperience.insert(0, {
+          'id': resume['id'].toString(),
+          'experience': experience,
+        });
         _reachedLimit =
             apiService.isGuest ? _resumes.length >= 1 : _resumes.length >= 15;
       });
@@ -415,7 +498,7 @@ class _ResumesPageState extends State<ResumesPage>
                             _showFullScreenOnboarding(false, _isFifthBigStep);
                           });
                         }
-                        : null, onUpdateResumeChange: _handleResumeUpdate,
+                        : null, onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume)
               ),
         ),
       );
@@ -629,11 +712,27 @@ class _ResumesPageState extends State<ResumesPage>
     );
   }
 
-  void _handleResumeUpdate() {
-    _loadResumes();
+  void _handleResumeUpdate({Map<String, dynamic>? updatedResume}) {
+    if (updatedResume != null) {
+      // Локальное обновление конкретного резюме
+      setState(() {
+        final index = _resumes.indexWhere((r) => r['id'] == updatedResume['id']);
+        if (index != -1) {
+          _resumes[index] = updatedResume;
+        }
+      });
+    } else {
+      // Полная перезагрузка только если не передано конкретное резюме
+      _loadResumes();
+    }
   }
 
   Widget _buildResumeCard(Map<String, dynamic> resume, int index) {
+    final experienceData = _resumesExperience.firstWhere(
+          (e) => e['id'] == resume['id'].toString(),
+      orElse: () => {'experience': 'Опыт не указан'},
+    );
+
     return GestureDetector(
       onTap: () async {
         showDialog(
@@ -657,12 +756,12 @@ class _ResumesPageState extends State<ResumesPage>
                             showOnboarding: true,
                             iconKey: addIconKey,
                             isSixthBigStep: true,
-                            onUpdateResumeChange: _handleResumeUpdate,
+                          onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume)
                           )
                           : ResumeViewPage(
                             resume: loadedResume,
                             onDelete: () {},
-                            onUpdateResumeChange: _handleResumeUpdate,
+                          onUpdateResumeChange: (updatedResume) => _handleResumeUpdate(updatedResume: updatedResume)
                           ),
             ),
           );
@@ -730,9 +829,7 @@ class _ResumesPageState extends State<ResumesPage>
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
-                  resume['experince']?.isNotEmpty == true
-                      ? resume['experince']!
-                      : 'Опыт не указан',
+                  experienceData['experience'] ?? 'Опыт не указан',
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -964,11 +1061,12 @@ class _ResumesPageState extends State<ResumesPage>
                               }
                               : _showOnboarding
                               ? null
-                              : () {
+                              : () async {
+                                Map<String, dynamic> profileData = await _getProfileData();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AccountMainPage(),
+                                    builder: (context) => profileData['email'] == 'admin@mail.ru' ? AccountMainPage() : AccountPage(profileData: profileData),
                                   ),
                                 );
                               },

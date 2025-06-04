@@ -31,7 +31,7 @@ class ResumeViewPage extends StatefulWidget {
   final GlobalKey? iconKey;
   final VoidCallback? onReturnFromOnboarding;
   final bool isSixthBigStep;
-  final VoidCallback onUpdateResumeChange;
+  final ValueChanged<Map<String, dynamic>> onUpdateResumeChange;
 
   const ResumeViewPage({
     super.key,
@@ -53,6 +53,9 @@ class ResumeViewPage extends StatefulWidget {
 
 class _ResumeViewPageState extends State<ResumeViewPage>
     with TickerProviderStateMixin {
+
+  String? experienceSummary;
+
   late AnimationController _rotationController;
   bool _isDialogOpen = false;
   final GlobalKey magicIconKey = GlobalKey();
@@ -83,6 +86,22 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   @override
   void initState() {
     super.initState();
+
+
+    // Здесь он ищет по первой строчке слово опыт работы и обрабатывает
+    final expRaw = widget.resume['experience'];
+    if (expRaw != null && expRaw.toString().trim().isNotEmpty) {
+      final firstLine = expRaw.toString().trim().split('\n').firstWhere(
+            (line) => line.toLowerCase().startsWith('опыт работы'),
+        orElse: () => '',
+      );
+      final match = RegExp(r'[-—–]?\s*(.+)$').firstMatch(firstLine);
+      if (match != null) {
+        experienceSummary = match.group(1)?.trim();
+      }
+    }
+    //
+
     _rotationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: timeShowAnimation),
@@ -90,8 +109,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
     widget.showOnboarding
         ? WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showFullScreenOnboarding(false, _isSecondStep, _isFourthStep);
-    })
+          _showFullScreenOnboarding(false, _isSecondStep, _isFourthStep);
+        })
         : null;
   }
 
@@ -123,32 +142,33 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     late OverlayEntry buttonOverlayEntry;
 
     buttonOverlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        bottom: bottom35,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: Material(
-            color: Colors.transparent,
-            child: AnimatedBuilder(
-              animation: _rotationController,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: _rotationController.value * 2 * math.pi,
-                  child: IconButton(
-                    icon: addIcon,
-                    onPressed: () {
-                      buttonOverlayEntry.remove();
-                      _closeDialog();
-                    },
-                    iconSize: 36,
-                  ),
-                );
-              },
+      builder:
+          (context) => Positioned(
+            bottom: bottom35,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: AnimatedBuilder(
+                  animation: _rotationController,
+                  builder: (context, child) {
+                    return Transform.rotate(
+                      angle: _rotationController.value * 2 * math.pi,
+                      child: IconButton(
+                        icon: addIcon,
+                        onPressed: () {
+                          buttonOverlayEntry.remove();
+                          _closeDialog();
+                        },
+                        iconSize: 36,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ),
-        ),
-      ),
     );
 
     if (_showOverlay) {
@@ -197,7 +217,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     });
   }
 
-
   void _closeDialog() {
     _rotationController.reverse();
     setState(() {
@@ -219,29 +238,29 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       pageBuilder: (context, _, __) {
         return widget.isSixthBigStep
             ? OnboardingContent(
-          hideOnboarding: () {
-            Navigator.pop(context);
-            _pulseCtrl.repeat(reverse: true);
-          },
-          iconKey: widget.iconKey ?? GlobalKey(),
-          isFirstBigStep: false,
-          isSixthBigStep: true,
-        )
+              hideOnboarding: () {
+                Navigator.pop(context);
+                _pulseCtrl.repeat(reverse: true);
+              },
+              iconKey: widget.iconKey ?? GlobalKey(),
+              isFirstBigStep: false,
+              isSixthBigStep: true,
+            )
             : OnboardingContent(
-          hideOnboarding: () {
-            Navigator.pop(context);
-            if (_isSecondStep) {
-              _namePulseCtrl.repeat(reverse: true);
-            } else if (_isFourthStep) {
-              _pulseCtrl.repeat(reverse: true);
-            }
-          },
-          iconKey:
-          isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
-          isFirstBigStep: isFirst,
-          isSecondBigStep: isSecond,
-          isFourthBigStep: isFourth,
-        );
+              hideOnboarding: () {
+                Navigator.pop(context);
+                if (_isSecondStep) {
+                  _namePulseCtrl.repeat(reverse: true);
+                } else if (_isFourthStep) {
+                  _pulseCtrl.repeat(reverse: true);
+                }
+              },
+              iconKey:
+                  isFourth ? widget.iconKey ?? GlobalKey() : forwardIconWBgKey,
+              isFirstBigStep: isFirst,
+              isSecondBigStep: isSecond,
+              isFourthBigStep: isFourth,
+            );
       },
     );
   }
@@ -272,29 +291,31 @@ class _ResumeViewPageState extends State<ResumeViewPage>
           children: [
             IconButton(
               onPressed:
-              widget.showOnboarding
-                  ? null
-                  : widget.isLoadResume
-                  ? () async {
-                try {
-                  final apiService = Provider.of<ApiService>(
-                    context,
-                    listen: false,
-                  );
-                  await apiService.deleteResume(
-                    widget.resume['id'] as int,
-                  );
-                  widget.onDelete();
+                  widget.showOnboarding
+                      ? null
+                      : widget.isLoadResume
+                      ? () async {
+                        try {
+                          final apiService = Provider.of<ApiService>(
+                            context,
+                            listen: false,
+                          );
+                          await apiService.deleteResume(
+                            widget.resume['id'] as int,
+                          );
+                          widget.onDelete();
 
-                  Navigator.pop(context);
-                } catch (e) {
-                  _showWarningDialog(context);
-                }
-              }
-                  : () {
-                if (_hasResumeChanged) {widget.onUpdateResumeChange();}
-                Navigator.pop(context);
-              },
+                          Navigator.pop(context);
+                        } catch (e) {
+                          _showWarningDialog(context);
+                        }
+                      }
+                      : () {
+                        if (_hasResumeChanged) {
+                          widget.onUpdateResumeChange(widget.resume);
+                        }
+                        Navigator.pop(context);
+                      },
               icon: backIconWBg,
             ),
 
@@ -322,8 +343,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-
             // ФИО с улучшенным отображением
             _buildSection(
               title: 'ФИО',
@@ -331,25 +350,25 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               hasCheck: true,
               targetPage: FullNamePage(
                 data:
-                widget.resume['title'] == null ||
-                    widget.resume['title'].isEmpty
-                    ? ['', '', '']
-                    : widget.resume['title'].split(' '),
+                    widget.resume['title'] == null ||
+                            widget.resume['title'].isEmpty
+                        ? ['', '', '']
+                        : widget.resume['title'].split(' '),
                 showOnboarding: widget.showOnboarding,
                 doneIconKey: widget.iconKey,
                 onReturnFromOnboarding:
-                widget.showOnboarding
-                    ? () {
-                  _switchOnboardingSteps();
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _showFullScreenOnboarding(
-                      false,
-                      _isSecondStep,
-                      _isFourthStep,
-                    );
-                  });
-                }
-                    : null,
+                    widget.showOnboarding
+                        ? () {
+                          _switchOnboardingSteps();
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _showFullScreenOnboarding(
+                              false,
+                              _isSecondStep,
+                              _isFourthStep,
+                            );
+                          });
+                        }
+                        : null,
                 resumeId: widget.resume['id'],
                 onResumeChange: () {
                   _updateResumeData();
@@ -364,22 +383,36 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             _buildSection(
               title: 'Желаемая должность',
               content:
-              (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
-                  ? widget.resume['job']!.trim()
-                  : 'Не указано',
+                  (widget.resume['job']?.trim() ?? 'Не указано').isNotEmpty
+                      ? widget.resume['job']!.trim()
+                      : 'Не указано',
               hasCheck: true,
               targetPage: DesiredPositionPage(
                 data: [widget.resume['job']?.trim() ?? ''],
+                resumeId: widget.resume['id'],
+                onResumeChange: () {
+                  _updateResumeData();
+                  setState(() {
+                    _hasResumeChanged = true;
+                  });
+                },
               ),
             ),
 
             // Контактные данные с красивым форматированием
             _buildSection(
               title: 'Контактные данные',
-              content: _formatContacts(widget.resume['contacts']),
+              contentWidget: _buildContactsRichText(widget.resume['contacts']),
               hasCheck: true,
               targetPage: ContactInfoPage(
                 data: _parseContacts(widget.resume['contacts'] ?? ''),
+                resumeId: widget.resume['id'],
+                onResumeChange: () {
+                  _updateResumeData();
+                  setState(() {
+                    _hasResumeChanged = true;
+                  });
+                },
               ),
             ),
 
@@ -397,66 +430,77 @@ class _ResumeViewPageState extends State<ResumeViewPage>
               title: 'О себе',
               content: _formatAboutMe(widget.resume['about']),
               hasCheck: true,
-              targetPage: AboutMePage(data: widget.resume['about'] ?? ''),
+              targetPage: AboutMePage(
+                data: widget.resume['about'] ?? '',
+                resumeId: widget.resume['id'],
+                onResumeChange: () {
+                  _updateResumeData();
+                  setState(() {
+                    _hasResumeChanged = true;
+                  });
+                },
+              ),
             ),
           ],
         ),
       ),
 
+
+
       floatingActionButton:
-      widget.isLoadResume
-          ? Padding(
-        padding: EdgeInsets.only(bottom: bottom35),
-        child:
-        widget.showOnboarding && _isFourthStep
-            ? ScaleTransition(
-          scale: _pulseAnim,
-          child: IconButton(
-            onPressed: () {
-              _pulseCtrl.stop();
-              Navigator.pop(context, true);
-              widget.onReturnFromOnboarding!();
-            },
-            icon: doneIcon,
-          ),
-        )
-            : IconButton(
-          onPressed:
-          widget.showOnboarding
-              ? _isFourthStep
-              ? () {
-            _pulseCtrl.stop();
-            Navigator.pop(context, true);
-          }
-              : null
-              : () {
-            Navigator.pop(context, true);
-          },
-          icon: doneIcon,
-        ),
-      )
-          : Padding(
-        padding: EdgeInsets.only(bottom: bottom35),
-        child:
-        widget.showOnboarding && widget.isSixthBigStep
-            ? ScaleTransition(
-          scale: _pulseAnim,
-          child: IconButton(
-            icon: magicIcon,
-            onPressed: () {
-              _pulseCtrl.stop();
-              _hideOverlay();
-              _openDialog();
-            },
-            iconSize: 36,
-          ),
-        )
-            : IconButton(
-          icon: magicIcon,
-          onPressed: _openDialog,
-          iconSize: 36,
-        ),
-      ),
+          widget.isLoadResume
+              ? Padding(
+                padding: EdgeInsets.only(bottom: bottom35),
+                child:
+                    widget.showOnboarding && _isFourthStep
+                        ? ScaleTransition(
+                          scale: _pulseAnim,
+                          child: IconButton(
+                            onPressed: () {
+                              _pulseCtrl.stop();
+                              Navigator.pop(context, true);
+                              widget.onReturnFromOnboarding!();
+                            },
+                            icon: doneIcon,
+                          ),
+                        )
+                        : IconButton(
+                          onPressed:
+                              widget.showOnboarding
+                                  ? _isFourthStep
+                                      ? () {
+                                        _pulseCtrl.stop();
+                                        Navigator.pop(context, true);
+                                      }
+                                      : null
+                                  : () {
+                                    Navigator.pop(context, true);
+                                  },
+                          icon: doneIcon,
+                        ),
+              )
+              : Padding(
+                padding: EdgeInsets.only(bottom: bottom35),
+                child:
+                    widget.showOnboarding && widget.isSixthBigStep
+                        ? ScaleTransition(
+                          scale: _pulseAnim,
+                          child: IconButton(
+                            icon: magicIcon,
+                            onPressed: () {
+                              _pulseCtrl.stop();
+                              _hideOverlay();
+                              _openDialog();
+                            },
+                            iconSize: 36,
+                          ),
+                        )
+                        : IconButton(
+                          icon: magicIcon,
+                          onPressed: _openDialog,
+                          iconSize: 36,
+                        ),
+              ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -465,28 +509,27 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
 
+      // Получаем актуальные данные из локального хранилища
       final localResumes = apiService.getLocalResumes();
-      final updatedResume = localResumes.firstWhere(
-            (r) => r['id'] == widget.resume['id'],
-        orElse: () => widget.resume,
-      );
+      final index = localResumes.indexWhere((r) => r['id'] == widget.resume['id']);
 
-      if (mounted) {
-        setState(() {
-          widget.resume.clear();
-          widget.resume.addAll(updatedResume);
-        });
+      if (index != -1) {
+        // Сохраняем изменения в виджете
+        if (mounted) {
+          setState(() {
+            widget.resume.clear();
+            widget.resume.addAll(localResumes[index]);
+          });
+        }
       }
-      return;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Не удалось обновить резюме: ${e.toString()}')),
+          SnackBar(content: Text('Не удалось обновить данные: ${e.toString()}')),
         );
       }
     }
   }
-
 
   String _extractFullName(String? raw) {
     if (raw == null || raw.trim().isEmpty) return 'Не указано';
@@ -499,11 +542,12 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     }
   }
 
-
-
   Widget _buildSection({
     required String title,
-    required String content,
+    // required String content,
+    String? content,
+    Widget? contentWidget,
+
     required bool hasCheck,
     Widget? targetPage,
   }) {
@@ -528,16 +572,18 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
-                      color: Colors.black,
-                      height: 1.0,
-                    ),
-                  ),
+                  contentWidget ??
+                      Text(
+                        content ?? 'Не указано',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
+                          fontFamily: 'NotoSansVariable',
+                          color: Colors.black,
+                          height: 1.0,
+                        ),
+                      ),
+
                   const SizedBox(height: 12),
                 ],
               ),
@@ -546,43 +592,44 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child:
-              widget.showOnboarding &&
-                  title.contains('ФИО') &&
-                  _isSecondStep
-                  ? ScaleTransition(
-                scale: _namePulseAnim,
-                child: IconButton(
-                  key: forwardIconWBgKey,
-                  onPressed: () {
-                    _namePulseCtrl.stop();
-                    if (targetPage != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => targetPage),
-                      );
-                    }
-                  },
-                  icon: forwardIconWBg,
-                ),
-              )
-                  : IconButton(
-                onPressed:
-                targetPage != null
-                    ? () {
-                  if (!widget.showOnboarding ||
-                      (title.contains('ФИО') &&
-                          _isSecondStep)) { // тут с условием хуйня с 6 шагом
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => targetPage,
+                  widget.showOnboarding &&
+                          title.contains('ФИО') &&
+                          _isSecondStep
+                      ? ScaleTransition(
+                        scale: _namePulseAnim,
+                        child: IconButton(
+                          key: forwardIconWBgKey,
+                          onPressed: () {
+                            _namePulseCtrl.stop();
+                            if (targetPage != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => targetPage),
+                              );
+                            }
+                          },
+                          icon: forwardIconWBg,
+                        ),
+                      )
+                      : IconButton(
+                        onPressed:
+                            targetPage != null
+                                ? () {
+                                  if (!widget.showOnboarding ||
+                                      (title.contains('ФИО') &&
+                                          _isSecondStep)) {
+                                    // тут с условием хуйня с 6 шагом
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => targetPage,
+                                      ),
+                                    );
+                                  }
+                                }
+                                : null,
+                        icon: forwardIconWBg,
                       ),
-                    );
-                  }
-                }
-                    : null,
-                icon: forwardIconWBg,
-              ),
             ),
           ],
         ),
@@ -602,7 +649,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
   Widget _buildExperienceSection() {
     final experienceData = _parseExperience(widget.resume['experience'] ?? '');
-    final totalExperience = _calculateTotalExperience(experienceData);
+    // final totalExperience = _calculateTotalExperience(experienceData);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +661,9 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             children: [
               Expanded(
                 child: Text(
-                  'Опыт работы${totalExperience.isNotEmpty ? ' • $totalExperience' : ''}',
+                  experienceSummary != null
+                      ? '$experienceSummary'
+                      : 'Опыт работы',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -636,20 +685,28 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         Padding(
           padding: const EdgeInsets.only(left: 0, top: 0, bottom: 0),
           child: TextButton.icon(
-            onPressed: widget.showOnboarding ? () {} : () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => WorkExperiencePage(data: List.filled(6, '')),
-                  ));
-            },
+            onPressed:
+                widget.showOnboarding
+                    ? () {}
+                    : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => WorkExperiencePage(
+                            data: List.filled(6, ''),
+                            resumeId: widget.resume['id'],
+                            onResumeChange: _updateResumeData,
+                          ),
+                        ),
+                      );
+                    },
             icon: addIconCircle,
             label: Text(
               'Добавить опыт работы',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w300,
-                fontFamily: 'NotoSans',
+                fontFamily: 'NotoSansBengali',
                 color: midnightPurple,
                 height: 1.0,
               ),
@@ -662,11 +719,66 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
+  Widget _buildContactsRichText(String? contacts) {
+    if (contacts == null || contacts.trim().isEmpty) {
+      return const Text('Не указано');
+    }
+
+    final parsed = _parseContacts(contacts);
+    final phone = parsed[0];
+    final email = parsed[1];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (phone.isNotEmpty)
+          Text(
+            '· Телефон: $phone',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w300,
+              fontFamily: 'NotoSansVariable',
+              color: Colors.black,
+              height: 1.0,
+            ),
+          ),
+        if (phone.isNotEmpty && email.isNotEmpty)
+          const SizedBox(height: 4), // ← вот тут интервал между ними
+        if (email.isNotEmpty)
+          RichText(
+            text: TextSpan(
+              text: '· Email: ',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                fontFamily: 'NotoSansVariable',
+                color: Colors.black,
+                height: 1.0,
+              ),
+              children: [
+                TextSpan(
+                  text: email,
+                  style: const TextStyle(
+                    decoration: TextDecoration.underline,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+
+
   Widget _buildExperienceCard(Map<String, String> experience) {
     final company = experience['company'] ?? '';
     final position = experience['position'] ?? '';
-    final period = _formatPeriod(experience['startDate'], experience['endDate']);
-    final duration = _calculateDuration(experience['startDate'], experience['endDate']);
+    // final period = _formatPeriod(experience['startDate'], experience['endDate']);
+    // final duration = _calculateDuration(experience['startDate'], experience['endDate']);
+    final period = experience['period'] ?? '';
+    final duration = experience['duration'] ?? '';
 
     return Column(
       children: [
@@ -678,76 +790,93 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  // Always show all 4 lines, even if some fields are empty
+
                   Text(
                     company.isNotEmpty ? company : 'Название компании',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: company.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
-                      fontStyle: company.isEmpty ? FontStyle.italic : FontStyle.normal,
+                      fontStyle:
+                          company.isEmpty ? FontStyle.italic : FontStyle.normal,
                     ),
                   ),
                   const SizedBox(height: 4),
+
                   Text(
                     position.isNotEmpty ? position : 'Название должности',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: position.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
-                      fontStyle: position.isEmpty ? FontStyle.italic : FontStyle.normal,
+                      fontStyle:
+                          position.isEmpty
+                              ? FontStyle.italic
+                              : FontStyle.normal,
                     ),
                   ),
                   const SizedBox(height: 4),
+
                   Text(
                     period.isNotEmpty ? period : 'Период работы не указан',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: period.isNotEmpty ? mediumGray : lightGray,
                       height: 1.0,
                     ),
                   ),
                   const SizedBox(height: 4),
+
                   Text(
                     duration.isNotEmpty ? duration : 'Срок не указан',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: duration.isNotEmpty ? mediumGray : lightGray,
                       height: 1.0,
                     ),
                   ),
-                  SizedBox(height: 10,),
+
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: widget.showOnboarding ? () {} : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => WorkExperiencePage(
-                        data: [
-                          experience['startDate'] ?? '',
-                          experience['endDate'] ?? '',
-                          experience['company'] ?? '',
-                          experience['position'] ?? '',
-                          experience['duties'] ?? '',
-                          (experience['isCurrent'] ?? 'false') == 'true' ? 'true' : 'false',
-                        ],
-                      ),
-                    ),
-                  );
-                },
+                onPressed:
+                    widget.showOnboarding
+                        ? () {}
+                        : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => WorkExperiencePage(
+                                data: [
+                                  experience['startDate'] ?? '',
+                                  experience['endDate'] ?? '',
+                                  experience['company'] ?? '',
+                                  experience['position'] ?? '',
+                                  experience['duties'] ?? '',
+                                  (experience['endDate']
+                                      ?.toLowerCase()
+                                      .contains('настоящее') ??
+                                      false)
+                                      .toString(),
+                                ],
+                                resumeId: widget.resume['id'],
+                                onResumeChange: _updateResumeData,
+                              ),
+                            ),
+                          );
+                        },
                 icon: forwardIconWBg,
               ),
             ),
@@ -758,120 +887,169 @@ class _ResumeViewPageState extends State<ResumeViewPage>
   }
 
   List<Map<String, String>> _parseExperience(String raw) {
-    if (raw.trim().isEmpty) return [];
-
+    final lines = raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
     final List<Map<String, String>> result = [];
-    final entries = raw.split('\n\n'); // Разделяем по пустым строкам
+    final dateRegex = RegExp(r'^[А-Яа-я]+\s\d{4}\s[—-]\s(настоящее время|[А-Яа-я]+\s\d{4})$');
+    final durationRegex = RegExp(r'^\d+\s(год|года|лет|\d+\sмесяц|месяца|месяцев)$');
+    final skipMetaRegex = RegExp(r'(Санкт-Петербург|\.ru|интеграция|интернет|технологии|отрасль)', caseSensitive: false);
 
-    for (var entry in entries) {
-      final lines = entry.split('\n').where((line) => line.trim().isNotEmpty).toList();
-      if (lines.isEmpty) continue;
+    Map<String, String> current = {};
+    List<String> dutiesBuffer = [];
+    int i = 0;
 
-      final experience = <String, String>{};
+    while (i < lines.length) {
+      final line = lines[i];
 
-      // Парсим даты (первые две строки могут быть датами)
-      int index = 0;
-      if (lines.length > index && _isDate(lines[index])) {
-        experience['startDate'] = lines[index];
-        index++;
+      // Начало нового блока (дата или пустая строка)
+      if (dateRegex.hasMatch(line) || (current.isNotEmpty && line.isEmpty)) {
+        if (current.isNotEmpty && (current['company']?.isNotEmpty ?? false)) {
+          current['duties'] = dutiesBuffer.join('\n').trim();
+          result.add(current);
+          dutiesBuffer = [];
+          current = {};
+        }
+
+        if (dateRegex.hasMatch(line)) {
+          final parts = line.split(RegExp(r'\s[—-]\s'));
+          current['startDate'] = parts[0];
+          current['endDate'] = parts[1];
+          current['period'] = line;
+        }
+        i++;
+        continue;
       }
-      if (lines.length > index && _isDate(lines[index])) {
-        experience['endDate'] = lines[index];
-        index++;
-      } else if (index > 0) {
-        experience['endDate'] = '';
-        experience['isCurrent'] = 'true';
+
+      // Пропустить строку с длительностью
+      if (durationRegex.hasMatch(line) || RegExp(r'\d+\sгод.*').hasMatch(line)) {
+        current['duration'] = line;
+        i++;
+        continue;
       }
 
-      // Остальные данные
-      if (lines.length > index) experience['company'] = lines[index++];
-      if (lines.length > index) experience['position'] = lines[index++];
-      if (lines.length > index) experience['duties'] = lines.skip(index).join('\n');
+      // Название компании
+      if (current['company'] == null && line.isNotEmpty) {
+        current['company'] = line;
+        i++;
+        continue;
+      }
 
-      result.add(experience);
+      // Пропустить мета-описание (город, сайт, отрасль)
+      if (skipMetaRegex.hasMatch(line)) {
+        i++;
+        continue;
+      }
+
+      // Должность - пропускаем строки, начинающиеся с маркера "•"
+      if (current['position'] == null && line.isNotEmpty && !line.startsWith('•')) {
+        current['position'] = line;
+        i++;
+        continue;
+      } else if (current['position'] == null && line.startsWith('•')) {
+        // если сразу пошли обязанности - оставим должность пустой, но начнем копить duties
+        dutiesBuffer.add(line);
+        i++;
+        continue;
+      }
+
+      // Остальное - обязанности
+      dutiesBuffer.add(line);
+      i++;
+    }
+
+    // Добавляем последний блок, если он есть
+    if (current.isNotEmpty || dutiesBuffer.isNotEmpty) {
+      current['duties'] = dutiesBuffer.join('\n').trim();
+      result.add(current);
     }
 
     return result;
   }
 
-  String _calculateTotalExperience(List<Map<String, String>> experiences) {
-    if (experiences.isEmpty) return '';
+  // String _calculateTotalExperience(List<Map<String, String>> experiences) {
+  //   if (experiences.isEmpty) return '';
+  //
+  //   int totalMonths = 0;
+  //   final now = DateTime.now();
+  //
+  //   for (var exp in experiences) {
+  //     final startDate = _parseDate(exp['startDate'] ?? '');
+  //     if (startDate == null) continue;
+  //
+  //     DateTime? endDate;
+  //     if (exp['isCurrent'] == 'true') {
+  //       endDate = now;
+  //     } else {
+  //       endDate = _parseDate(exp['endDate'] ?? '');
+  //     }
+  //
+  //     if (endDate == null) continue;
+  //
+  //     final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
+  //     totalMonths += months;
+  //   }
+  //
+  //   if (totalMonths == 0) return '';
+  //
+  //   final years = totalMonths ~/ 12;
+  //   final months = totalMonths % 12;
+  //
+  //   if (years > 0 && months > 0) {
+  //     return '$years ${_getYearWord(years)} $months ${_getMonthWord(months)}';
+  //   } else if (years > 0) {
+  //     return '$years ${_getYearWord(years)}';
+  //   } else {
+  //     return '$months ${_getMonthWord(months)}';
+  //   }
+  // }
 
-    int totalMonths = 0;
-    final now = DateTime.now();
-
-    for (var exp in experiences) {
-      final startDate = _parseDate(exp['startDate'] ?? '');
-      if (startDate == null) continue;
-
-      DateTime? endDate;
-      if (exp['isCurrent'] == 'true') {
-        endDate = now;
-      } else {
-        endDate = _parseDate(exp['endDate'] ?? '');
-      }
-
-      if (endDate == null) continue;
-
-      final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
-      totalMonths += months;
-    }
-
-    if (totalMonths == 0) return '';
-
-    final years = totalMonths ~/ 12;
-    final months = totalMonths % 12;
-
-    if (years > 0 && months > 0) {
-      return '$years ${_getYearWord(years)} $months ${_getMonthWord(months)}';
-    } else if (years > 0) {
-      return '$years ${_getYearWord(years)}';
-    } else {
-      return '$months ${_getMonthWord(months)}';
-    }
-  }
-
+  // String _formatPeriod(String? start, String? end) {
+  //   if (start == null || start.isEmpty) return '';
+  //
+  //   final startDate = _parseDate(start);
+  //   if (startDate == null) return '';
+  //
+  //   final formattedStart = '${_getMonthName(startDate.month)} ${startDate.year}';
+  //
+  //   if (end == null || end.isEmpty) {
+  //     return 'с $formattedStart по настоящее время';
+  //   }
+  //
+  //   final endDate = _parseDate(end);
+  //   if (endDate == null) return 'с $formattedStart';
+  //
+  //   return 'с $formattedStart по ${_getMonthName(endDate.month)} ${endDate.year}';
+  // }
   String _formatPeriod(String? start, String? end) {
     if (start == null || start.isEmpty) return '';
-
-    final startDate = _parseDate(start);
-    if (startDate == null) return '';
-
-    final formattedStart = '${_getMonthName(startDate.month)} ${startDate.year}';
-
-    if (end == null || end.isEmpty) {
-      return 'с $formattedStart по настоящее время';
+    if (end == null || end.isEmpty || end.toLowerCase().contains('настоящее')) {
+      return 'с $start по настоящее время';
     }
-
-    final endDate = _parseDate(end);
-    if (endDate == null) return 'с $formattedStart';
-
-    return 'с $formattedStart по ${_getMonthName(endDate.month)} ${endDate.year}';
+    return 'с $start по $end';
   }
 
-  String _calculateDuration(String? start, String? end) {
-    if (start == null || start.isEmpty) return '';
-
-    final startDate = _parseDate(start);
-    if (startDate == null) return '';
-
-    final endDate = end?.isEmpty ?? true ? DateTime.now() : _parseDate(end!);
-    if (endDate == null) return '';
-
-    final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
-    if (months <= 0) return '';
-
-    final years = months ~/ 12;
-    final remainingMonths = months % 12;
-
-    if (years > 0 && remainingMonths > 0) {
-      return '$years ${_getYearWord(years)} $remainingMonths ${_getMonthWord(remainingMonths)}';
-    } else if (years > 0) {
-      return '$years ${_getYearWord(years)}';
-    } else {
-      return '$remainingMonths ${_getMonthWord(remainingMonths)}';
-    }
-  }
+  // String _calculateDuration(String? start, String? end) {
+  //   if (start == null || start.isEmpty) return '';
+  //
+  //   final startDate = _parseDate(start);
+  //   if (startDate == null) return '';
+  //
+  //   final endDate = end?.isEmpty ?? true ? DateTime.now() : _parseDate(end!);
+  //   if (endDate == null) return '';
+  //
+  //   final months = (endDate.year - startDate.year) * 12 + endDate.month - startDate.month;
+  //   if (months <= 0) return '';
+  //
+  //   final years = months ~/ 12;
+  //   final remainingMonths = months % 12;
+  //
+  //   if (years > 0 && remainingMonths > 0) {
+  //     return '$years ${_getYearWord(years)} $remainingMonths ${_getMonthWord(remainingMonths)}';
+  //   } else if (years > 0) {
+  //     return '$years ${_getYearWord(years)}';
+  //   } else {
+  //     return '$remainingMonths ${_getMonthWord(remainingMonths)}';
+  //   }
+  // }
 
   DateTime? _parseDate(String dateStr) {
     final parts = dateStr.split('.');
@@ -889,35 +1067,45 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
   String _getMonthName(int month) {
     const months = [
-      'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+      'Январь',
+      'Февраль',
+      'Март',
+      'Апрель',
+      'Май',
+      'Июнь',
+      'Июль',
+      'Август',
+      'Сентябрь',
+      'Октябрь',
+      'Ноябрь',
+      'Декабрь',
     ];
     return months[month - 1];
   }
 
-  String _getYearWord(int years) {
-    if (years % 100 >= 11 && years % 100 <= 14) return 'лет';
+  // String _getYearWord(int years) {
+  //   if (years % 100 >= 11 && years % 100 <= 14) return 'лет';
+  //
+  //   switch (years % 10) {
+  //     case 1: return 'год';
+  //     case 2:
+  //     case 3:
+  //     case 4: return 'года';
+  //     default: return 'лет';
+  //   }
+  // }
 
-    switch (years % 10) {
-      case 1: return 'год';
-      case 2:
-      case 3:
-      case 4: return 'года';
-      default: return 'лет';
-    }
-  }
-
-  String _getMonthWord(int months) {
-    if (months % 100 >= 11 && months % 100 <= 14) return 'месяцев';
-
-    switch (months % 10) {
-      case 1: return 'месяц';
-      case 2:
-      case 3:
-      case 4: return 'месяца';
-      default: return 'месяцев';
-    }
-  }
+  // String _getMonthWord(int months) {
+  //   if (months % 100 >= 11 && months % 100 <= 14) return 'месяцев';
+  //
+  //   switch (months % 10) {
+  //     case 1: return 'месяц';
+  //     case 2:
+  //     case 3:
+  //     case 4: return 'месяца';
+  //     default: return 'месяцев';
+  //   }
+  // }
 
   String _formatContacts(String? contacts) {
     if (contacts == null || contacts.trim().isEmpty) return 'Не указано';
@@ -926,10 +1114,17 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     final phone = parsed[0];
     final email = parsed[1];
 
-    return [
-      if (phone.isNotEmpty) phone,
-      if (email.isNotEmpty) email,
-    ].join('\n');
+    final List<String> parts = [];
+
+    if (phone.isNotEmpty) {
+      parts.add('· Телефон: $phone');
+    }
+
+    if (email.isNotEmpty) {
+      parts.add('· Email: $email');
+    }
+
+    return parts.join('\n');
   }
 
   Widget _buildSkillsSection() {
@@ -965,7 +1160,7 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w300,
-                        fontFamily: 'NotoSans',
+                        fontFamily: 'NotoSansBengali',
                         color: Colors.black,
                         height: 1.0,
                       ),
@@ -974,25 +1169,30 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: skills
-                          .map((s) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 8),
-                        decoration: BoxDecoration(
-                          color: lightGray,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          s,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                            fontFamily: 'NotoSans',
-                            height: 1.0,
-                          ),
-                        ),
-                      ))
-                          .toList(),
+                      children:
+                          skills
+                              .map(
+                                (s) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                    horizontal: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: lightGray,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    s,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      fontFamily: 'NotoSansBengali',
+                                      height: 1.0,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
                     ),
                   const SizedBox(height: 12),
                 ],
@@ -1001,15 +1201,27 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: widget.showOnboarding ? () {} : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          KeySkillsPage(data: rawSkills ?? ''),
-                    ),
-                  );
-                },
+                onPressed:
+                    widget.showOnboarding
+                        ? () {}
+                        : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => KeySkillsPage(
+                                    data: rawSkills ?? '',
+                                    resumeId: widget.resume['id'],
+                                    onResumeChange: () {
+                                      _updateResumeData();
+                                      setState(() {
+                                        _hasResumeChanged = true;
+                                      });
+                                    },
+                                  ),
+                            ),
+                          );
+                        },
                 icon: forwardIconWBg,
               ),
             ),
@@ -1019,8 +1231,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
       ],
     );
   }
-
-
 
   List<String> _parseSkills(String? raw) {
     if (raw == null || raw.trim().isEmpty) return [];
@@ -1048,10 +1258,12 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
       // Разделяем по запятой или точке с запятой
       if (trimmedLine.contains(',') || trimmedLine.contains(';')) {
-        skills.addAll(trimmedLine
-            .split(RegExp(r'[;,]'))
-            .map((e) => e.trim().replaceAll(RegExp(r'\.$'), ''))
-            .where((e) => e.isNotEmpty));
+        skills.addAll(
+          trimmedLine
+              .split(RegExp(r'[;,]'))
+              .map((e) => e.trim().replaceAll(RegExp(r'\.$'), ''))
+              .where((e) => e.isNotEmpty),
+        );
       } else {
         // Один навык без разделителей
         skills.add(trimmedLine.replaceAll(RegExp(r'\.$'), ''));
@@ -1060,8 +1272,6 @@ class _ResumeViewPageState extends State<ResumeViewPage>
 
     return skills;
   }
-
-
 
   String _formatAboutMe(String? about) {
     if (about == null || about.trim().isEmpty) return 'Не указано';
@@ -1098,21 +1308,28 @@ class _ResumeViewPageState extends State<ResumeViewPage>
         Padding(
           padding: const EdgeInsets.only(left: 0, top: 0, bottom: 0),
           child: TextButton.icon(
-            onPressed: widget.showOnboarding ? () {} : () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => EducationPage(data: List.filled(5, '')),
-                ),
-              );
-            },
+            onPressed:
+                widget.showOnboarding
+                    ? () {}
+                    : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EducationPage(
+                            data: List.filled(3, ''),
+                            resumeId: widget.resume['id'],
+                            onResumeChange: _updateResumeData,
+                          ),
+                        ),
+                      );
+                    },
             icon: addIconCircle,
             label: Text(
               'Добавить учебное заведение',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w300,
-                fontFamily: 'NotoSans',
+                fontFamily: 'NotoSansBengali',
                 color: midnightPurple,
                 height: 1.0,
               ),
@@ -1139,23 +1356,28 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    institution.isNotEmpty ? institution : 'Название учебного заведения',
+                    institution.isNotEmpty
+                        ? institution
+                        : 'Название учебного заведения',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontFamily: 'NotoSansBengali',
                       color: institution.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    specialization.isNotEmpty ? specialization : 'Специализация не указана',
+                    specialization.isNotEmpty
+                        ? specialization
+                        : 'Специализация не указана',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
-                      color: specialization.isNotEmpty ? Colors.black : mediumGray,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: 'NotoSansBengali',
+                      color:
+                          specialization.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
                   ),
@@ -1164,8 +1386,8 @@ class _ResumeViewPageState extends State<ResumeViewPage>
                     years.isNotEmpty ? years : 'Годы обучения не указаны',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      fontFamily: 'NotoSans',
+                      fontWeight: FontWeight.w400,
+                      fontFamily: 'NotoSansBengali',
                       color: years.isNotEmpty ? Colors.black : mediumGray,
                       height: 1.0,
                     ),
@@ -1177,14 +1399,21 @@ class _ResumeViewPageState extends State<ResumeViewPage>
             Expanded(
               flex: 1,
               child: IconButton(
-                onPressed: widget.showOnboarding ? () {} : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EducationPage(data: education),
-                    ),
-                  );
-                },
+                onPressed:
+                    widget.showOnboarding
+                        ? () {}
+                        : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EducationPage(
+                                data: education.isEmpty ? List.filled(3, '') : education,
+                                resumeId: widget.resume['id'],
+                                onResumeChange: _updateResumeData,
+                              ),
+                            ),
+                          );
+                        },
                 icon: forwardIconWBg,
               ),
             ),
@@ -1194,122 +1423,41 @@ class _ResumeViewPageState extends State<ResumeViewPage>
     );
   }
 
-
   List<List<String>> _parseEducation(String raw) {
     if (raw.trim().isEmpty) return [];
 
     final result = <List<String>>[];
 
-    final entries = raw
-        .split(RegExp(r'(\n{2,}|;+|\|{2,})'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+    // Разбиваем на блоки по двойному переводу строки (если несколько образований)
+    final blocks =
+        raw
+            .split(
+              RegExp(r'\n{2,}'),
+            ) // если будет несколько образований через \n\n
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
 
-    for (final entry in entries) {
-      print('\n=== Новый блок ===');
-      print(entry);
+    for (final block in blocks) {
+      final lines =
+          block
+              .split('\n')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList();
 
-      final lines = entry
-          .split(RegExp(r'[\n;|,]+'))
-          .map((line) => line.trim())
-          .where((line) => line.isNotEmpty)
-          .toList();
+      final institution = lines.length > 0 ? lines[0] : 'Не указано';
+      final specialization = lines.length > 1 ? lines[1] : 'Не указано';
+      final years = lines.length > 2 ? lines[2] : 'Не указано';
 
-      print('→ Все строки внутри блока:');
-      for (var i = 0; i < lines.length; i++) {
-        print('  [$i]: ${lines[i]}');
-      }
-
-      String? institution;
-      String? specialization;
-      final years = <int>[];
-
-      for (final line in lines) {
-        final lower = line.toLowerCase();
-
-        // Годы
-        final yearMatches = RegExp(r'\b(19|20)\d{2}\b').allMatches(line);
-        for (final match in yearMatches) {
-          years.add(int.parse(match.group(0)!));
-        }
-
-        // ВУЗ
-        if (institution == null &&
-            RegExp(r'(университет|институт|академ|колледж)').hasMatch(lower)) {
-          institution = _cleanInstitution(line);
-          continue;
-        }
-
-        // Специализация — без цифр и без упоминания вуза или города
-        if (specialization == null &&
-            !RegExp(r'\d').hasMatch(line) &&
-            !RegExp(r'(университет|институт|академ|колледж|петербург|москва|новосибирск|россия)').hasMatch(lower)) {
-          specialization = line;
-          continue;
-        }
-      }
-
-      // Формат годов
-      String yearsFormatted = 'Не указано';
-      if (years.length >= 2) {
-        years.sort();
-        yearsFormatted = '${years.first}–${years.last}';
-      } else if (years.length == 1) {
-        final end = years.first;
-        final start = end - 4;
-        yearsFormatted = '$start–$end';
-      }
-
-      result.add([
-        institution ?? 'Не указано',
-        specialization ?? 'Не указано',
-        yearsFormatted,
-      ]);
+      result.add([institution, specialization, years]);
     }
 
     return result;
   }
-  String _cleanInstitution(String raw) {
-    return raw
-        .replaceAll(RegExp(r'образование', caseSensitive: false), '')
-        .replaceAll(RegExp(r'высшее', caseSensitive: false), '')
-        .replaceAll(RegExp(r'среднее', caseSensitive: false), '')
-        .replaceAll(RegExp(r'незаконченное', caseSensitive: false), '')
-        .replaceAll(RegExp(r'(19|20)\d{2}'), '')
-        .replaceAll(RegExp(r'[^а-яА-ЯёЁa-zA-Z0-9 ,\.\-()]'), '')
-        .trim();
-  }
 }
 
 // IconButton(onPressed: () {}, icon: Transform.rotate(angle: math.pi, child: backIconWBg,)),
-
-List<String> _parseExperienceData(String? raw) {
-  if (raw == null || raw.trim().isEmpty) return ['', '', '', '', '', 'false'];
-
-  final lines =
-  raw.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-
-  String start = lines.isNotEmpty && _isDate(lines[0]) ? lines[0] : '';
-  String end = lines.length > 1 && _isDate(lines[1]) ? lines[1] : '';
-  int index = (start.isNotEmpty ? 1 : 0) + (end.isNotEmpty ? 1 : 0);
-
-  final company = lines.length > index ? lines[index] : '';
-  final position = lines.length > index + 1 ? lines[index + 1] : '';
-  final duties = lines.length > index + 2 ? lines[index + 2] : '';
-  final isCurrent = 'false'; // всегда по умолчанию false
-
-  return [start, end, company, position, duties, isCurrent];
-}
-
-String _parseExperienceShort(String? raw) {
-  final data = _parseExperienceData(raw);
-  final start = data[0];
-  final end = data[1];
-  final company = data[2];
-  final position = data[3];
-  return '$company\n$position\n${start.isNotEmpty ? start : ''}${end.isNotEmpty ? ' — $end' : ' — настоящее время'}';
-}
 
 bool _isDate(String str) {
   final regex = RegExp(r'^\d{1,2}\.\d{1,2}\.\d{4}$');
@@ -1359,7 +1507,7 @@ String _formatPhone(String rawPhone) {
 String _formatEducation(String? raw) {
   if (raw == null || raw.trim().isEmpty) return 'Не указано';
   final lines =
-  raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
+      raw.split('\n').where((line) => line.trim().isNotEmpty).toList();
 
   String institution = lines.isNotEmpty ? lines[0] : '';
   String specialization = lines.length > 2 ? lines[2] : '';
@@ -1374,9 +1522,7 @@ String _formatEducation(String? raw) {
   ].where((s) => s.trim().isNotEmpty).join(', ');
 }
 
-
 String _extractYear(String input) {
   final match = RegExp(r'\b(19|20)\d{2}\b').firstMatch(input);
   return match?.group(0) ?? '';
 }
-

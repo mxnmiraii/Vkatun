@@ -10,23 +10,26 @@ class CheckWidget extends StatefulWidget {
   final Map<String, dynamic> resume;
   final List<Issue> issues;
   final VoidCallback? onResumeChange;
+  final bool isStructure;
+  final bool isEmptyError;
 
-  const CheckWidget(
-      {
-        super.key,
-        required this.availableHeight,
-        required this.onClose,
-        required this.resume,
-        required this.issues,
-        this.onResumeChange,
-      }
-      );
+  const CheckWidget({
+    super.key,
+    required this.availableHeight,
+    required this.onClose,
+    required this.resume,
+    required this.issues,
+    this.onResumeChange,
+    required this.isStructure,
+    required this.isEmptyError,
+  });
 
   @override
   State<CheckWidget> createState() => _CheckWidgetState();
 }
 
-class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin {
+class _CheckWidgetState extends State<CheckWidget>
+    with TickerProviderStateMixin {
   int? expandedIndex;
 
   @override
@@ -49,45 +52,50 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
             width: widthBorderRadius,
           ),
         ),
-        clipBehavior: Clip.hardEdge, // вот так ты обрезаешь всё по скруглениям контейнера!
+        clipBehavior: Clip.hardEdge,
         child: Column(
           children: [
             Expanded(
               child: SingleChildScrollView(
-                physics: expandedIndex != null
-                    ? const NeverScrollableScrollPhysics()
-                    : const BouncingScrollPhysics(),
+                physics:
+                    expandedIndex != null
+                        ? const NeverScrollableScrollPhysics()
+                        : const BouncingScrollPhysics(),
                 child: Column(
                   children: List.generate(widget.issues.length, (index) {
                     bool isExpanded = expandedIndex == index;
-                    bool isHidden = expandedIndex != null && expandedIndex != index;
+                    bool isHidden =
+                        expandedIndex != null && expandedIndex != index;
 
                     return AnimatedSize(
                       duration: const Duration(milliseconds: timeShowAnimation),
                       curve: Curves.easeInOut,
-                      child: isHidden
-                          ? const SizedBox.shrink()
-                          : IssueCard(
-                        issue: widget.issues[index],
-                        isExpanded: isExpanded,
-                        onToggle: () {
-                          setState(() {
-                            expandedIndex = isExpanded ? null : index;
-                          });
-                        },
-                        availableHeight: widget.availableHeight,
-                        onClose: widget.onClose,
-                        resume: widget.resume,
-                        onResumeChange: widget.onResumeChange,
-                      ),
+                      child:
+                          isHidden
+                              ? const SizedBox.shrink()
+                              : IssueCard(
+                                issue: widget.issues[index],
+                                isExpanded: isExpanded,
+                                onToggle: () {
+                                  setState(() {
+                                    expandedIndex = isExpanded ? null : index;
+                                  });
+                                },
+                                availableHeight: widget.availableHeight,
+                                onClose: widget.onClose,
+                                resume: widget.resume,
+                                onResumeChange: widget.onResumeChange,
+                                isStructure: widget.isStructure,
+                                isEmptyError: widget.isEmptyError,
+                              ),
                     );
                   }),
                 ),
               ),
             ),
-            if (expandedIndex == null)
+            if (expandedIndex == null && !widget.isStructure)
               Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 16), // отступы сверху и снизу
+                padding: const EdgeInsets.only(top: 16, bottom: 16),
                 child: FractionallySizedBox(
                   widthFactor: 3 / 4,
                   child: ElevatedButton(
@@ -108,11 +116,13 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ApplyCorrections(
-                            originalResume: widget.resume,
-                            corrections: widget.issues,
-                            onResumeChange: widget.onResumeChange,
-                          ),
+                          builder:
+                              (context) => ApplyCorrections(
+                                originalResume: widget.resume,
+                                corrections: widget.issues,
+                                onResumeChange: widget.onResumeChange,
+                                isEmptyError: widget.isEmptyError,
+                              ),
                         ),
                       );
                     },
@@ -128,10 +138,10 @@ class _CheckWidgetState extends State<CheckWidget> with TickerProviderStateMixin
                     ),
                   ),
                 ),
-              )
+              ),
           ],
         ),
-      )
+      ),
     );
   }
 }
@@ -144,6 +154,8 @@ class IssueCard extends StatefulWidget {
   final VoidCallback onClose;
   final Map<String, dynamic> resume;
   final VoidCallback? onResumeChange;
+  final bool isStructure;
+  final bool isEmptyError;
 
   const IssueCard({
     super.key,
@@ -154,6 +166,8 @@ class IssueCard extends StatefulWidget {
     required this.onClose,
     required this.resume,
     required this.onResumeChange,
+    required this.isStructure,
+    required this.isEmptyError,
   });
 
   @override
@@ -172,12 +186,14 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: timeShowAnimation),
     );
-    _heightAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _descAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _heightAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _descAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -256,84 +272,108 @@ class _IssueCardState extends State<IssueCard> with TickerProviderStateMixin {
                 child: AnimatedOpacity(
                   opacity: _descAnimation.value,
                   duration: const Duration(milliseconds: timeShowAnimation),
-                  child: widget.isExpanded
-                      ? SizedBox(
-                    height: widget.availableHeight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.issue.description,
-                            style: textStyleDescription.copyWith(color: Colors.black),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Предложенный вариант исправления:',
-                            style: textStyleDescription,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.issue.suggestion,
-                            style: textStyleDescription.copyWith(color: Colors.green),
-                          ),
-                          const Spacer(),
-                          Center(
-                              child: FractionallySizedBox(
-                                widthFactor: 3 / 4,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    side: BorderSide(
-                                      color: midnightPurple.withOpacity(0.47),
-                                      width: widthBorderRadius,
+                  child:
+                      widget.isExpanded
+                          ? SizedBox(
+                            height: widget.availableHeight,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.issue.description,
+                                    style: textStyleDescription.copyWith(
+                                      color: Colors.black,
                                     ),
-                                    backgroundColor: veryPaleBlue,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(borderRadius),
-                                    ),
-                                    minimumSize: const Size(0, 40),
-                                    elevation: 0,
                                   ),
-                                  onPressed: () {
-                                    widget.onClose();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ApplyCorrections(
-                                          originalResume: widget.resume,
-                                          corrections: [widget.issue],
-                                          singleCorrection: widget.issue,
-                                          onResumeChange: widget.onResumeChange,
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Предложенный вариант исправления:',
+                                    style: textStyleDescription,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    widget.issue.suggestion,
+                                    style: textStyleDescription.copyWith(
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  if (!widget.isStructure || widget.issue.flag)
+                                    Center(
+                                      child: FractionallySizedBox(
+                                        widthFactor: 3 / 4,
+                                        child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            side: BorderSide(
+                                              color: midnightPurple.withOpacity(
+                                                0.47,
+                                              ),
+                                              width: widthBorderRadius,
+                                            ),
+                                            backgroundColor: veryPaleBlue,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                    borderRadius,
+                                                  ),
+                                            ),
+                                            minimumSize: const Size(0, 40),
+                                            elevation: 0,
+                                          ),
+                                          onPressed: () {
+                                            widget.onClose();
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (
+                                                      context,
+                                                    ) => ApplyCorrections(
+                                                      originalResume:
+                                                          widget.resume,
+                                                      corrections: [
+                                                        widget.issue,
+                                                      ],
+                                                      singleCorrection:
+                                                          widget.issue,
+                                                      onResumeChange:
+                                                          widget.onResumeChange,
+                                                      isEmptyError:
+                                                          widget.isEmptyError,
+                                                    ),
+                                              ),
+                                            ).then((correctedResume) {
+                                              if (correctedResume != null) {
+                                                print(
+                                                  'Исправленное резюме: $correctedResume',
+                                                );
+                                              }
+                                            });
+                                          },
+                                          child: Text(
+                                            'Внедрить',
+                                            style: TextStyle(
+                                              fontFamily: 'Playfair',
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.0,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
                                         ),
                                       ),
-                                    ).then((correctedResume) {
-                                      if (correctedResume != null) {
-                                        // Сохраняем исправленное резюме
-                                        print('Исправленное резюме: $correctedResume');
-                                        // endpoint 25.04.2025
-                                      }
-                                    });
-                                  },
-                                  child: Text(
-                                    'Внедрить',
-                                    style: TextStyle(
-                                      fontFamily: 'Playfair',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.0,
                                     ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              )
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                      : null,
+                                ],
+                              ),
+                            ),
+                          )
+                          : null,
                 ),
               ),
             ],
@@ -348,10 +388,12 @@ class Issue {
   final String errorText;
   final String suggestion;
   final String description;
+  final bool flag;
 
   const Issue({
     required this.errorText,
     required this.suggestion,
     required this.description,
+    this.flag = false,
   });
 }

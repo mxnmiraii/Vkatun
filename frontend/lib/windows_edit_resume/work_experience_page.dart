@@ -1,48 +1,44 @@
+// WorkExperiencePage.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class WorkExperiencePage extends StatefulWidget {
   final List<String> data;
-  const WorkExperiencePage({super.key, required this.data});
+  final int resumeId;
+  final VoidCallback onResumeChange;
+
+  const WorkExperiencePage({
+    super.key,
+    required this.data,
+    required this.resumeId,
+    required this.onResumeChange,
+  });
 
   @override
   State<WorkExperiencePage> createState() => _WorkExperiencePageState();
 }
 
 class _WorkExperiencePageState extends State<WorkExperiencePage> {
-
-  late TextEditingController _startDateController = TextEditingController();
-  late TextEditingController _endDateController = TextEditingController();
-  late TextEditingController _companyController = TextEditingController();
-  late TextEditingController _positionController = TextEditingController();
-  late TextEditingController _dutiesController = TextEditingController();
-  bool _currentlyWorking = false;
+  late TextEditingController _startDateController;
+  late TextEditingController _endDateController;
+  late TextEditingController _companyController;
+  late TextEditingController _positionController;
+  late TextEditingController _dutiesController;
 
   @override
   void initState() {
     super.initState();
-
     final data = widget.data;
 
-    _startDateController = TextEditingController(
-      text: data.isNotEmpty ? data[0] : '',
-    );
-    _endDateController = TextEditingController(
-      text: data.length > 1 ? data[1] : '',
-    );
-    _companyController = TextEditingController(
-      text: data.length > 2 ? data[2] : '',
-    );
-    _positionController = TextEditingController(
-      text: data.length > 3 ? data[3] : '',
-    );
-    _dutiesController = TextEditingController(
-      text: data.length > 4 ? data[4] : '',
-    );
-    _currentlyWorking = data.length > 5 ? data[5].toLowerCase() == 'true' : false;
+    _startDateController = TextEditingController(text: data.isNotEmpty ? data[0] : '');
+    _endDateController = TextEditingController(text: data.length > 1 ? data[1] : '');
+    _companyController = TextEditingController(text: data.length > 2 ? data[2] : '');
+    _positionController = TextEditingController(text: data.length > 3 ? data[3] : '');
+    _dutiesController = TextEditingController(text: data.length > 4 ? data[4] : '');
   }
 
   @override
@@ -60,19 +56,53 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
       _showError('Введите дату начала работы');
       return false;
     }
-
-    if (!_currentlyWorking && _endDateController.text.trim().isEmpty) {
+    if (_endDateController.text.trim().isEmpty) {
       _showError('Введите дату окончания работы');
       return false;
     }
-
     if (_companyController.text.trim().isEmpty) {
       _showError('Введите название компании');
       return false;
     }
-
     if (_positionController.text.trim().isEmpty) {
       _showError('Введите должность');
+      return false;
+    }
+
+    // Проверка названия компании
+    if (_companyController.text.trim().length > 100) {
+      _showError('Название компании должно быть не длиннее 100 символов');
+      return false;
+    }
+
+    // Проверка должности
+    if (_positionController.text.trim().length > 100) {
+      _showError('Название должности должно быть не длиннее 100 символов');
+      return false;
+    }
+
+    // Проверка описания обязанностей
+    if (_dutiesController.text.trim().length > 1000) {
+      _showError('Описание обязанностей должно быть не длиннее 1000 символов');
+      return false;
+    }
+
+    // Проверка формата дат
+    final monthYearRegex = RegExp(
+      r'^(январь|февраль|март|апрель|май|июнь|июль|август|сентябрь|октябрь|ноябрь|декабрь)\s\d{4}$',
+      caseSensitive: false,
+    );
+
+    final startDate = _startDateController.text.trim();
+    final endDate = _endDateController.text.trim();
+
+    if (!monthYearRegex.hasMatch(startDate)) {
+      _showError('Дата начала должна быть в формате "Название месяца год"');
+      return false;
+    }
+
+    if (!monthYearRegex.hasMatch(endDate) && endDate.toLowerCase() != 'по настоящее время') {
+      _showError('Дата окончания должна быть в формате "Январь 2021" или "по настоящее время"');
       return false;
     }
 
@@ -88,12 +118,130 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
     );
   }
 
+  Future<void> _saveExperience() async {
+    if (!_validateInputs()) return;
+
+    try {
+      final apiService = Provider.of<ApiService>(context, listen: false);
+
+      // Формируем новый блок опыта
+      final newExperienceBlock = '''
+${_startDateController.text} - ${_endDateController.text}
+${_calculateDuration(_startDateController.text, _endDateController.text)}
+${_companyController.text}
+${_positionController.text}
+${_dutiesController.text}
+'''.trim();
+
+      // Получаем текущий опыт
+      final currentResume = await apiService.getResumeById(widget.resumeId);
+      String currentExperience = currentResume['experience'] ?? '';
+
+      if (widget.data.isNotEmpty && widget.data[0].isNotEmpty) {
+        // Редактирование существующей записи - находим старый блок
+        final oldExperienceBlock = '''
+${widget.data[0]} - ${widget.data[1]}
+${_calculateDuration(widget.data[0], widget.data[1])}
+${widget.data[2]}
+${widget.data[3]}
+${widget.data.length > 4 ? widget.data[4] : ''}
+'''.trim();
+
+        // Заменяем только первое вхождение (на случай дублирования)
+        currentExperience = currentExperience.replaceFirst(oldExperienceBlock, newExperienceBlock);
+      } else {
+        // Новая запись - добавляем с разделителем
+        currentExperience = currentExperience.isEmpty
+            ? newExperienceBlock
+            : '$currentExperience\n\n$newExperienceBlock';
+      }
+
+      // Сохраняем
+      await apiService.editResumeSection(
+        id: widget.resumeId,
+        section: 'experience',
+        content: currentExperience,
+      );
+
+      // Обновляем родительский виджет
+      widget.onResumeChange();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  String _calculateDuration(String start, String end) {
+    try {
+      final startParts = start.split(' ');
+      final endParts = end.split(' ');
+
+      if (startParts.length != 2 || endParts.length != 2) return '';
+
+      final months = {
+        'январь': 1, 'февраль': 2, 'март': 3, 'апрель': 4,
+        'май': 5, 'июнь': 6, 'июль': 7, 'август': 8,
+        'сентябрь': 9, 'октябрь': 10, 'ноябрь': 11, 'декабрь': 12
+      };
+
+      final startMonth = months[startParts[0].toLowerCase()] ?? 1;
+      final startYear = int.tryParse(startParts[1]) ?? 0;
+      final endMonth = months[endParts[0].toLowerCase()] ?? 1;
+      final endYear = int.tryParse(endParts[1]) ?? 0;
+
+      if (startYear == 0 || endYear == 0) return '';
+
+      final totalMonths = (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
+
+      if (totalMonths <= 0) return '';
+
+      final years = totalMonths ~/ 12;
+      final monthsRemainder = totalMonths % 12;
+
+      if (years > 0 && monthsRemainder > 0) {
+        return '$years ${_getYearWord(years)} $monthsRemainder ${_getMonthWord(monthsRemainder)}';
+      } else if (years > 0) {
+        return '$years ${_getYearWord(years)}';
+      } else {
+        return '$monthsRemainder ${_getMonthWord(monthsRemainder)}';
+      }
+    } catch (e) {
+      return '';
+    }
+  }
+
+  String _getYearWord(int years) {
+    if (years % 100 >= 11 && years % 100 <= 14) return 'лет';
+
+    switch (years % 10) {
+      case 1: return 'год';
+      case 2:
+      case 3:
+      case 4: return 'года';
+      default: return 'лет';
+    }
+  }
+
+  String _getMonthWord(int months) {
+    if (months % 100 >= 11 && months % 100 <= 14) return 'месяцев';
+
+    switch (months % 10) {
+      case 1: return 'месяц';
+      case 2:
+      case 3:
+      case 4: return 'месяца';
+      default: return 'месяцев';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -140,7 +288,6 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
       ),
       body: Stack(
         children: [
-          // Градиент на фоне
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -185,20 +332,11 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
                     controller: _startDateController,
                   ),
                   const SizedBox(height: 16),
-
-                  if (_currentlyWorking) ...[
-                    _buildSwitchRow(),
-                    const SizedBox(height: 16),
-                  ] else ...[
-                    _buildTextField(
-                      label: 'Окончание',
-                      controller: _endDateController,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSwitchRow(),
-                    const SizedBox(height: 16),
-                  ],
-
+                  _buildTextField(
+                    label: 'Окончание',
+                    controller: _endDateController,
+                  ),
+                  const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Название компании',
                     controller: _companyController,
@@ -223,11 +361,7 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
         padding: const EdgeInsets.only(bottom: bottom35),
         child: IconButton(
           icon: darkerBiggerDoneIcon,
-          onPressed: () {
-            if (_validateInputs()) {
-              Navigator.pop(context);
-            }
-          },
+          onPressed: _saveExperience,
           padding: EdgeInsets.zero,
           splashRadius: 36,
         ),
@@ -239,7 +373,6 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
-    bool noUnderline = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,10 +386,12 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
             color: lavenderBlue,
           ),
         ),
-        TextField(
+        TextFormField(
           controller: controller,
+          keyboardType: TextInputType.multiline,
+          maxLines: null,
           style: const TextStyle(
-            fontFamily: "NotoSans",
+            fontFamily: "NotoSansBengali",
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: black,
@@ -264,65 +399,23 @@ class _WorkExperiencePageState extends State<WorkExperiencePage> {
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
-            border: noUnderline
-                ? InputBorder.none
-                : UnderlineInputBorder(
+            border: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
             ),
-            enabledBorder: noUnderline
-                ? InputBorder.none
-                : UnderlineInputBorder(
+            enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
             ),
-            focusedBorder: noUnderline
-                ? InputBorder.none
-                : UnderlineInputBorder(
+            focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(
                 color: lightDarkenLavender,
                 width: 2.5,
               ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSwitchRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'По настоящее время',
-          style: TextStyle(
-            fontFamily: 'Playfair',
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: lavenderBlue,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _currentlyWorking = !_currentlyWorking;
-              if (_currentlyWorking) _endDateController.clear();
-            });
-          },
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            transitionBuilder: (child, animation) =>
-                FadeTransition(opacity: animation, child: child),
-            child: SvgPicture.asset(
-              _currentlyWorking
-                  ? 'assets/images/toggle_on_icon.svg'
-                  : 'assets/images/toggle_off_icon.svg',
-              key: ValueKey(_currentlyWorking),
             ),
           ),
         ),

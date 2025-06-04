@@ -13,6 +13,7 @@ class ApplyCorrections extends StatefulWidget {
   final List<Issue> corrections;
   final Issue? singleCorrection;
   final VoidCallback? onResumeChange;
+  final bool isEmptyError;
 
   const ApplyCorrections({
     super.key,
@@ -20,6 +21,8 @@ class ApplyCorrections extends StatefulWidget {
     required this.corrections,
     this.singleCorrection,
     required this.onResumeChange,
+    required this.isEmptyError
+
   });
 
   @override
@@ -112,9 +115,10 @@ class _ApplyCorrectionsState extends State<ApplyCorrections> {
       if (value is String && value.contains(correction.errorText)) {
         _correctedResume[key] = value.replaceAll(
           correction.errorText,
-          correction.suggestion,
+          widget.isEmptyError ? '' : correction.suggestion,
         );
       }
+      print(correction.flag);
     });
   }
 

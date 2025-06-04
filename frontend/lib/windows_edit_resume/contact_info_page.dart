@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:provider/provider.dart';
+import 'package:vkatun/api_service.dart';
 import 'package:vkatun/design/colors.dart';
 import 'package:vkatun/design/dimensions.dart';
 import 'package:vkatun/design/images.dart';
 
 class ContactInfoPage extends StatefulWidget {
   final List<String> data;
-  const ContactInfoPage({super.key, required this.data});
+  final int resumeId;
+  final VoidCallback? onResumeChange;
+
+  const ContactInfoPage({
+    super.key,
+    required this.data,
+    required this.resumeId,
+    required this.onResumeChange,
+  });
 
   @override
   State<ContactInfoPage> createState() => _ContactInfoPageState();
@@ -41,12 +51,43 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
     super.dispose();
   }
 
+  Future<void> _saveChanges() async {
+    final newPhone = _phoneController.text.trim();
+    final newEmail = _emailController.text.trim();
+    final currentPhone = widget.data.isNotEmpty ? widget.data[0] : '';
+    final currentEmail = widget.data.length > 1 ? widget.data[1] : '';
+
+    // Проверяем, были ли изменения
+    if (newPhone != currentPhone || newEmail != currentEmail) {
+      try {
+        final apiService = Provider.of<ApiService>(context, listen: false);
+
+        // Обновляем контактные данные
+        await apiService.editResumeSection(
+          id: widget.resumeId,
+          section: 'contacts',
+          content: '$newPhone\n$newEmail',
+        );
+
+        // Возвращаем новые данные
+        Navigator.pop(context, [newPhone, newEmail]);
+        widget.onResumeChange?.call();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка сохранения: ${e.toString()}')),
+        );
+      }
+    } else {
+      // Если изменений не было, просто закрываем страницу
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final appBarHeight = screenHeight * 0.1;
     final screenWidth = MediaQuery.of(context).size.width;
-    final space = screenWidth * 0.05;
 
     return Scaffold(
       extendBody: true,
@@ -160,10 +201,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
         child: SizedBox(
           child: IconButton(
             icon: darkerBiggerDoneIcon,
-            onPressed: () {
-              // ОБРАЩЕНИЕ К БД И ИЗМЕНЕНИЕ
-              Navigator.pop(context);
-            },
+            onPressed: _saveChanges,
             padding: EdgeInsets.zero,
             splashRadius: 36,
           ),
@@ -198,7 +236,7 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           inputFormatters: inputFormatters,
           keyboardType: keyboardType,
           style: const TextStyle(
-            fontFamily: "NotoSans",
+            fontFamily: "NotoSansBengali",
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: black,
@@ -206,33 +244,30 @@ class _ContactInfoPageState extends State<ContactInfoPage> {
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.only(top: 7, bottom: 14),
-            border:
-                index != length - 1
-                    ? UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: lightDarkenLavender,
-                        width: 2.5,
-                      ),
-                    )
-                    : InputBorder.none,
-            enabledBorder:
-                index != 2
-                    ? UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: lightDarkenLavender,
-                        width: 2.5,
-                      ),
-                    )
-                    : InputBorder.none,
-            focusedBorder:
-                index != 2
-                    ? UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: lightDarkenLavender,
-                        width: 2.5,
-                      ),
-                    )
-                    : InputBorder.none,
+            border: index != length - 1
+                ? UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
+              ),
+            )
+                : InputBorder.none,
+            enabledBorder: index != 2
+                ? UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
+              ),
+            )
+                : InputBorder.none,
+            focusedBorder: index != 2
+                ? UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: lightDarkenLavender,
+                width: 2.5,
+              ),
+            )
+                : InputBorder.none,
           ),
         ),
       ],
